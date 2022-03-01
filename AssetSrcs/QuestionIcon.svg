@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg1701"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   sodipodi:docname="QuestionIcon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1703"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:object-paths="true"
+     inkscape:snap-intersection-paths="true"
+     inkscape:snap-midpoints="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-center="true"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:snap-global="true"
+     inkscape:zoom="0.73228114"
+     inkscape:cx="578.32979"
+     inkscape:cy="272.43635"
+     inkscape:window-width="2560"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <sodipodi:guide
+       position="75.875904,179.93431"
+       orientation="1,0"
+       id="guide1938" />
+    <sodipodi:guide
+       position="109.4781,179.93431"
+       orientation="1,0"
+       id="guide1940" />
+    <sodipodi:guide
+       position="96.470795,200.52921"
+       orientation="0,-1"
+       id="guide1942" />
+    <sodipodi:guide
+       position="96.470796,166.92701"
+       orientation="0,-1"
+       id="guide1944" />
+    <sodipodi:guide
+       position="146.87408,188.24452"
+       orientation="0,-1"
+       id="guide2341" />
+    <sodipodi:guide
+       position="146.87408,181.56022"
+       orientation="0,-1"
+       id="guide2343" />
+    <sodipodi:guide
+       position="143.53192,184.90237"
+       orientation="1,0"
+       id="guide2345" />
+    <sodipodi:guide
+       position="150.21624,184.90237"
+       orientation="1,0"
+       id="guide2347" />
+    <sodipodi:guide
+       position="92.677027,208.11654"
+       orientation="1,0"
+       id="guide2774" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1698" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path1784"
+       style="fill:#000000;stroke:#000000;stroke-width:0.264999;stop-color:#000000"
+       d="m 92.677029,89.941796 c -6.459371,0.02326 -12.645702,2.60803 -17.201533,7.187158 l 5.36608,5.366086 c 3.132461,-3.156464 7.388548,-4.942298 11.835453,-4.966111 9.278941,3.2e-5 16.801011,7.522101 16.801041,16.801041 -0.0268,7.18922 -5.05395,14.33248 -11.438061,15.8595 -5.290516,0.85683 -9.153946,5.5448 -9.157063,10.90425 l 5.16e-4,0.0134 v 7.5737 h 7.587134 v -7.58713 c 0.0034,-1.7706 1.834478,-2.91568 3.143993,-3.3843 10.350801,-3.07124 17.450381,-12.58262 17.451131,-23.37945 -2.6e-4,-13.4693 -10.91939,-24.388177 -24.388691,-24.388174 z"
+       inkscape:export-filename="C:\Users\Reavenk\source\repos\AppDock\AssetSrcs\QuestionIcon_11_16.png"
+       inkscape:export-xdpi="5.0541759"
+       inkscape:export-ydpi="5.0541759" />
+    <ellipse
+       style="fill:#000000;stroke:#000000;stroke-width:0.265;stop-color:#000000"
+       id="path4358"
+       cx="92.677025"
+       cy="163.856"
+       rx="5.0078115"
+       ry="5.0078063"
+       inkscape:export-filename="C:\Users\Reavenk\source\repos\AppDock\AssetSrcs\QuestionIcon_11_16.png"
+       inkscape:export-xdpi="5.0541759"
+       inkscape:export-ydpi="5.0541759" />
+    <rect
+       style="fill:#000000;stroke:#000000;stroke-width:0.264999;stop-color:#000000"
+       id="rect4702"
+       width="88.521896"
+       height="88.521896"
+       x="185.354"
+       y="63.952557" />
+    <rect
+       style="fill:#000000;stroke:#000000;stroke-width:0.264999;stop-color:#000000"
+       id="rect4702-6"
+       width="88.521896"
+       height="88.521896"
+       x="185.35402"
+       y="152.47446" />
+    <rect
+       style="fill:none;stroke:none;stroke-width:0.265;stroke-opacity:1;stop-color:#000000"
+       id="rect4828"
+       width="55.281025"
+       height="82.921539"
+       x="65.036514"
+       y="87.825127"
+       inkscape:export-filename="C:\Users\Reavenk\source\repos\AppDock\AssetSrcs\QuestionIcon_11_16.png"
+       inkscape:export-xdpi="5.0541759"
+       inkscape:export-ydpi="5.0541759" />
+  </g>
+</svg>

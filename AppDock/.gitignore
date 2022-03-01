@@ -1,0 +1,7 @@
+*.aps
+*.ncb
+*.obj
+*.bak
+x64
+Debug
+PerDeveloper.props

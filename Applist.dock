@@ -1,0 +1,33 @@
+{
+	"apps" : 
+	[
+		{
+			"label" 	: "Cmd Terminal",
+			"command" 	: "cmd"
+		},
+		{
+			"label" 	: "Powershell",
+			"command" 	: "cmd"
+		},
+		{
+			"label" 	: "Notepad",
+			"command" 	: "notepad"
+		},
+		{
+			"label" 	: "Explorer",
+			"command" 	: "explorer"
+		},
+		{
+			"label" 	: "MS Paint",
+			"command" 	: "mspaint"
+		},
+		{
+			"label" 	: "Python",
+			"command" 	: "python3"
+		},
+		{
+			"label" 	: "Bash",
+			"command" 	: "C:\\Program Files\\Git\\bin\\bash.exe"
+		}
+	]
+}

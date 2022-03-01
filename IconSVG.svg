@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   sodipodi:docname="IconSVG.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:snap-global="true"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:object-paths="true"
+     inkscape:snap-intersection-paths="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-midpoints="true"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-center="true"
+     inkscape:snap-text-baseline="true"
+     inkscape:snap-page="true"
+     inkscape:zoom="5.8582491"
+     inkscape:cx="155.08046"
+     inkscape:cy="213.11828"
+     inkscape:window-width="2560"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <sodipodi:guide
+       position="46.428832,250.0292"
+       orientation="0,-1"
+       id="guide1069" />
+    <sodipodi:guide
+       position="54.513229,227.76324"
+       orientation="0,-1"
+       id="guide1071" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <pattern
+       id="EMFhbasepattern"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       x="0"
+       y="0" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <image
+       y="39.994968"
+       x="2.9626255"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAXCAIAAAB1dKN5AAAAlElEQVQ4jWNUU1NjoCpgoq5xQ8REFkyhW0FTsCpVW5eDzDW/dSuWgYGBgSEHNSbo4kYiwUXyTIw9shjBuXWLgYHhJMyPP9TUTlJqIgMDAwMDVlNIMBETGN1Cj7dzaigxNkTTI1q6IxXQPT3mqKlhRgV+MERjxvzWLQYGhosMDD/IKoyxmBgLYxDMHlgB9X3NOCLrGQB6CBzZo6rU8gAAAABJRU5ErkJggg=="
+       height="31.656038"
+       width="37.16143"
+       preserveAspectRatio="none"
+       id="image929"
+       style="stroke-width:0.192478" />
+    <rect
+       style="fill:#0078ba;fill-opacity:1;stroke:none;stroke-width:0.264999;stop-color:#000000"
+       id="rect959"
+       width="11.336223"
+       height="11.336223"
+       x="42.906021"
+       y="46.970802"
+       inkscape:export-filename="C:\Users\Reavenk\AppDockIcon_128.png"
+       inkscape:export-xdpi="146.02"
+       inkscape:export-ydpi="146.02" />
+    <rect
+       style="fill:#5800ba;fill-opacity:1;stroke:none;stroke-width:0.264999;stop-color:#000000"
+       id="rect961"
+       width="15.175181"
+       height="15.175181"
+       x="49.996803"
+       y="54.061577"
+       inkscape:export-filename="C:\Users\Reavenk\AppDockIcon_128.png"
+       inkscape:export-xdpi="146.02"
+       inkscape:export-ydpi="146.02" />
+    <rect
+       style="fill:#ba0000;fill-opacity:1;stroke:none;stroke-width:0.264999;stop-color:#000000"
+       id="rect963"
+       width="9.3941603"
+       height="9.3941603"
+       x="48.280563"
+       y="51.21624"
+       inkscape:export-filename="C:\Users\Reavenk\AppDockIcon_128.png"
+       inkscape:export-xdpi="146.02"
+       inkscape:export-ydpi="146.02" />
+    <rect
+       style="fill:#ba0000;fill-opacity:1;stroke:none;stroke-width:0.264999;stop-color:#000000;stroke-opacity:1"
+       id="rect965"
+       width="4.6067519"
+       height="4.6067519"
+       x="60.565224"
+       y="46.970802"
+       inkscape:export-filename="C:\Users\Reavenk\AppDockIcon_128.png"
+       inkscape:export-xdpi="146.02"
+       inkscape:export-ydpi="146.02" />
+    <rect
+       style="fill:#ba0000;fill-opacity:1;stroke:none;stroke-width:0.264999;stop-color:#000000"
+       id="rect965-1"
+       width="4.6067519"
+       height="4.6067519"
+       x="42.906021"
+       y="64.630005"
+       inkscape:export-filename="C:\Users\Reavenk\AppDockIcon_128.png"
+       inkscape:export-xdpi="146.02"
+       inkscape:export-ydpi="146.02" />
+  </g>
+</svg>
