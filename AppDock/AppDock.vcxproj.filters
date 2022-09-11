@@ -37,53 +37,11 @@
     <Filter Include="Header Files\CaptureDlg">
       <UniqueIdentifier>{1867c163-aeeb-47b5-a21c-6ffa657295c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Icons">
+      <UniqueIdentifier>{b5550adb-0870-4c6a-87cb-feedc1b57a58}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AppDock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TopDockWin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DockWin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Taskbar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BarDrag.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DropPreviewWin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BarDrop.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="json.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AppRef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\json.hpp">
-      <Filter>Header Files\Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\mywxUtils.h">
-      <Filter>Header Files\Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\AppUtils.h">
-      <Filter>Header Files\Utils</Filter>
-    </ClInclude>
     <ClInclude Include="src\CaptureDlg\CapDragSelWin.h">
       <Filter>Header Files\CaptureDlg</Filter>
     </ClInclude>
@@ -114,67 +72,109 @@
     <ClInclude Include="src\Layout\TabBar.h">
       <Filter>Header Files\Layout</Filter>
     </ClInclude>
+    <ClInclude Include="src\framework.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\targetver.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AppDock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AppRef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BarDrag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BarDrop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DropPreviewWin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DockWin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TopDockWin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utils\AppUtils.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utils\mywxUtils.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utils\json.hpp">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Taskbar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AppDock.cpp">
+    <ClCompile Include="src\AppDock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TopDockWin.cpp">
+    <ClCompile Include="src\AppRef.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DockWin.cpp">
+    <ClCompile Include="src\BarDrag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Taskbar.cpp">
+    <ClCompile Include="src\BarDrop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarDrag.cpp">
+    <ClCompile Include="src\DockWin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DropPreviewWin.cpp">
+    <ClCompile Include="src\DropPreviewWin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BarDrop.cpp">
+    <ClCompile Include="src\Taskbar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AppRef.cpp">
+    <ClCompile Include="src\TopDockWin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CaptureDlg\CaptureDlg.cpp">
-      <Filter>Source Files\CaptureDlg</Filter>
-    </ClCompile>
-    <ClCompile Include="Layout\Layout.cpp">
-      <Filter>Source Files\Layout</Filter>
-    </ClCompile>
-    <ClCompile Include="Layout\LProps.cpp">
-      <Filter>Source Files\Layout</Filter>
-    </ClCompile>
-    <ClCompile Include="Layout\Node.cpp">
-      <Filter>Source Files\Layout</Filter>
-    </ClCompile>
-    <ClCompile Include="Layout\Sash.cpp">
-      <Filter>Source Files\Layout</Filter>
-    </ClCompile>
-    <ClCompile Include="Layout\TabBar.cpp">
-      <Filter>Source Files\Layout</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\mywxUtils.cpp">
+    <ClCompile Include="src\Utils\mywxUtils.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="CaptureDlg\CapDragSelWin.cpp">
-      <Filter>Source Files\CaptureDlg</Filter>
-    </ClCompile>
-    <ClCompile Include="CaptureDlg\CaptureListItem.cpp">
-      <Filter>Source Files\CaptureDlg</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\AppUtils.cpp">
+    <ClCompile Include="src\Utils\AppUtils.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Dlgs\DlgAbout.cpp">
+    <ClCompile Include="src\Dlgs\DlgAbout.cpp">
       <Filter>Source Files\Dlgs</Filter>
     </ClCompile>
-    <ClCompile Include="Dlgs\DlgIntro.cpp">
+    <ClCompile Include="src\Dlgs\DlgIntro.cpp">
       <Filter>Source Files\Dlgs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CaptureDlg\CapDragSelWin.cpp">
+      <Filter>Source Files\CaptureDlg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CaptureDlg\CaptureDlg.cpp">
+      <Filter>Source Files\CaptureDlg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CaptureDlg\CaptureListItem.cpp">
+      <Filter>Source Files\CaptureDlg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Layout\Layout.cpp">
+      <Filter>Source Files\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Layout\LProps.cpp">
+      <Filter>Source Files\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Layout\Node.cpp">
+      <Filter>Source Files\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Layout\TabBar.cpp">
+      <Filter>Source Files\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Layout\Sash.cpp">
+      <Filter>Source Files\Layout</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -184,21 +184,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="AppDock.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="AppDockIcon_128.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="AppDockIcon_64.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="AppDockIcon_32.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="AppDockIcon_16.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="..\AssetSrcs\QuestionIcon_11_16.png">
@@ -212,6 +197,21 @@
     </Image>
     <Image Include="..\AssetSrcs\Reticule_32.png">
       <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Icons\AppDock.ico">
+      <Filter>Icons</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_16.ico">
+      <Filter>Icons</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_32.ico">
+      <Filter>Icons</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_64.ico">
+      <Filter>Icons</Filter>
+    </Image>
+    <Image Include="Icons\AppDockIcon_128.ico">
+      <Filter>Icons</Filter>
     </Image>
   </ItemGroup>
 </Project>

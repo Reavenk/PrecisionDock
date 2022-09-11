@@ -161,7 +161,6 @@
     <ClInclude Include="src\DropPreviewWin.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\AppRef.h" />
-    <ClInclude Include="src\json.hpp" />
     <ClInclude Include="src\Layout\Layout.h" />
     <ClInclude Include="src\Layout\LProps.h" />
     <ClInclude Include="src\Layout\Node.h" />
