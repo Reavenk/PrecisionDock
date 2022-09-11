@@ -91,6 +91,7 @@ public:
     /// </summary>
     void ReleaseAll();
 
+    // TODO: Reorganize to bottom.
     bool _TestValidity();
 
 public:

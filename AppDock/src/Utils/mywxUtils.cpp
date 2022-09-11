@@ -1,5 +1,6 @@
 #include "mywxUtils.h"
 
+// TODO: Refactor namespace to have correct caps
 namespace mywxUtils
 {
 	wxBitmap LoadFromResourceID(int resourceID)
@@ -46,5 +47,13 @@ namespace mywxUtils
 		// stxt->Bind(wxEVT_MOUSEWHEEL,	_PassthroughHandler, wxID_ANY, wxID_ANY, nullptr);
 		// stxt->Bind(wxEVT_MOTION,		_PassthroughHandler, wxID_ANY, wxID_ANY, nullptr);
 		// Pass through more events as needed.
+	}
+
+	void RaiseWindowToAttention(wxTopLevelWindow* topLevelWin)
+	{
+		assert(topLevelWin != nullptr);
+		topLevelWin->Show(true);
+		topLevelWin->Raise();
+		topLevelWin->RequestUserAttention();
 	}
 }

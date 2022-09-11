@@ -15,6 +15,7 @@
 #include "CaptureDlg/CaptureDlg.h"
 #include "Dlgs/DlgIntro.h"
 #include "Dlgs/DlgAbout.h"
+#include "Utils/mywxUtils.h"
 
 //HHOOK hookListener = NULL;
 
@@ -96,8 +97,7 @@ bool AppDock::OnInit()
             return false;
     }
 
-    TopDockWin *frame = new TopDockWin( "AppDock", wxPoint(50, 50), wxSize(450, 340) );
-    frame->Show( true );
+    this->SpawnEmpty("AppDock", true);
     HINSTANCE hInst = wxGetInstance();
     ////hookListener = SetWindowsHookExA(WH_CBT, CBTProc, GetModuleHandle(NULL), GetCurrentThreadId() );
     //DWORD err = GetLastError();
@@ -168,14 +168,16 @@ AppDock::AppDock()
 
 TopDockWin* AppDock::CreateSpawned(
     const std::wstring& cmd, 
-    const wxString& title)
+    const wxString& title,
+    bool giveAttention)
 {
     return this->CreateSpawned(
         cmd,
         title,
         AppRef::_default.msBeforeAttach,
         AppRef::_default.closeIfFail,
-        AppRef::_default.startShown);
+        AppRef::_default.startShown, 
+        giveAttention);
 }
 
 TopDockWin* AppDock::CreateSpawned(
@@ -183,7 +185,8 @@ TopDockWin* AppDock::CreateSpawned(
     const wxString& title,
     int warmup,
     bool closeIfFail,
-    bool startShown)
+    bool startShown,
+    bool giveAttention)
 {
     HWND hwndCreateWin = 
         CreateSpawnedWindow(
@@ -197,61 +200,77 @@ TopDockWin* AppDock::CreateSpawned(
     if(hwndCreateWin == NULL)
         return nullptr;
 
-    TopDockWin* ret = 
+    TopDockWin* createdTopDockWin = 
         new TopDockWin(
             title, 
             wxDefaultPosition, 
             wxDefaultSize);
 
-    Node* rootNode = ret->SetRoot(hwndCreateWin);
+    Node* rootNode = createdTopDockWin->SetRoot(hwndCreateWin);
     assert(rootNode != nullptr);
     rootNode->cmdLine = cmd;
-    ret->Show();
-    return ret;
+    createdTopDockWin->Show();
+
+    if(giveAttention)
+        mywxUtils::RaiseWindowToAttention(createdTopDockWin);
+    
+    return createdTopDockWin;
 }
 
-TopDockWin* AppDock::SpawnEmpty(const wxString& title)
+TopDockWin* AppDock::SpawnEmpty(const wxString& title, bool giveAttention)
 {
-    TopDockWin* twd = 
+    TopDockWin* createdTopDockWin = 
         new TopDockWin(
             title, 
             wxDefaultPosition,
             wxSize(400, 300));
 
-    twd->Show();
-    return twd;
+    createdTopDockWin->Show();
+
+    if(giveAttention)
+        mywxUtils::RaiseWindowToAttention(createdTopDockWin);
+
+    return createdTopDockWin;
 }
 
 TopDockWin* AppDock::CreateTorn(
     Node* pn,
-    const wxString& title)
+    const wxString& title,
+    bool giveAttention)
 {
     
-    TopDockWin* twd = 
+    TopDockWin* createdTopDockWin = 
         new TopDockWin(
             title, 
             wxGetMousePosition(),
             pn->cacheSize);
 
-    twd->StealRoot(pn);
-    twd->Show();
-    return twd;
+    createdTopDockWin->StealRoot(pn);
+    createdTopDockWin->Show();
+
+    if(giveAttention)
+        mywxUtils::RaiseWindowToAttention(createdTopDockWin);
+
+    return createdTopDockWin;
 }
 
-TopDockWin* AppDock::CreateWindowFromHwnd(HWND hwnd)
+TopDockWin* AppDock::CreateWindowFromHwnd(HWND hwnd, bool giveAttention)
 {
-    TopDockWin* newTop = 
+    TopDockWin* createdTopDockWin = 
         new TopDockWin(
             "Untitled",
             wxDefaultPosition,
             wxDefaultSize);
 
-    newTop->Show();
+    createdTopDockWin->Show();
 
     // TODO: Check registration
-    newTop->SetRoot(hwnd);
+    createdTopDockWin->SetRoot(hwnd);
 
-    return newTop;
+    if(giveAttention)
+        mywxUtils::RaiseWindowToAttention(createdTopDockWin);
+
+    return createdTopDockWin;
 }
 
 TopDockWin* AppDock::GetDockWin(HWND hwnd)

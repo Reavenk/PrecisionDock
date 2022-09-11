@@ -109,10 +109,12 @@ public:
     /// </summary>
     /// <param name="cmd">The command line to capture the window of.</param>
     /// <param name="title">The title of the window.</param>
+    /// <param name="giveAttention">Make the window visable and obvious to the user.</param>
     /// <returns>The created captured window.</returns>
     TopDockWin* CreateSpawned(
         const std::wstring& cmd, 
-        const wxString& title);
+        const wxString& title,
+        bool giveAttention = true);
 
     /// <summary>
     /// Spawn a TopDockWin created from a TopLevel window of an
@@ -136,15 +138,18 @@ public:
         const wxString& title,
         int warmup,
         bool closeIfFail,
-        bool startShown);
+        bool startShown,
+        bool giveAttention = true);
 
     /// <summary>
     /// Spawn an empty TopDockWin.
     /// </summary>
     /// <param name="title">The title of the new window.</param>
+    /// <param name="giveAttention">Make the window visable and obvious to the user.</param>
     /// <returns>The created empty TopDockWin.</returns>
     TopDockWin* SpawnEmpty(
-        const wxString& title);
+        const wxString& title,
+        bool giveAttention = true);
 
     /// <summary>
     /// Repurpose a Node owned by a TopDockWin, into a new
@@ -152,20 +157,25 @@ public:
     /// </summary>
     /// <param name="pn">The node to use at the new root.</param>
     /// <param name="title">The title of the dialog.</param>
+    /// <param name="giveAttention">Make the window visable and obvious to the user.</param>
     /// <returns>The newly created TopDockWin.</returns>
     TopDockWin* CreateTorn(
         Node* pn,
-        const wxString& title);
+        const wxString& title,
+        bool giveAttention = true);
 
     /// <summary>
     /// Capture a toplevel HWND.
     /// </summary>
     /// <param name="hwnd">The HWND to capture.</param>
+    /// <param name="giveAttention">Make the window visable and obvious to the user.</param>
     /// <returns>
     /// The captured HWND window, or nullptr if the capture
     /// fails.
     /// </returns>
-    TopDockWin* CreateWindowFromHwnd(HWND hwnd);
+    TopDockWin* CreateWindowFromHwnd(
+        HWND hwnd,
+        bool giveAttention = true);
 
     /// <summary>
     /// Get an existing TopDockWin based off its HWND.

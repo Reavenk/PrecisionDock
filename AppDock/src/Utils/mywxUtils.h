@@ -27,4 +27,10 @@ namespace mywxUtils
 	/// The wxStaticText that shouldn't eat up UI events.
 	/// </param>
 	void SetupStaticTextMousePassthrough(wxStaticText* stxt);
+
+	/// <summary>
+	/// Make a window visible and obvious to the user.
+	/// </summary>
+	/// <param name="win">The window to raise.</param>
+	void RaiseWindowToAttention(wxTopLevelWindow* topLevelWin);
 }
