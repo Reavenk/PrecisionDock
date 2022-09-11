@@ -10,6 +10,9 @@ class TabBar;
 /// </summary>
 class Node
 {
+	/// <summary>
+	/// The counter to generate Node::id values.
+	/// </summary>
 	static int IDCT;
 public:
 
@@ -24,7 +27,7 @@ public:
 public:
 
 	/// <summary>
-	/// 
+	/// The types of Node.
 	/// </summary>
 	enum class Type
 	{
@@ -53,6 +56,7 @@ public:
 	};
 
 
+	// TODO: Compare with DropResult::Where
 	enum class Dest
 	{
 		Invalid = -1,
@@ -64,10 +68,23 @@ public:
 	};
 
 private:
+	/// <summary>
+	/// If the node is a notebooked container, then this will be the GUI
+	/// that has the notebook tabs.
+	/// 
+	/// Else, this will be nullptr.
+	/// </summary>
 	TabBar* tabsBar = nullptr;
 
 public:
 
+	/// <summary>
+	/// The ID of the node.
+	/// 
+	/// This value will be unique as an incremented counter value (see 
+	/// usage of Node::IDCT for details), which can be used for debugging, as
+	/// the same steps will deterministically reproduce the same id values.
+	/// </summary>
 	int id;
 
 	/// <summary>
@@ -167,8 +184,15 @@ public:
 	/// </summary>
 	HWND win = NULL;
 
+	/// <summary>
+	/// If the node is a notebook tab, what tab is currently active?
+	/// 
+	/// This represents an index into this->children.
+	/// </summary>
+	// TODO: Make name a bit longer and more descriptive.
 	int selTab = 0;
 
+	// TODO: Remove?
 	std::string tabName;
 
 	inline HWND Hwnd() const
@@ -270,21 +294,82 @@ public:
 	/// <param name="lp">The layout properties.</param>
 	void ResizeChildrenByProportions(const LProps& lp);
 
+	/// <summary>
+	/// Resize the children, used specific proportion values.
+	/// </summary>
+	/// <param name="vecp">
+	/// The proportions to used for the layout. This will map to the Node's
+	/// children, meaning the size of vecp should be the same size as 
+	/// this->children.
+	/// </param>
+	/// <param name="lp">The layout properties.</param>
 	void ResizeChildrenByProportions(std::vector<float> vecp, const LProps& lp);
 
+	/// <summary>
+	/// Hide the window.
+	/// </summary>
+	/// <returns>True, if the window was successfully hidden.</returns>
 	bool HideWindow();
 
+	/// <summary>
+	/// Show the window.
+	/// </summary>
+	/// <param name="show">
+	/// Whether to show or hide the window.
+	/// </param>
+	/// <returns>
+	/// True, if the Window's visibility state matches the specified state when the
+	/// function exits.
+	/// </returns>
 	bool ShowWindow(bool show = true);
 
+	/// <summary>
+	/// The depth from the root of the layout.
+	/// 
+	/// This function may be unused, but is kept as a diagnostic utility.
+	/// </summary>
+	/// <returns></returns>
 	int Depth() const;
 
+	/// <summary>
+	/// Check if a tab index is selected.
+	/// 
+	/// Only valid for tab collection nodes.
+	/// </summary>
+	/// <param name="idx">The tab to check</param>
+	/// <returns>True if the specifed index is selected.</returns>
 	bool SelectTab(int idx);
 
+	/// <summary>
+	/// Check if a node is the selected tab.
+	/// 
+	/// Only valid for tab collection nodes.
+	/// </summary>
+	/// <param name="winChild">
+	/// The node to check against.
+	/// The node is expected to be a child of the invoking node, and a Window node.
+	/// </param>
+	/// <returns>True if the specified node is selected.</returns>
 	bool SelectTab(Node* winChild);
 
+	/// <summary>
+	/// Destroy the windows bar tab.
+	/// </summary>
 	void ClearTabBar();
 
+	/// <summary>
+	/// Set the value of the tab bar. 
+	/// 
+	/// This is expected to be a tab bar that was previously forgotten.
+	/// </summary>
+	/// <param name="tb">The tab bar to set.</param>
+	// TODO: Instead of "forgetting" the tab bar, it may be more effective to hold onto it but flag that it's suppresed?
 	void SetTabBar(TabBar* tb);
 
+	/// <summary>
+	/// Get rid knowledge of the Windows bar tab.
+	/// 
+	/// TODO: See TODO for SetTabBar().
+	/// </summary>
 	void ForgetTabBar();
 };

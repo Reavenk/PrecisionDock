@@ -18,6 +18,7 @@ namespace AppUtils
                 0, 
                 LR_LOADTRANSPARENT); 
 
+        // https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-seticon
         SendMessage(
             win->GetHWND(), 
             WM_SETICON, 

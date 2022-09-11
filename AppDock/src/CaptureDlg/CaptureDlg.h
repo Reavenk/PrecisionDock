@@ -11,10 +11,25 @@ class CaptureListItem;
 
 
 /// <summary>
+/// A modeless dialog that list all known windows currently running. It 
+/// allows docking these windows to the system.
 /// 
+/// It also has a draggable icon that can be dropped windows to add them.
+/// 
+/// The dialog is currently opened by double clicking in the taskbar icon.
 /// </summary>
 class CaptureDlg : public wxFrame
 {
+public:
+	// wxWidget Command IDs
+	enum class CMDID
+	{
+		Btn_Capture,				// See OnButton_Capture()
+		Btn_CaptureAndClose,		// See OnButton_CaptureCloseDlg()
+		CkB_AutoClose,				// See OnCheckbox_AutoClose()
+		Btn_ToggleHelp				// See OnButton_ToggleHelpMode()
+	};
+
 public:
 	// Icons for the help toggle button
 	static wxBitmap questionSmall;
@@ -24,20 +39,17 @@ public:
 	const wxSize szButtonsCompact = wxSize(24, 24);
 	const wxSize szButtonsFull = wxSize(40, 60);
 
-	enum class CMDID
-	{
-		Btn_Capture,
-		Btn_CaptureAndClose,
-		CkB_AutoClose,
-		Btn_ToggleHelp
-	};
 	/// <summary>
 	/// Singleton instance
 	/// </summary>
 	static CaptureDlg* inst;
 	
 public:
-
+	/// <summary>
+	/// The cached width of the dialog. Used to check if the width has
+	/// changed, and if the text wrapping in processHelpText needs to
+	/// be reset.
+	/// </summary>
 	int wrapWidth = -1;
 
 	/// <summary>
@@ -53,7 +65,7 @@ public:
 	wxScrolledWindow * scrollWin = nullptr;
 
 	/// <summary>
-	/// 
+	/// The sizer containing all the Window listings in scrollWin.
 	/// </summary>
 	wxBoxSizer* scrollWinSizer = nullptr;
 
@@ -64,17 +76,20 @@ public:
 	wxWindow* processCont = nullptr;
 
 	/// <summary>
-	/// 
+	/// A help text shown below the dialog's title.
 	/// </summary>
 	wxStaticText* processHelpText = nullptr;
 
 	/// <summary>
-	/// 
+	/// The sizer used to hold processHelpText, which can be updated
+	/// when the help mode changes.
 	/// </summary>
 	wxBoxSizer* helpTextSizer = nullptr;
 
 	/// <summary>
-	/// The help button taht toggles help-mode.
+	/// The help button that toggles help-mode.
+	/// 
+	/// Help mode shows help text for certain things.
 	/// </summary>
 	wxButton* helpBtn = nullptr;
 
@@ -110,17 +125,23 @@ public:
 	bool usingHelpMode = true;
 
 	/// <summary>
+	/// When in help mode, UI items don't care too much about compactness, 
+	/// and will padd themselves vertically the visually seperate out the
+	/// clutter. 
 	/// 
+	/// To automate this process, we just keep a list of things to change
+	/// the sizer padding for (in a mechanical/consistent) way.
 	/// </summary>
 	std::vector<wxSizerItem*> helpModeSizerPadding;
 
 	/// <summary>
-	/// 
+	/// The list of known Windowed processes.
 	/// </summary>
 	std::vector<CaptureListItem*> listedItems;
 
 	/// <summary>
-	/// 
+	/// The list of all HWNDs in listedItems. Used to quickly check if a
+	/// HWND is known to the dialog (as a Windowed process).
 	/// </summary>
 	std::set<HWND> setListed;
 
@@ -128,15 +149,26 @@ private:
 
 
 	/// <summary>
-	/// 
+	/// Constructor
 	/// </summary>
-	/// <param name="parent"></param>
-	/// <param name="pos"></param>
-	/// <param name="size"></param>
 	CaptureDlg(wxWindow* parent, const wxPoint& pos, const wxSize& size);
 
+	virtual ~CaptureDlg();
+
+	/// <summary>
+	/// Ensures scrollWinSizer is non-null and set up correctly.
+	/// </summary>
 	void _EnsureScrollWinSizer();
+
+	/// <summary>
+	/// Creates a new scrollWinSizer.
+	/// </summary>
 	void _ClearScrollWinSizer();
+
+	/// <summary>
+	/// The authority on what the text is in the help region.
+	/// </summary>
+	/// <returns>The text region.</returns>
 	static const char * _GetHelpText();
 public:
 
@@ -145,23 +177,71 @@ public:
 	/// <summary>
 	/// Toggle the help mode
 	/// </summary>
-	/// <param name="showHelp"></param>
-	/// <param name="force"></param>
+	/// <param name="showHelp">
+	/// If true, set the dialog to help mode.
+	/// If false, set the dialog to a more streamlined and compact UI mode.
+	/// </param>
+	/// <param name="force">
+	/// If true, do not ignore setting up the state for the help mode, even if
+	/// the application is already using the specified help mode.
+	/// </param>
 	void ToggleHelpMode(bool showHelp, bool force = false);
 
+	/// <summary>
+	/// Set the selection state for all known processes.
+	/// </summary>
+	/// <param name="val"></param>
+	/// <param name="refreshDisplay">If true, redraw the UI.</param>
 	void SetListSelectionAll(bool val, bool refreshDisplay = true);
+
+	/// <summary>
+	/// Clear the selection of processes.
+	/// </summary>
+	/// <param name="refreshDisplay"></param>
 	void ClearListSelection(bool refreshDisplay = true);
 
+	/// <summary>
+	/// Get the number of listed processes.
+	/// </summary>
+	/// <returns></returns>
 	int GetSelectionCount();
 
+	/// <summary>
+	/// Get a copy of all the selected entries of Windowed processes.
+	/// </summary>
 	std::vector<CaptureListItem*> GetSelected();
+
+	/// <summary>
+	/// Get a vector of all the HWNDs of selected Windowed processes.
+	/// </summary>
 	std::vector<HWND> GetSelectedHWND();
 
+	/// <summary>
+	/// Have the application dock selected HWNDs, and modify the
+	/// dialog as needed to reflect those changes.
+	/// </summary>
+	/// <param name="toCapture">The HWNDs to active</param>
+	/// <returns></returns>
+	// TODO: Use a better function name, the term Capture() could be better
+	// TODO: Consider initialization list instead of vector
 	int Capture(std::vector<HWND> toCapture);
+
+	/// <summary>
+	/// Have the application dock the selected windows.
+	/// </summary>
 	void CaptureSelected();
 
+	/// <summary>
+	/// Clears the listed process and remakes them.
+	/// </summary>
 	void RebuildListed();
+
+	/// <summary>
+	/// Clear all the listed processes. This will destroy their UI, 
+	/// as well as remove the knowledge of them from the application.
+	/// </summary>
 	void ClearListed();
+
 
 	void UpdateListedSelectionColors();
 	void UpdateListColor(CaptureListItem* cli, bool refresh = true);
@@ -170,6 +250,33 @@ public:
 
 	CaptureListItem* AddListItem(HWND topWin);
 
+	/// <summary>
+	/// Change the selection status of a Windowed process.
+	/// </summary>
+	/// <param name="item"></param>
+	/// <param name="confirm"></param>
+	/// <param name="ctrl"></param>
+	void DoSelection(CaptureListItem* item, bool confirm, bool ctrl);
+
+	//	
+	//	Delegated CaptureListItem functions
+	//////////////////////////////////////////////////
+
+	// These functions are called from CaptureListItem, to delegate their
+	// input to their manager.
+	//
+	// This makes the organization of code responsibilities and encapsulation
+	// easier.
+
+	void OnInputDelegated_LeftMouseDown(CaptureListItem* item, wxMouseEvent& evt);
+	void OnInputDelegated_DLeftMouseDown(CaptureListItem* item, wxMouseEvent& evt);
+
+	//////////////////////////////////////////////////
+	//	
+	//	wxWidgets CALLBACKS
+	//
+	//////////////////////////////////////////////////
+
 	void OnButton_Capture(wxCommandEvent& evt);
 	void OnButton_CaptureCloseDlg(wxCommandEvent& evt);
 	void OnCheckbox_AutoClose(wxCommandEvent& evt);
@@ -177,9 +284,8 @@ public:
 	void OnClose(wxCloseEvent& evt);
 	void OnSize(wxSizeEvent& evt);
 
-	void OnInputDelegated_LeftMouseDown(CaptureListItem* item, wxMouseEvent& evt);
-	void OnInputDelegated_DLeftMouseDown(CaptureListItem* item, wxMouseEvent& evt);
-	void DoSelection(CaptureListItem* item, bool confirm, bool ctrl);
+
+public: // Static functions
 
 	/// <summary>
 	/// Create the singleton window if needed, and return
@@ -196,8 +302,6 @@ public:
 	/// If false, there was no dialog to close.
 	/// </returns>
 	static bool Shutdown();
-
-	virtual ~CaptureDlg();
 
 protected:
 	DECLARE_EVENT_TABLE();

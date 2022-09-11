@@ -459,9 +459,9 @@ void CaptureDlg::OnSize(wxSizeEvent& evt)
 	this->Freeze();
 	this->Layout();
 
-	if(wrapWidth != sz.x)
+	if(this->wrapWidth != sz.x)
 	{
-		wrapWidth = sz.x;
+		this->wrapWidth = sz.x;
 		// Wrap() will insert newlines, which means the text 
 		// will only get thinner unless we reset the text 
 		// before rewrapping.

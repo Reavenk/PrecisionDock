@@ -2,6 +2,8 @@
 #include "../Utils/AppUtils.h"
 #include "../AppDock.h"
 
+// Currently just a placeholder.
+
 wxBEGIN_EVENT_TABLE(DlgAbout, wxDialog)
 	EVT_BUTTON(wxID_OK, DlgAbout::OnButtonOK)
 	EVT_CLOSE(DlgAbout::OnClose)

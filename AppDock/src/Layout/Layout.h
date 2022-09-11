@@ -9,9 +9,14 @@
 
 class Sash;
 
+// TODO: Move into own .h/.cpp
+/// <summary>
+/// Description of where an application was inserted into a layout.
+/// </summary>
 struct DropResult
 {
-public:
+public: // Public data
+
 	enum class Where
 	{
 		Void,
@@ -23,7 +28,7 @@ public:
 		Right
 	};
 
-public:
+public: // Public members
 	/// <summary>
 	/// What location to drop on was detected.
 	/// </summary>
@@ -43,10 +48,15 @@ public:
 
 	wxSize dropRgnSz;
 
-public:
+public: // Public methods
+
 	DropResult();
 	DropResult(Where where);
 	DropResult(Where where, Node* topOf, Sash* sash, const wxPoint& dropRgnPt, const wxSize& dropRgnSz);
+
+	/// <summary>
+	/// Set references to null, and the state to be invalid.
+	/// </summary>
 	void Invalidate();
 };
 
@@ -55,15 +65,21 @@ public:
 /// </summary>
 class Layout
 {
-public:
+public: // Public data
 
+	/// <summary>
+	/// A region in the layout that's reserved for a Node to be placed.
+	/// 
+	/// This struct is used for queueing regions to process while performing
+	/// a layout.
+	/// </summary>
 	struct Lot
 	{
 		Node * pn;
-		int x;
-		int y;
-		int w;
-		int h;
+		int x;	// x position (left)
+		int y;	// y position (top)
+		int w;	// width
+		int h;	// height
 	};
 
 	/// <summary>
@@ -150,6 +166,9 @@ public:
 		/// </summary>
 		std::vector<float> childrenProps;
 
+		/// <summary>
+		/// The debug index.
+		/// </summary>
 		int idx = -1;
 
 	public:
@@ -195,7 +214,8 @@ public:
 	/// </summary>
 	std::vector<Sash*> sashes;
 
-private:
+private: // Private methods
+
 	/// <summary>
 	/// Utility function called after adding a Node, to prepare the 
 	/// embedded HWND And register that HWND with the system.
@@ -222,7 +242,8 @@ private:
 	/// <returns></returns>
 	bool _Replace(Node* n, Node* swapWith);
 
-public:
+public: // Public utility methods
+
 	/// <summary>
 	/// Deltes a node properly from the layout datastructure.
 	/// 
@@ -249,7 +270,8 @@ public:
 		bool updateTabs);
 
 	void UndoForget(std::vector<ForgetUndo>& undo, const LProps& props);
-public:
+
+public: // Public methods
 
 	/// <summary>
 	/// Set the contentWin variable.
@@ -257,8 +279,61 @@ public:
 	/// <param name="cWin">The new contentWin value.</param>
 	void _SetContentWin(HWND cWin);
 
+	// TODO: Should this be public? Consider encapsulation as protected.
+	// TODO: Change Node name to "location" to be more consistent
+	// TODO: change all location variables to dstLocation
+	// TODO: Change all "dest" to "whereAroundDst"
+	/// <summary>
+	/// Prepare for a node to be added to the layout.
+	/// 
+	/// This function does multiple things in preparation for adding a node to
+	/// the layout.
+	/// * Checks if the request is valid.
+	/// * Creates a location for the node to be added if a new container needs to be created.
+	/// 
+	/// Note that if the operation is valid, the operation MUST occur in order
+	/// to keep the layout datastructures correct - calling this function starts
+	/// the processes of adding the node, and THERE IS NO OPTION TO CANCELL after 
+	/// the call.
+	/// </summary>
+	/// <param name="targ">The location a node would be added to the layout.</param>
+	/// <param name="dest">
+	/// Where in respect to the location to place the node in the layout.
+	/// </param>
+	/// <returns>
+	/// The results of the preparation, including whether the insertion request is 
+	/// valid and is allowed to continue.
+	/// </returns>
 	InsertWinLoc _ScanAndPrepAddLoc(Node* targ, Node::Dest dest);
+
+	/// <summary>
+	/// Add a node to the layout.
+	/// </summary>
+	/// <param name="hwnd">The node to dock.</param>
+	/// <param name="targ">
+	/// The location to place the docked node in the layout.
+	/// </param>
+	/// <param name="dest">
+	/// Where in respect to the location to place the node in the layout.
+	/// </param>
+	/// <returns>The created node.</returns>
 	Node* Add(HWND hwnd, Node* targ, Node::Dest dest);
+
+	/// <summary>
+	/// Take a node that exists in another layout, and place it in the
+	/// invoking object.
+	/// </summary>
+	/// <param name="n">The node being taken.</param>
+	/// <param name="targ">
+	/// The location to place the docked node in the invoking layout.
+	/// </param>
+	/// <param name="dest">
+	/// Where in respect to the location to place the node in the layout.
+	/// </param>
+	/// <param name="props">
+	/// The layout property that the invoking layout is using.
+	/// </param>
+	/// <returns></returns>
 	bool Steal(Node* n, Node* targ, Node::Dest dest, const LProps& props);
 
 	/// <summary>
@@ -321,33 +396,19 @@ public:
 	/// </summary>
 	Node* GetNodeAt(const wxPoint& pt, bool stopAtTabs = false);
 
+	/// <summary>
+	/// Get a sash at a specific point.
+	/// </summary>
+	/// <param name="pt">The point to get the sash at.</param>
+	/// <returns>
+	/// The sash at the specified point, or nullptr if one was NOT found at the point.
+	/// </returns>
 	Sash* GetSashAt(const wxPoint& pt);
 
 	/// <summary>
 	/// Resize the layout.
 	/// </summary>
 	void Resize(const wxSize& newSz, const LProps& lp, bool applyPadding = true);
-
-	/// <summary>
-	/// Resize a specific node, as well as its hierarchy.
-	/// </summary>
-	static void Resize(Node* pn, const wxPoint& newPt, const wxSize& newSz, const LProps& lp);
-
-	/// <summary>
-	/// Resize a node using its current cached size. Note 
-	/// this will not modify the parameter's proportion but
-	/// will recursively modify the children's proportions.
-	/// </summary>
-	/// <param name="pn">The node to resize.</param>
-	/// <param name="lp">The layout properties.</param>
-	static void Resize(Node* pn, const LProps& lp);
-
-	/// <summary>
-	/// Resize a Layout Lot, and then recursively resize its 
-	/// hierarchy.
-	/// </summary>
-	static void _ResizeFromLot(const Lot& lroot, const LProps& lp);
-
 	/// <summary>
 	/// Clear all the nodes in the layout.
 	/// </summary>
@@ -370,6 +431,29 @@ public:
 	/// </summary>
 	DropResult ScanForDrop(const wxPoint& pt, LProps& lp);
 
+public: // Public static methods
+
+	/// <summary>
+	/// Resize a specific node, as well as its hierarchy.
+	/// </summary>
+	static void Resize(Node* pn, const wxPoint& newPt, const wxSize& newSz, const LProps& lp);
+
+	/// <summary>
+	/// Resize a node using its current cached size. Note 
+	/// this will not modify the parameter's proportion but
+	/// will recursively modify the children's proportions.
+	/// </summary>
+	/// <param name="pn">The node to resize.</param>
+	/// <param name="lp">The layout properties.</param>
+	static void Resize(Node* pn, const LProps& lp);
+
+	/// <summary>
+	/// Resize a Layout Lot, and then recursively resize its 
+	/// hierarchy.
+	/// </summary>
+	static void _ResizeFromLot(const Lot& lroot, const LProps& lp);
+
+public:
 	bool _TestValidity();
 };
 

@@ -10,7 +10,8 @@ class CaptureDlg;
 /// </summary>
 class CaptureListItem : public wxWindow
 {
-public:
+public: // Public static members
+
 	/// <summary>
 	/// The size for drawn icons.
 	/// </summary>
@@ -21,7 +22,8 @@ public:
 	/// </summary>
 	static const int border = 10;
 
-public:
+public: // Public members
+
 	/// <summary>
 	/// The owner to delegate events to.
 	/// </summary>
@@ -71,6 +73,11 @@ public:
 	/// </param>
 	void UpdateBackgroundColor(bool refresh = true);
 
+	//////////////////////////////////////////////////
+	//
+	//	wxWidget CALLBACKS
+	//
+	//////////////////////////////////////////////////
 	void OnPaint(wxPaintEvent& evt);
 	void OnLeftDown(wxMouseEvent& evt);
 	void OnDoubleClick(wxMouseEvent& evt);
@@ -80,7 +87,8 @@ public:
 	void OnKillFocus(wxFocusEvent& evt);
 	void OnKeydown(wxKeyEvent& evt);
 
-public:
+public: // Public methods
+
 	/// <summary>
 	/// Filter the properties of a HWND to see if it should be an element
 	/// that populated the capture window.
@@ -88,8 +96,7 @@ public:
 	/// <param name="icon">The toplevel's taskbar icon.</param>
 	/// <param name="appTitle">The toplevel's label.</param>
 	/// <returns>
-	/// If true, the window with the properties of the parameter will
-	/// be 
+	/// If true, the parameters are valid and can be used as an element in the GUI.
 	/// </returns>
 	static bool IsValid(HICON icon, wxString& appTitle);
 

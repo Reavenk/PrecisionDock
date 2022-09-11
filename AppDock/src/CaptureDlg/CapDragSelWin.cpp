@@ -55,14 +55,6 @@ CapDragSelWin::~CapDragSelWin()
 	}
 }
 
-void CapDragSelWin::SetType(Style newStyle, bool force)
-{
-	if(newStyle == this->style && force == false)
-		return;
-
-	this->style = newStyle;
-}
-
 void CapDragSelWin::ResetHelpText()
 {
 	this->infoText->SetLabel(

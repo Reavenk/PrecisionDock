@@ -61,11 +61,6 @@ void Taskbar::OnMenuSetNewIcon(wxCommandEvent&)
 	//    wxMessageBox("Could not set new icon.");
 }
 
-void Taskbar::OnMenuSub(wxCommandEvent&)
-{
-	//wxMessageBox("You clicked on a submenu!");
-}
-
 void Taskbar::OnMenu_ExecuteLaunchID(wxCommandEvent& evt)
 {
 	const std::vector<AppRef>& v = AppDock::GetApp().ReferencedApps();

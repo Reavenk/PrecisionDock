@@ -1,57 +1,95 @@
 #pragma once
 #include <wx/taskbar.h>
+
+/// <summary>
+/// Subsystem that handles the taskbar icon.
+/// </summary>
 class Taskbar : public wxTaskBarIcon
 {
 public:
+
+	/// <summary>
+	/// wxWidget Command IDs
+	/// </summary>
 	enum CMDID
 	{
 		
+		/// <summary>
+		/// The IDs from 0 to 500 are reserved for OnMenu_ExecuteLaunchID(),
+		/// to launch a program. This means we can only support up to 500 programs
+		/// ATM. And while we can raise this value as needed, at a certain point
+		/// we will run out of reservable numbers because then we will start colliding 
+		/// into IDs reserved for wxWidgets. If we ever get to that point, we will need
+		/// to figure out another system.
+		/// 
+		/// For more details, see wxID_LOWEST in wx\defs.h
+		/// </summary>
 		Ex_StartRange = 0,
 		Ex_EndRange = 500,
-		Ex_SpawnEmpty,
-		Ex_Reload,
-		OpenLaunchList,
+
+		Ex_SpawnEmpty,			// See OnMenu_SpawnEmpty()
+		Ex_Reload,				// See OnMenu_ReloadLaunches()
+		OpenLaunchList,			// See OnMenu_OpenLaunchList()
 		PU_EXIT,
 
-		Dlg_About,
-		Dlg_Attach,
+		Dlg_About,				// TODO: Remove? Seems redundant to ShowAbout
+		Dlg_Attach,				// TODO: Remove? Used for empty fn OnMenu_DlgAttach()
 
-		CloseAll,
-		ReleaseAll,
-		RunTests,
-		ClearNotification,
-		ShowNotification,
-		ShowAbout
+		CloseAll,				// See OnMenu_CloseAllDocked()
+		ReleaseAll,				// See OnMenu_ReleaseAllDocked()
+		RunTests,				// See OnMenu_RunTests()
+		ClearNotification,		// See OnMenu_ClearNotification()
+		ShowNotification,		// See OnMenu_ShowNotification()
+		ShowAbout				// See OnMenu_ShowAbout()
 	};
 
 public:
 	Taskbar();
 
+
+	/// <summary>
+	/// Creates the popup menu when the taskbar icon is
+	/// right clicked.
+	/// </summary>
+	virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
+
+	//////////////////////////////////////////////////
+	//
+	//	wxWidgets EVENT HANDLERS
+	//
+	//////////////////////////////////////////////////
+
+	/// <summary>
+	/// Handler for when the icon is double clicked.
+	/// </summary>
 	void OnLeftButtonDClick(wxTaskBarIconEvent& evt);
+
+	// TODO: Remove NOTE when no longer necessary
+	// NOTE: Some functions are set to TODO: Remove, because 
+
 	void OnMenuRestore(wxCommandEvent& evt);
-	void OnMenuExit(wxCommandEvent& evt);
-	void OnMenuSetNewIcon(wxCommandEvent& evt);
-	void OnMenuCheckmark(wxCommandEvent& evt);
-	void OnMenuUICheckmark(wxUpdateUIEvent& evt);
-	void OnMenuSub(wxCommandEvent& evt);
-
+	void OnMenuExit(wxCommandEvent& evt);				// Exit application
+	void OnMenuSetNewIcon(wxCommandEvent& evt);			// TODO: Remove?
+	void OnMenuCheckmark(wxCommandEvent& evt);			// TODO: Remove?
+	void OnMenuUICheckmark(wxUpdateUIEvent& evt);		// TODO: Remove?
 	void OnMenu_ExecuteLaunchID(wxCommandEvent& evt);
-	void OnMenu_ReloadLaunches(wxCommandEvent& evt);
-	void OnMenu_OpenLaunchList(wxCommandEvent& evt);
-	void OnMenu_SpawnEmpty(wxCommandEvent& evt);
+	void OnMenu_ReloadLaunches(wxCommandEvent& evt);	// Refresh launch list from JSON
+	void OnMenu_OpenLaunchList(wxCommandEvent& evt);	// Open launch list menu
+	void OnMenu_SpawnEmpty(wxCommandEvent& evt);		// Open empty dock window
 	
+	void OnMenu_DlgAttach(wxCommandEvent& evt);			// TODO: Remove? Forget what this was for
 
-	void OnMenu_DlgAttach(wxCommandEvent& evt);
-
-	void OnMenu_CloseAllDocked(wxCommandEvent& evt);
+	// Close all dock windows. This will close the contained windows.
+	void OnMenu_CloseAllDocked(wxCommandEvent& evt);	
+	// Close all dock window - BUT, release the contained windows first.
 	void OnMenu_ReleaseAllDocked(wxCommandEvent& evt);
-	void OnMenu_RunTests(wxCommandEvent& evt);
+	//
+	// Run saftey/sanity/state-health checks (debug only)
+	void OnMenu_RunTests(wxCommandEvent& evt);			
 	void OnMenu_ClearNotification(wxCommandEvent& evt);
 	void OnMenu_ShowNotification(wxCommandEvent& evt);
 	void OnMenu_ShowAbout(wxCommandEvent& evt);
-	void OnMenu_Quit(wxCommandEvent&);
-
-	virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
+	void OnMenu_Quit(wxCommandEvent&);					// TODO: Remove
 
 	wxDECLARE_EVENT_TABLE();
 };

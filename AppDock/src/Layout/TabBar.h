@@ -14,18 +14,28 @@ class DockWin;
 class TabBar : public wxWindow
 {
 public:
+	// wxWidget Command IDs
 	enum class CmdIds
 	{
-		Menu_CloneWin,
-		Menu_RenameWin,
-		Menu_ReleaseWin,
-		Menu_CloseWin,
-		Menu_DettachWin,
-		Menu_SystemMenu
+		Menu_CloneWin,		// See OnMenu_RClick_Clone()
+		Menu_RenameWin,		// See OnMenu_RClick_Rename()
+		Menu_ReleaseWin,	// See OnMenu_RClick_Release()
+		Menu_CloseWin,		// See OnMenu_RClick_CloseWin()
+		Menu_DettachWin,	// See OnMenu_RClick_DettachWin()
+		Menu_SystemMenu		// See OnMenu_RClick_SystemMenu()
 	};
 
-public:
+public: // TODO: Encapsulate better.
+
+	/// <summary>
+	/// A reference to the Tab node that owns us.
+	/// </summary>
 	Node* node				= nullptr;
+
+	/// <summary>
+	/// A reference to the Dock win that owns the layout the 
+	/// TabBar object is in.
+	/// </summary>
 	DockWin* owner			= nullptr;
 
 	/// <summary>
@@ -35,13 +45,45 @@ public:
 	/// </summary>
 	Node* nodeRightClicked	= nullptr;
 
-public:
+public: // Public methods
+
+	/// <summary>
+	/// Constructor.
+	/// </summary>
+	/// <param name="win">
+	/// The DockWin containing the Tab Node that the TabBar is 
+	/// managing.
+	/// </param>
+	/// <param name="node">
+	/// The TabNode that the TabBar is responsible for.
+	/// </param>
 	TabBar(DockWin* win, Node* node);
 
+	/// <summary>
+	/// If the tabs have been moved to a different window, this can
+	/// be used to update this->owner.
+	/// </summary>
+	/// <param name="win">
+	/// The DockWin that now contains the Tab Node that the TabBar
+	/// is responsible for.
+	/// </param>
 	void SwapOwner(DockWin* win);
 
+	/// <summary>
+	/// Check to see what tab is at a local screen point.
+	/// </summary>
+	/// <param name="pt">The local point to check.</param>
+	/// <returns>
+	/// The Node whos tab is at the specified pt. Or nullptr if
+	/// none was detected.
+	/// </returns>
 	Node* GetTabAtPoint(const wxPoint& pt);
 
+	//////////////////////////////////////////////////
+	//
+	//	wxWidgets EVENT HANDLERS
+	//
+	//////////////////////////////////////////////////
 	void OnDraw(wxPaintEvent& evt);
 	void OnMouseLDown(wxMouseEvent& evt);
 	void OnMouseLUp(wxMouseEvent& evt);
