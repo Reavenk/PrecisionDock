@@ -2,6 +2,7 @@
 *.ncb
 *.obj
 *.bak
+*.aps
 x64
 Debug
 PerDeveloper.props

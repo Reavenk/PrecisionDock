@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\CaptureDlg">
-      <UniqueIdentifier>{1867c163-aeeb-47b5-a21c-6ffa657295c4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\CaptureDlg">
       <UniqueIdentifier>{01e9b02a-aa42-48a4-a2ef-7d4db115e9b7}</UniqueIdentifier>
     </Filter>
@@ -36,6 +33,9 @@
     </Filter>
     <Filter Include="Source Files\Dlgs">
       <UniqueIdentifier>{aa4068c7-63b0-4615-a9bd-a603d5318e76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CaptureDlg">
+      <UniqueIdentifier>{1867c163-aeeb-47b5-a21c-6ffa657295c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -75,44 +75,44 @@
     <ClInclude Include="AppRef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CaptureDlg\CapDragSelWin.h">
-      <Filter>Header Files\CaptureDlg</Filter>
-    </ClInclude>
-    <ClInclude Include="CaptureDlg\CaptureDlg.h">
-      <Filter>Header Files\CaptureDlg</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\json.hpp">
       <Filter>Header Files\Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Layout\Layout.h">
-      <Filter>Header Files\Layout</Filter>
-    </ClInclude>
-    <ClInclude Include="Layout\LProps.h">
-      <Filter>Header Files\Layout</Filter>
-    </ClInclude>
-    <ClInclude Include="Layout\Node.h">
-      <Filter>Header Files\Layout</Filter>
-    </ClInclude>
-    <ClInclude Include="Layout\Sash.h">
-      <Filter>Header Files\Layout</Filter>
-    </ClInclude>
-    <ClInclude Include="Layout\TabBar.h">
-      <Filter>Header Files\Layout</Filter>
     </ClInclude>
     <ClInclude Include="Utils\mywxUtils.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="CaptureDlg\CaptureListItem.h">
-      <Filter>Header Files\CaptureDlg</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\AppUtils.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Dlgs\DlgAbout.h">
+    <ClInclude Include="src\CaptureDlg\CapDragSelWin.h">
+      <Filter>Header Files\CaptureDlg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CaptureDlg\CaptureDlg.h">
+      <Filter>Header Files\CaptureDlg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CaptureDlg\CaptureListItem.h">
+      <Filter>Header Files\CaptureDlg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Dlgs\DlgAbout.h">
       <Filter>Header Files\Dlgs</Filter>
     </ClInclude>
-    <ClInclude Include="Dlgs\DlgIntro.h">
+    <ClInclude Include="src\Dlgs\DlgIntro.h">
       <Filter>Header Files\Dlgs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Layout\Layout.h">
+      <Filter>Header Files\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Layout\LProps.h">
+      <Filter>Header Files\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Layout\Node.h">
+      <Filter>Header Files\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Layout\Sash.h">
+      <Filter>Header Files\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Layout\TabBar.h">
+      <Filter>Header Files\Layout</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
