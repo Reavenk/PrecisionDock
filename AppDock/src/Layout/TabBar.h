@@ -103,6 +103,9 @@ public: // Public methods
 protected:
 	DECLARE_EVENT_TABLE();
 
+public: // Static public methods
+	const static wxBitmap& GetCloseBtnBitmap();
+
 public:
 	bool _TestValidity();
 };

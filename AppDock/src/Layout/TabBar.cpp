@@ -3,6 +3,8 @@
 #include "../AppDock.h"
 #include <wx/dcbuffer.h>
 
+#include "TabCloseBtn.xpm"
+
 BEGIN_EVENT_TABLE(TabBar, wxWindow)
 	EVT_PAINT					(TabBar::OnDraw			)
 	EVT_LEFT_DOWN				(TabBar::OnMouseLDown	)
@@ -61,7 +63,7 @@ Node* TabBar::GetTabAtPoint(const wxPoint& pt)
 /// If true, generate points for the bottom of a selected tab.
 /// </param>
 /// <param name="tabRect">The rectangle for tab.</param>
-/// <param name="tabX"></param>
+/// <param name="tabX">The X offset to generate the points at</param>
 /// <param name="barRgnWidth"></param>
 /// <param name="lp"></param>
 /// <returns></returns>
@@ -108,7 +110,7 @@ std::vector<wxPoint> GenerateTabPoints(
 	return tabPts;
 }
 
-void _DrawTabIcon(HDC hdc, HWND hwnd, const wxRect& wxrTab)
+void DrawTabIcon(HDC hdc, HWND hwnd, const wxRect& wxrTab, const LProps& lp)
 {
 	if(hwnd == NULL)
 		return;
@@ -116,17 +118,91 @@ void _DrawTabIcon(HDC hdc, HWND hwnd, const wxRect& wxrTab)
 	HICON winIcon = (HICON)GetClassLongPtr(hwnd, GCLP_HICON /* or GCLP_HICONSM */);
 	if(winIcon != NULL)
 	{
+		// The width and height of the square region to draw the icon.
+		const int iconDim = 16;
+
 		DrawIconEx(
 			hdc,
 			wxrTab.x + 2,
-			wxrTab.y + 8,
+			wxrTab.y + (wxrTab.height - iconDim) / 2,
 			winIcon,
-			16,
-			16,
+			iconDim,
+			iconDim,
 			0,
 			NULL,
 			DI_NORMAL);
 	}
+}
+
+void CalculateCloseButtonInfo(const wxRect& wxrTab, const LProps& lp, int& outRad, wxPoint& outCenter)
+{
+	// These may eventually get put into LProps
+	const int closeButtonRad = 8;
+	const int closeRightPad = 2;
+
+	outCenter = 
+		wxPoint(
+			wxrTab.x + wxrTab.width - closeButtonRad - closeRightPad, 
+			wxrTab.height / 2 + lp.tabPadTop);
+
+	// A simple transfer, but that allows this function to be 
+	// authority on the button radius.
+	outRad = closeButtonRad;
+}
+
+void DrawCloseButton(wxDC& dc, const wxRect& wxrTab, const LProps& lp)
+{
+	int closeButtonRad;
+	wxPoint closeBtnCenter;
+	CalculateCloseButtonInfo(wxrTab, lp, closeButtonRad, closeBtnCenter);
+
+	// Draw the circle for the close button
+	static wxBrush brushBtn = wxBrush(wxColour(220, 220, 220));	
+	dc.SetBrush(brushBtn);
+	dc.DrawCircle(closeBtnCenter.x, closeBtnCenter.y, closeButtonRad);
+
+	// Draw the X image for the close button
+	const wxBitmap& closeBtnBmp = TabBar::GetCloseBtnBitmap();
+	dc.DrawBitmap(
+		closeBtnBmp, 
+		wxPoint(
+			closeBtnCenter.x - closeBtnBmp.GetWidth() / 2,
+			closeBtnCenter.y - closeBtnBmp.GetHeight() / 2), 
+		true);
+}
+
+void DrawTab(wxDC& dc, Node* node, const LProps& lp, bool isSelected)
+{
+	const int iconPad = 20;
+
+	static wxBrush brushSel    = wxBrush(wxColour(255, 255, 255));	// The color of selected tabs
+	static wxBrush brushUnsel  = wxBrush(wxColour(180, 180, 180));	// The color of unselected tabs
+
+	const wxRect& tabRect = node->cachedTabLcl;
+
+	// Draw the body of the tab
+	std::vector<wxPoint> tabPts = 
+		GenerateTabPoints(
+			isSelected, 
+			node->cachedTab.GetSize(), 
+			tabRect.x,
+			node->cacheSize.x,
+			lp);
+
+	dc.SetBrush(isSelected ? brushSel : brushUnsel);
+	dc.DrawPolygon(tabPts.size(), &tabPts[0], 0, 0);
+
+
+	// Draw the internals
+	wxCoord textHgt = dc.GetCharHeight();
+	dc.DrawText(
+		"Massive headphones", 
+		wxPoint(
+			tabRect.x + iconPad, 
+			tabRect.y + (tabRect.height - textHgt) * 0.5f));
+
+	DrawTabIcon(dc.GetTempHDC().GetHDC(), node->win, node->cachedTabLcl, lp);
+	DrawCloseButton(dc, tabRect, lp);
 }
 
 void TabBar::OnDraw(wxPaintEvent& evt)
@@ -135,90 +211,27 @@ void TabBar::OnDraw(wxPaintEvent& evt)
 	assert(this->owner != nullptr);
 
 	wxBufferedPaintDC dc(this);
-
-	wxBrush brushBG     = wxBrush(wxColour(200, 200, 240));
-	wxBrush brushSel    = wxBrush(wxColour(255, 255, 255));
-	wxBrush brushBtn    = wxBrush(wxColour(240, 240, 240));
-	wxBrush brushUnsel  = wxBrush(wxColour(180, 180, 180));
-
 	wxSize szClient = this->GetClientSize();
+
+	// Background of the entire tab area
+	static wxBrush brushBG     = wxBrush(wxColour(200, 200, 240));	
 	dc.SetBrush(brushBG);
 	dc.SetPen(*wxTRANSPARENT_PEN);
 	dc.DrawRectangle(wxPoint(), szClient);
 
 	const LProps& lp = this->owner->GetLayoutProps();
-	const int iconPad = 20;
 
 	if(this->node->type == Node::Type::Window)
 	{
-		std::vector<wxPoint> tabPts = 
-			GenerateTabPoints(
-				true, 
-				this->node->cachedTab.GetSize(), 
-				0,
-				this->node->cacheSize.x,
-				lp);
-
-		dc.SetBrush(brushSel);
-		dc.DrawPolygon(
-			tabPts.size(), 
-			&tabPts[0], 
-			0, 
-			0);
-
-		wxCoord textHgt = dc.GetCharHeight();
-		dc.DrawText(
-			"Massive headphones", 
-			wxPoint(
-				iconPad, 
-				this->node->cachePos.y + lp.tabPadTop + (lp.tabHeight - textHgt) * 0.5f));
-
-		_DrawTabIcon(
-			dc.GetTempHDC().GetHDC(), 
-			this->node->win, 
-			this->node->cachedTabLcl);
-
-		dc.SetBrush(brushBtn);
-		dc.DrawCircle(this->node->cachedTab.width - 12,14, 10);
+		DrawTab(dc, this->node, lp, true);
 	}
 	else if(this->node->type == Node::Type::Tabs)
 	{
-		int tabx = 0;
 		for(size_t i = 0; i < this->node->children.size(); ++i)
 		{
 			Node* tinner = this->node->children[i];
-
-			bool isSel = (this->node->selTab == i);
-
-			std::vector<wxPoint> tabPts = 
-				GenerateTabPoints(
-					isSel, 
-					tinner->cachedTab.GetSize(), 
-					tabx,
-					this->node->cacheSize.x,
-					lp);
-
-			if(isSel)
-				dc.SetBrush(brushSel);
-			else
-				dc.SetBrush(brushUnsel);
-
-			dc.DrawPolygon(
-				tabPts.size(), 
-				&tabPts[0], 
-				0, 
-				0);
-
-			wxCoord textHgt = dc.GetCharHeight();
-			dc.DrawText(
-				"Massive headphones", 
-				wxPoint(
-					tabx + iconPad, 
-					lp.tabPadTop + (lp.tabHeight - textHgt) * 0.5f));
-
-			_DrawTabIcon(dc.GetTempHDC().GetHDC(), tinner->win, tinner->cachedTabLcl);
-
-			tabx += this->node->cachedTab.width;
+			bool isSelected = (this->node->selTab == i);
+			DrawTab(dc, tinner, lp, isSelected);
 		}
 	}
 	else
@@ -393,6 +406,12 @@ void TabBar::OnMenu_RClick_SystemMenu(wxCommandEvent& evt)
 	// What we need to do instead is intercept the message on a dummy window, and
 	// redirect it via SendMessage to the window. Pretty sure that would work.
 	AppDock::RaiseTODO("Create delegation system of message to HWND");
+}
+
+const wxBitmap& TabBar::GetCloseBtnBitmap()
+{
+	static wxBitmap closeBtnBitmap = wxBitmap(pszTabCloseBtn);
+	return closeBtnBitmap;
 }
 
 bool TabBar::_TestValidity()
