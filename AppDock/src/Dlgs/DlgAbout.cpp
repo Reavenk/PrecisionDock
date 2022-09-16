@@ -1,4 +1,4 @@
-#include "DlgAbout.h"
+﻿#include "DlgAbout.h"
 #include "../Utils/AppUtils.h"
 #include "../AppDock.h"
 
@@ -12,6 +12,11 @@ wxEND_EVENT_TABLE()
 DlgAbout::DlgAbout()
 	:	wxDialog(nullptr, wxID_ANY,"About", wxDefaultPosition, wxSize(400, 400))
 {
+	// > ☐ ABOUT_MAIN_a9e233bac5e8: About dialog shows the date the application was built.
+	// > ☐ ABOUT_MAIN_c026ec87e65e: About dialog shows the application version.
+	// > ☐ ABOUT_MAIN_5eb90c1bc078: Application's version is a semantic version.
+	// > ☐ ABOUT_MAIN_897148b6d678: About's application version is correct.
+
 	this->cachedHWND = this->GetHWND();
 	AppDock::GetApp().RegisterToplevelOwned(this->cachedHWND);
 	AppUtils::SetDefaultIcons(this);

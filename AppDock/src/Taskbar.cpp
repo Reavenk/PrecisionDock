@@ -1,4 +1,4 @@
-#include "Taskbar.h"
+﻿#include "Taskbar.h"
 #include <wx/menu.h>
 #include "AppDock.h"
 #include "CaptureDlg/CaptureDlg.h"
@@ -37,6 +37,9 @@ void Taskbar::OnMenuRestore(wxCommandEvent& )
 
 void Taskbar::OnMenuExit(wxCommandEvent& )
 {
+	// > ☐ TSKBR_MAIN_b2287bf38ad2: Taskbar has option to close the system.
+	// > ☐ TSKBR_MAIN_10ded6c7be77: Taskbar close option works as expected.
+
 	//gs_dialog->Close(true);
 	AppDock::GetApp().CloseAll();
 	AppDock::GetApp().Exit();
@@ -140,6 +143,9 @@ void Taskbar::OnMenu_ShowNotification(wxCommandEvent& evt)
 
 void Taskbar::OnMenu_ShowAbout(wxCommandEvent& evt)
 {
+	// > ☐ TSKBR_OPTS_5fd68ae5d901: Taskbar to have an option to show the About dialog.
+	// > ☐ TSKBR_OPTS_7a3f6f0fadfe: Taskbar's About works as expected.
+
 	AppDock::ShowAboutDlgModal();
 }
 

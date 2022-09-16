@@ -1,5 +1,7 @@
-#pragma once
+﻿#pragma once
 #include <wx/taskbar.h>
+
+// > ☐ TSKBR_MAIN_189de4b32a00: Application has an icon in the taskbar.
 
 /// <summary>
 /// Subsystem that handles the taskbar icon.

@@ -1,4 +1,4 @@
-// AppDock.cpp : Defines the entry point for the application.
+﻿// AppDock.cpp : Defines the entry point for the application.
 #include "TopDockWin.h"
 
 #include <wx/msw/private.h>
@@ -533,6 +533,9 @@ bool AppDock::ShowNotificationDlgModal()
 
 void AppDock::ShowAboutDlgModal()
 {
+    // > ☐ ABOUT_MAIN_54ef27967daf: Application has an About dialog
+    // > ☐ ABOUT_MAIN_e45b1a70f019: About dialog is modal.
+
     DlgAbout dlgAbout;
     dlgAbout.ShowModal();
 }
