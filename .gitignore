@@ -3,3 +3,4 @@ x64
 .vs
 *.vcxproj.user
 SavedState.json
+enc_temp_folder
