@@ -4,15 +4,13 @@
 
 class DockWin;
 
-// TODO: Check difference between BarDrop and BarDrag
-
 /// <summary>
 /// When dragging a tab to drop somewhere, a BarDrag will represent the
 /// graphical representation of the application, which will be placed
 /// next to the mouse.
 /// 
 /// </summary>
-class BarDrag : public wxTopLevelWindow
+class DragPreviewOlyWin : public wxTopLevelWindow
 {
 public:
 
@@ -31,7 +29,7 @@ public:
 	/// <param name="escapeSink">
 	/// The DockWin to notify if the Escape key was pressed during the operation.
 	/// </param>
-	BarDrag(wxWindow * parent, DockWin* escapeSink);
+	DragPreviewOlyWin(wxWindow * parent, DockWin* escapeSink);
 
 	/// <summary>
 	/// Keyboard presses to handle if the user presses Escape

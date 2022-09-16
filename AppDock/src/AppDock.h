@@ -220,6 +220,8 @@ public:
     bool LaunchAppRef(int idx);
     bool LaunchAppRef(const AppRef& aref);
 
+    std::vector<TopDockWin*> _GetWinList();
+
 public:
     // Utility functions - may be moved to deciated utility library(s) later.
 

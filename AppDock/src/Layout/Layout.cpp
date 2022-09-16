@@ -82,7 +82,7 @@ Layout::ForgetUndo Layout::ForgetUndo::MakeTab(Node* pn)
 	ForgetUndo ret;
 	ret.ty		= ForgetUndo::Type::TabIndex;
 	ret.node	= pn;
-	ret.idx		= pn->id;
+	ret.idx		= pn->selTab;
 	return ret;
 }
 
@@ -176,7 +176,7 @@ bool Layout::_ForgetWindow(
 {
 	std::vector<ForgetUndo> filler;
 	std::set<Node*> rminv;
-	if(this->_ForgetWindow(targ, fa, filler, rminv, true) == false)
+	if(this->_ForgetWindow(targ, fa, filler, rminv, true, true) == false)
 		return false;
 
 	for(ForgetUndo& fgt : filler)
@@ -192,7 +192,8 @@ bool Layout::_ForgetWindow(
 	Node::ForgetAction fa, 
 	std::vector<ForgetUndo>& undo,
 	std::set<Node*>& rmInvolved,
-	bool updateTabs)
+	bool updateTabs,
+	bool updateTabVisibility)
 {
 	if(targ->type != Node::Type::Window)
 		return false;
@@ -230,29 +231,28 @@ bool Layout::_ForgetWindow(
 		targ);
 
 	bool changedTab = false;
+	int newTabIdx = -1;
+	Node* tabParentToUpdate = nullptr;
 	if(updateTabs == true)
 	{
 		if(oldParent->type == Node::Type::Tabs)
 		{
 			// The old index, in case the parent was a tab and we need to adjust.
 			int oldIdx = it - oldParent->children.begin();
-			if(oldIdx == oldParent->selTab)
+			tabParentToUpdate = oldParent;
+
+			if(oldIdx <= oldParent->selTab)
 			{
 				// Reset to a new tab, and update the selected tab
 				// to something valid.
-				int newTabIdx = std::max(0, oldParent->selTab - 1);
+				newTabIdx = std::max(0, oldParent->selTab - 1);
 				// We can't update the tab window just yet until the removal is done,
 				// so we just flag it for removal.
 				// The reason this is done so high up in the function though, is because 
 				// we need to record the Undo before the removal.
-				changedTab = true;
+				
 				undo.push_back(ForgetUndo::MakeTab(oldParent));
-			}
-			else if(oldIdx > oldParent->selTab)
-			{
-				// Nothing changes visually, but its index in the
-				// parent's child vector is lower.
-				--oldParent->selTab;
+				changedTab = true;
 			}
 		}
 	}
@@ -268,8 +268,8 @@ bool Layout::_ForgetWindow(
 	// Avoid hitting some asserts later down the line.
 	targ->parent = nullptr; 
 
-	if(changedTab == true)
-		oldParent->SelectTab(oldParent->selTab);
+	if(updateTabVisibility == true)
+		oldParent->SelectTab(oldParent->selTab, !updateTabs);
 
 
 	// Check if we need to remove parents.
@@ -357,7 +357,19 @@ bool Layout::_ForgetWindow(
 				break;
 		}
 		else
-			return true;
+			break;
+	}
+
+	// If we had a tab container, it could have been collapsed if it only 
+	// had 1 child left afterwards, In which case it's no longer going to 
+	// be on the current layout.
+	if(changedTab && tabParentToUpdate->children.size() >= 2)
+	{
+		assert(tabParentToUpdate != nullptr);
+		assert(tabParentToUpdate->type == Node::Type::Tabs);
+		assert(newTabIdx != -1);
+
+		tabParentToUpdate->SelectTab(newTabIdx, false);
 	}
 
 
@@ -399,9 +411,12 @@ void Layout::UndoForget(std::vector<ForgetUndo>& undo, const LProps& props)
 						par->children.end(),
 						forgu.node);
 
-				assert(it != par->children.end());
-				par->children.erase(it);
-				forgu.node->parent = nullptr;
+				
+				if(it != par->children.end())
+				{ 
+					par->children.erase(it);
+					forgu.node->parent = nullptr;
+				}
 			}
 
 			if(forgu.prvParent == nullptr)
@@ -413,11 +428,14 @@ void Layout::UndoForget(std::vector<ForgetUndo>& undo, const LProps& props)
 			else
 			{
 				assert(forgu.prvParent != nullptr);
+
 				forgu.prvParent->children.insert( 
 					forgu.prvParent->children.begin() + forgu.prvIndex,
 					forgu.node);
 
 				forgu.node->parent = forgu.prvParent;
+				if(forgu.prvParent->type == Node::Type::Tabs)
+					forgu.node->ClearTabBar();
 
 				// The root should be repaired by the end of processing
 				// all the undos. But we set the root to null if needed
@@ -436,6 +454,16 @@ void Layout::UndoForget(std::vector<ForgetUndo>& undo, const LProps& props)
 			// trigger.
 			//
 			//forgu.node->ShowWindow();
+		}
+		else if(forgu.ty == ForgetUndo::Type::TabIndex)
+		{
+			assert(forgu.node != nullptr);
+			assert(forgu.node->type == Node::Type::Tabs);
+			assert(forgu.node->children.size() >= 2);
+			assert(forgu.idx >= 0);
+			assert(forgu.idx < forgu.node->children.size());
+
+			forgu.node->SelectTab(forgu.idx, true);
 		}
 		else
 			assert(!"Unhandled ForgetUndo::Type");
@@ -1050,12 +1078,7 @@ void Layout::_ResizeFromLot(const Lot& lroot, const LProps& lp)
 					l.pn->cachedClient.height,
 					SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOZORDER);
 			}
-			TabBar* tb = l.pn->GetTabBar();
-			if(tb != nullptr)
-			{ 
-				tb->SetPosition(l.pn->cachedTab.GetPosition());
-				tb->SetSize(wxSize(l.pn->cacheSize.x, lp.tabPadBot + lp.tabHeight));
-			}
+			l.pn->ResetTabBarLayout(lp);
 		}
 		else if(l.pn->type == Node::Type::Tabs)
 		{
@@ -1093,12 +1116,8 @@ void Layout::_ResizeFromLot(const Lot& lroot, const LProps& lp)
 						SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOZORDER);
 				}
 			}
-			TabBar* tb = l.pn->GetTabBar();
-			if(tb != nullptr)
-			{ 
-				tb->SetPosition(l.pn->cachedTab.GetPosition());
-				tb->SetSize(wxSize(l.pn->cacheSize.x, lp.tabPadBot + lp.tabHeight));
-			}
+			l.pn->ResetTabBarLayout(lp);
+			
 		}
 		else if(l.pn->type == Node::Type::Horizontal)
 		{
@@ -1373,6 +1392,46 @@ bool InBounds(wxRect r, wxPoint pt)
 		r.GetPosition(), 
 		r.GetSize(),
 		pt);
+}
+
+int Layout::_CountInstancedTabBarsInHierarchy()
+{
+	if(this->root == nullptr)
+		return 0;
+
+	int counter = 0;
+	std::vector<Node*> toScan = {this->root};
+	while(!toScan.empty())
+	{
+		Node* curNode = toScan.back();
+		toScan.pop_back();
+
+		if(curNode->GetTabBar() != nullptr)
+			++counter;
+
+		for(Node* childToProcess : toScan)
+			toScan.push_back(childToProcess);
+	}
+	return counter;
+}
+
+int Layout::_CountNodesInHierarchy()
+{
+	if(this->root == nullptr)
+		return 0;
+
+	int counter = 0;
+	std::vector<Node*> toScan = {this->root};
+	while(!toScan.empty())
+	{
+		++counter;
+		Node* curNode = toScan.back();
+		toScan.pop_back();
+
+		for(Node* childToProcess : toScan)
+			toScan.push_back(childToProcess);
+	}
+	return counter;
 }
 
 bool Layout::_TestValidity()

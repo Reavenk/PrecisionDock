@@ -162,6 +162,11 @@ void TopDockWin::OnMenu_ReleaseAll(wxCommandEvent& evt)
 {
 }
 
+json TopDockWin::_JSONRepresentation()
+{
+    return this->dockWin->_JSONRepresentation();
+}
+
 bool TopDockWin::_TestValidity()
 {
     // TODO:

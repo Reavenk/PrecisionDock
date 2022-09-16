@@ -1,12 +1,12 @@
 
-#include "BarDrag.h"
+#include "DragPreviewOlyWin.h"
 #include "DockWin.h"
 
-wxBEGIN_EVENT_TABLE(BarDrag, wxTopLevelWindow)
-	EVT_KEY_DOWN(BarDrag::OnKeyDown)
+wxBEGIN_EVENT_TABLE(DragPreviewOlyWin, wxTopLevelWindow)
+	EVT_KEY_DOWN(DragPreviewOlyWin::OnKeyDown)
 wxEND_EVENT_TABLE();
 
-BarDrag::BarDrag(wxWindow * parent, DockWin* escapeSink)
+DragPreviewOlyWin::DragPreviewOlyWin(wxWindow * parent, DockWin* escapeSink)
 	: wxTopLevelWindow(
 		parent, 
 		-1, 
@@ -20,7 +20,7 @@ BarDrag::BarDrag(wxWindow * parent, DockWin* escapeSink)
 	this->SetCursor(*wxCROSS_CURSOR);
 }
 
-void BarDrag::OnKeyDown(wxKeyEvent& evt)
+void DragPreviewOlyWin::OnKeyDown(wxKeyEvent& evt)
 {
 	if(evt.GetKeyCode() == WXK_ESCAPE)
 		this->escapeSink->OnDelegatedEscape();

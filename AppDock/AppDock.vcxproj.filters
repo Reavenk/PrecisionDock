@@ -87,13 +87,7 @@
     <ClInclude Include="src\AppRef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\BarDrag.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\BarDrop.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DropPreviewWin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\DockWin.h">
@@ -114,6 +108,9 @@
     <ClInclude Include="src\Taskbar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\DragPreviewOlyWin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppDock.cpp">
@@ -122,16 +119,10 @@
     <ClCompile Include="src\AppRef.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\BarDrag.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\BarDrop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\DockWin.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DropPreviewWin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Taskbar.cpp">
@@ -175,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="src\Layout\Sash.cpp">
       <Filter>Source Files\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DragPreviewOlyWin.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -134,7 +134,10 @@ bool AppDock::OnInit()
     this->ReloadAppRefs();
     this->maintenenceTimer.Start(2000);
     
-
+    const std::vector<AppRef>& v = AppDock::GetApp().ReferencedApps();
+    AppDock::GetApp().LaunchAppRef(v[0]);
+    AppDock::GetApp().LaunchAppRef(v[0]);
+    AppDock::GetApp().LaunchAppRef(v[0]);
     return true;
 }
 
@@ -394,6 +397,15 @@ bool AppDock::LaunchAppRef(const AppRef& aref)
             aref.msBeforeAttach,
             aref.closeIfFail,
             aref.startShown);
+}
+
+std::vector<TopDockWin*> AppDock::_GetWinList()
+{
+    std::vector<TopDockWin*> ret;
+    for(auto it : this->dockWins)
+        ret.push_back(it.first);
+
+    return ret;
 }
 
 HWND AppDock::CreateSpawnedWindow(const std::wstring & cmd)

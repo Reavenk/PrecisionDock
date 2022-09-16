@@ -365,20 +365,30 @@ int Node::Depth() const
 	return ret;
 }
 
-bool Node::SelectTab(int idx)
+bool Node::SelectTab(int idx, bool updateWinVisibility)
 {
+	assert(this->type == Node::Type::Tabs);
 	if(idx < 0 || idx > this->children.size())
 		return false;
 
 	this->selTab = idx;
+
+	if(updateWinVisibility)
+		this->UpdateTabWindowVisibility();
+
+	return true;
+}
+
+void Node::UpdateTabWindowVisibility()
+{
+	assert(this->type == Node::Type::Tabs);
 	for(size_t i = 0; i < this->children.size(); ++i)
 	{
 		Node* child = this->children[i];
 		assert(child->type == Node::Type::Window);
 
-		child->ShowWindow(i == idx);
+		child->ShowWindow(i == this->selTab);
 	}
-	return true;
 }
 
 bool Node::SelectTab(Node* winChild)
@@ -400,6 +410,20 @@ void Node::ClearTabBar()
 	this->tabsBar = nullptr;
 }
 
+Node* Node::ChildOtherThan(Node* n)
+{
+	if(this->children.empty())
+		return nullptr;
+
+	for(Node* nCmp : this->children)
+	{
+		if(n != nCmp)
+			return nCmp;
+	}
+
+	return nullptr;
+}
+
 void Node::SetTabBar(TabBar* tb)
 {
 	assert(this->tabsBar == nullptr);
@@ -409,4 +433,17 @@ void Node::SetTabBar(TabBar* tb)
 void Node::ForgetTabBar()
 {
 	this->tabsBar = nullptr;
+}
+
+void Node::ResetTabBarLayout(const LProps& lp)
+{
+	if(this->tabsBar == nullptr)
+		return;
+
+	assert(this->tabsBar != nullptr);
+	assert(this->type == Node::Type::Tabs || this->type == Node::Type::Window);
+
+
+	this->tabsBar->SetPosition(this->cachedTab.GetPosition());
+	this->tabsBar->SetSize(wxSize(this->cacheSize.x, lp.tabPadBot + lp.tabHeight));
 }

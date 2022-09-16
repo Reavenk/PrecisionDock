@@ -4,35 +4,33 @@
 #include "Layout/LProps.h"
 #include "BarDrop.h"
 #include <set>
+#include "Utils/json.hpp"
+
+using json = nlohmann::json;
 
 class TopDockWin;
 class Node;
-class BarDrag;
+class DragPreviewOlyWin;
 
-/// <summary>
-/// The location in a TopDockWin where the layout of docked windows
-/// will be placed.
-/// </summary>
-class DockWin : public wxWindow
+class DragHelperMgr // TODO: Wrong name, doesn't just handle tab dragging
 {
 public:
-	/// <summary>
-	/// The different types of mouse drag operations.
-	/// </summary>
-	enum class MouseState
+	enum class DragType
 	{
-		// Not dragging
-		Normal,
-		// Dragging a sash
-		DragSash,
-		// Anticipate dragging a window. As soon as the node's tab starts
-		// being dragged, the state will transition to DragWin.
-		DragWin_Anticipate,
-		// Dragging a window
-		DragWin
+		Invalid,
+		Sash,
+		Tab
 	};
 
-protected: // Protected static variables
+public:
+
+	DragType dragType = DragType::Invalid;
+
+	bool startedDraggingTab = false; // TODO: Rename to alreadyToreOffTab
+
+	bool dragFlaggedAsFinished = false;
+
+	wxWindow* winWithMouseCapture = nullptr;
 
 	// It's assumed that only one drag operation can occur at a time. This
 	// may not be 100% correct if we introduce the idea of multitouch. For
@@ -43,26 +41,25 @@ protected: // Protected static variables
 	/// the graphical element that follow the cursor to give
 	/// visual feedback of being in the drag mode.
 	/// </summary>
-	static BarDrag* barDrag;
+	DragPreviewOlyWin* dragPreviewOlyWin = nullptr; // TODO: rename draggingCursorGraphic
 
 	/// <summary>
 	/// When dragging a node to drop somewhere else, this is
 	/// the preview of where the window will be dropped.
 	/// </summary>
-	static BarDrop* dropPreviewWin;
+	BarDrop* dropPreviewWin = nullptr;
 
 	/// <summary>
 	/// When dragging a node to another window, this is the 
-	/// current node the cursor on top is stored here until 
-	/// the mouse is released.
+	/// current node the cursor on top of.
 	/// </summary>
-	static TopDockWin* winDraggedOnto;
+	TopDockWin* winDraggedOnto = nullptr;
 
 	/// <summary>
 	/// When dragging a node, this is current location to drop
 	/// the node into.
 	/// </summary>
-	static DropResult droppedDst;
+	DropResult droppedDst;
 
 	/// <summary>
 	/// When ripping a tab out, the Node is removed, but
@@ -71,12 +68,12 @@ protected: // Protected static variables
 	/// info in dragUndo contains instructions on how to
 	/// reinsert the node(s) and restore them.
 	/// </summary>
-	static std::vector<Layout::ForgetUndo> dragUndo;
+	std::vector<Layout::ForgetUndo> dragUndo;
 
 	/// <summary>
 	/// The node that is being dragged and dropped.
 	/// </summary>
-	static Node* nodeDragged;
+	Node* nodeDragged = nullptr;
 
 	/// <summary>
 	/// The nodes that were removed in a drag-node operation.
@@ -86,32 +83,136 @@ protected: // Protected static variables
 	/// from the drag node operation) any nodes that were removed
 	/// and no longer relevant are deleted.
 	/// </summary>
-	static std::set<Node*> dragNodesInvolved;
+	std::set<Node*> dragNodesInvolved;
 
 	/// <summary>
 	/// When dragging a sash, this is the parent of the
 	/// Nodes being resized by the sash.
 	/// </summary>
-	static Node* sashDraggedParent;
+	Node* sashDraggedParent = nullptr;
 
 	/// <summary>
 	/// When dragging a sash, this contains the pre-dragged
 	/// children proportions in case the user bails (presses
 	/// escape) to restore the window sizes.
 	/// </summary>
-	static std::vector<float> sashPreDragProps;
+	std::vector<float> sashPreDragProps; // TODO: rename preDragSashProps
+
+	/// <summary>
+	/// When dragging a window from a TabBar, what was that TabBar?
+	/// </summary>
+	TabBar* tabBarDrag = nullptr;
+
+	/// <summary>
+	/// The node that originally owned TabBar before the drag operation.
+	/// </summary>
+	Node* tabDragOwner = nullptr;
+
+	// The node who's window should be shown, or whos tab order should
+	// be reprocessed after a drag operation
+	Node* toUpdateAfterDrag = nullptr;
+
+	/// <summary>
+	/// The local position of a sash, where it was clicked and
+	/// dragged.
+	/// </summary>
+	wxPoint dragOffset;
 
 	/// <summary>
 	/// The last position left clicked. This is used during drag
 	/// operations to make sure the mouse as actually moved a 
 	/// certain ammount before comming to a drag/window-tear.
 	/// </summary>
-	static wxPoint lastLeftClick;
+	wxPoint lastLeftClick;
 
 	/// <summary>
-	/// When dragging a window from a TabBar, what was that TabBar?
+	/// The sash being dragged.
 	/// </summary>
-	static TabBar* tabBarDrag;
+	Sash* draggingSash = nullptr;
+
+	wxPoint lastKnownGlobalMouse;
+
+	/// <summary>
+	/// The DockWin that has the mouse capture during a tab drag.
+	/// </summary>
+	DockWin* winWhereDragged;
+
+public:
+	DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoint& winMousePos);
+	DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, Node* node, Node* tabOwner);
+	~DragHelperMgr();
+
+	/// <summary>
+	/// Sets the data of dropPreviewWin to specific values.
+	/// </summary>
+	/// <param name="pt">Sets the (top left) position of the window.</param>
+	/// <param name="sz">Set the size of the window.</param>
+	/// <param name="dwInvoker">The DockWin that called SetDropPreiewWin.</param>
+	/// <param name="dwDst">The DockWin that is the target of the call.</param>
+	/// <param name="raise">If true, raises the window to the top of the Z-order.</param>
+	void SetDropPreviewWin( 
+		const wxPoint& pt, 
+		const wxSize& sz,
+		DockWin* dwInvoker, 
+		DockWin* dwDst, 
+		bool raise = true);
+
+	bool RemoveDropPreviewWin();
+	bool RemoveDraggingCursor();
+
+	void _AssertIsDraggingSashCorrectly();
+	void _AssertIsDraggingTabCorrectly();
+	void _AssertIsNeutralized();
+
+	void _ResolveToUpdateAfterDrag();
+
+	bool FinishSuccessfulTabDragging();
+	bool CancelTabDragging();
+
+	bool FinishSuccessfulSashDragging();
+	bool CancelSashDragging();
+
+	void HandleMouseMove();
+	void _HandleMouseMoveSash(const wxPoint& delta);
+	void _HandleMouseMoveTab(const wxPoint& delta);
+
+	void ResumeCapture(wxWindow* requester);
+	void StopCapture(wxWindow* requester);
+
+	void SetDragPreviewOlyWin(const wxPoint& whereAt);
+};
+
+typedef std::shared_ptr<DragHelperMgr> TabDraggingMgrPtr;
+
+/// <summary>
+/// The location in a TopDockWin where the layout of docked windows
+/// will be placed.
+/// </summary>
+class DockWin : public wxWindow
+{
+	friend DragHelperMgr;
+
+	static int instCtr;
+public:
+	/// <summary>
+	/// The different types of mouse drag operations.
+	/// </summary>
+	enum class MouseState
+	{
+		// Not dragging
+		Normal,
+		// Draggin a tab (usually through delegation of a TabBar)
+		DragTab,
+		// Dragging a sash
+		DragSash,
+		// Anticipate dragging a window. As soon as the node's tab starts
+		// being dragged, the state will transition to DragWin.
+		DragWin_Anticipate,
+		// Dragging a window
+		DragWin
+	};
+
+	static TabDraggingMgrPtr dragggingMgr;
 
 protected:
 	
@@ -130,29 +231,12 @@ protected:
 	/// </summary>
 	TopDockWin* owner;
 
+protected:
 	/// <summary>
-	/// The last known mouse position. Used for debugging
-	/// and calculating mouse deltas.
+	/// Called when ANY type of mouse drag operation is finished.
 	/// </summary>
-	wxPoint lastMouse; 
+	void FinishMouseDrag();
 
-	/// <summary>
-	/// The current mouse state - all except Normal are mouse
-	/// drag types.
-	/// </summary>
-	MouseState mouseState = MouseState::Normal;
-
-	/// <summary>
-	/// The sash being dragged.
-	/// </summary>
-	Sash* draggingSash = nullptr;
-
-	/// <summary>
-	/// The local position of a sash, where it was clicked and
-	/// dragged.
-	/// </summary>
-	wxPoint dragOffset;
-	
 public:
 	DockWin(
 		wxWindow *parent,
@@ -350,26 +434,9 @@ public:
 	void TabClickCancel();
 
 	/// <summary>
-	/// Called when ANY type of mouse drag operation is finished.
-	/// </summary>
-	void FinishMouseDrag();
-
-	/// <summary>
 	/// Handles canceling a drag operation when being cancelled from delegation.
 	/// </summary>
 	void OnDelegatedEscape(); // TODO: Encapsulate - and expect delegation from TabClickCancel
-
-	/// <summary>
-	/// Utility function to cancel the drag state. This handles resetting ALL drag
-	/// states regardless of the specific type of dragging this was called for.
-	/// </summary>
-	void _CancelDrag();
-
-	/// <summary>
-	/// Confirms a drag operation to be complete. The specific type of drag will be
-	/// figured out in the function.
-	/// </summary>
-	void _ConfirmDrag();
 
 	/// <summary>
 	/// Called to handle when a node is removed. This includes,
@@ -400,32 +467,11 @@ public:
 
 	void OnKeyDown(wxKeyEvent& evt);
 	void OnKeyUp(wxKeyEvent& evt);
-public:
-	
-	/// <summary>
-	/// Sets the data of dropPreviewWin to specific values.
-	/// </summary>
-	/// <param name="pt">Sets the (top left) position of the window.</param>
-	/// <param name="sz">Set the size of the window.</param>
-	/// <param name="dwInvoker">The DockWin that called SetDropPreiewWin.</param>
-	/// <param name="dwDst">The DockWin that is the target of the call.</param>
-	/// <param name="raise">If true, raises the window to the top of the Z-order.</param>
-	static void SetDropPreviewWin( 
-		const wxPoint& pt, 
-		const wxSize& sz,
-		DockWin* dwInvoker, 
-		DockWin* dwDst, 
-		bool raise = true);
-
-	/// <summary>
-	/// Stop showing dropPreviewWin; by either hiding or destroying it.
-	/// </summary>
-	/// <param name="destroy">If true, destroys the window instead of hiding it.</param>
-	static void RemDropPreviewWin(bool destroy = true);
 
 protected:
 	DECLARE_EVENT_TABLE();
 
 public:
+	json _JSONRepresentation();
 	bool _TestValidity();
 };

@@ -337,8 +337,14 @@ public:
 	/// Only valid for tab collection nodes.
 	/// </summary>
 	/// <param name="idx">The tab to check</param>
+	/// <param name="updateWinVisibility">
+	/// If true, update the windows visibility. Sometimes we want to avoid doing this
+	/// because it can force a redraw or loss of mouse focus.
+	/// </param>
 	/// <returns>True if the specifed index is selected.</returns>
-	bool SelectTab(int idx);
+	bool SelectTab(int idx, bool updateWinVisibility = true);
+
+	void UpdateTabWindowVisibility();
 
 	/// <summary>
 	/// Check if a node is the selected tab.
@@ -366,10 +372,14 @@ public:
 	// TODO: Instead of "forgetting" the tab bar, it may be more effective to hold onto it but flag that it's suppresed?
 	void SetTabBar(TabBar* tb);
 
+	Node* ChildOtherThan(Node* n);
+
 	/// <summary>
 	/// Get rid knowledge of the Windows bar tab.
 	/// 
 	/// TODO: See TODO for SetTabBar().
 	/// </summary>
 	void ForgetTabBar();
+
+	void ResetTabBarLayout(const LProps& lp);
 };

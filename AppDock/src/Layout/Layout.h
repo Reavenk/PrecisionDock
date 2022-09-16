@@ -167,7 +167,7 @@ public: // Public data
 		std::vector<float> childrenProps;
 
 		/// <summary>
-		/// The debug index.
+		/// Int value, such as tab index.
 		/// </summary>
 		int idx = -1;
 
@@ -261,13 +261,18 @@ public: // Public utility methods
 	/// <param name="targ"></param>
 	/// /// <param name="fa"></param>
 	/// <param name="undo">A list of how to undo the removal.</param>
+	/// <param name="updateTabVisibility">
+	/// If tabs are modified, and if true, update the visibility state 
+	/// of the child windows so only the active tab's window is visible.
+	/// </param>
 	/// <returns></returns>
 	bool _ForgetWindow(
 		Node* targ, 
 		Node::ForgetAction fa, 
 		std::vector<ForgetUndo>& undo, 
 		std::set<Node*>& rmInvolved,
-		bool updateTabs);
+		bool updateTabs,
+		bool updateTabVisibility);
 
 	void UndoForget(std::vector<ForgetUndo>& undo, const LProps& props);
 
@@ -454,6 +459,8 @@ public: // Public static methods
 	static void _ResizeFromLot(const Lot& lroot, const LProps& lp);
 
 public:
+	int _CountInstancedTabBarsInHierarchy();
+	int _CountNodesInHierarchy();
 	bool _TestValidity();
 };
 

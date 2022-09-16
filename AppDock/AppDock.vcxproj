@@ -150,7 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\AppDock.h" />
-    <ClInclude Include="src\BarDrag.h" />
+    <ClInclude Include="src\DragPreviewOlyWin.h" />
     <ClInclude Include="src\BarDrop.h" />
     <ClInclude Include="src\CaptureDlg\CapDragSelWin.h" />
     <ClInclude Include="src\CaptureDlg\CaptureListItem.h" />
@@ -158,7 +158,6 @@
     <ClInclude Include="src\Dlgs\DlgAbout.h" />
     <ClInclude Include="src\Dlgs\DlgIntro.h" />
     <ClInclude Include="src\DockWin.h" />
-    <ClInclude Include="src\DropPreviewWin.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\AppRef.h" />
     <ClInclude Include="src\Layout\Layout.h" />
@@ -177,7 +176,7 @@
   <ItemGroup>
     <ClCompile Include="src\AppDock.cpp" />
     <ClCompile Include="src\AppRef.cpp" />
-    <ClCompile Include="src\BarDrag.cpp" />
+    <ClCompile Include="src\DragPreviewOlyWin.cpp" />
     <ClCompile Include="src\BarDrop.cpp" />
     <ClCompile Include="src\CaptureDlg\CapDragSelWin.cpp" />
     <ClCompile Include="src\CaptureDlg\CaptureListItem.cpp" />
@@ -185,7 +184,6 @@
     <ClCompile Include="src\Dlgs\DlgAbout.cpp" />
     <ClCompile Include="src\Dlgs\DlgIntro.cpp" />
     <ClCompile Include="src\DockWin.cpp" />
-    <ClCompile Include="src\DropPreviewWin.cpp" />
     <ClCompile Include="src\Layout\Layout.cpp" />
     <ClCompile Include="src\Layout\LProps.cpp" />
     <ClCompile Include="src\Layout\Node.cpp" />

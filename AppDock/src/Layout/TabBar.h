@@ -25,7 +25,15 @@ public:
 		Menu_SystemMenu		// See OnMenu_RClick_SystemMenu()
 	};
 
+public: // TODO: private static members
+	static int dbgCtr;
+
+	// Count how many of these objects there are.
+	static int instCtr;
+
 public: // TODO: Encapsulate better.
+
+	int id;
 
 	/// <summary>
 	/// A reference to the Tab node that owns us.
@@ -58,6 +66,8 @@ public: // Public methods
 	/// The TabNode that the TabBar is responsible for.
 	/// </param>
 	TabBar(DockWin* win, Node* node);
+
+	~TabBar();
 
 	/// <summary>
 	/// If the tabs have been moved to a different window, this can

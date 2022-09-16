@@ -2,6 +2,8 @@
 #include <wx/menu.h>
 #include "AppDock.h"
 #include "CaptureDlg/CaptureDlg.h"
+#include "TopDockWin.h"
+#include <fstream>
 
 wxBEGIN_EVENT_TABLE(Taskbar, wxTaskBarIcon)
 	EVT_MENU(CMDID::PU_EXIT,			Taskbar::OnMenuExit)
@@ -16,9 +18,12 @@ wxBEGIN_EVENT_TABLE(Taskbar, wxTaskBarIcon)
 	EVT_MENU(CMDID::ReleaseAll,			Taskbar::OnMenu_ReleaseAllDocked    )
 	EVT_MENU(CMDID::OpenLaunchList,		Taskbar::OnMenu_OpenLaunchList		)
 	EVT_MENU(CMDID::RunTests,			Taskbar::OnMenu_RunTests			)
+	EVT_MENU(CMDID::SaveState,			Taskbar::OnMenu_SaveState			)
 	EVT_MENU(CMDID::ClearNotification,  Taskbar::OnMenu_ClearNotification   )
 	EVT_MENU(CMDID::ShowNotification,	Taskbar::OnMenu_ShowNotification	)
 	EVT_MENU(CMDID::ShowAbout,			Taskbar::OnMenu_ShowAbout			)
+
+	EVT_MENU(CMDID::_DBG_Many,			Taskbar::OnMenu_DBG_Many			)
 wxEND_EVENT_TABLE()
 
 Taskbar::Taskbar()
@@ -106,6 +111,23 @@ void Taskbar::OnMenu_RunTests(wxCommandEvent&)
 		this->ShowBalloon("Tests Passed!", "The application passed the full test suite.");
 }
 
+void Taskbar::OnMenu_SaveState(wxCommandEvent& evt)
+{
+	json jsrepr = json::array();
+	std::vector<TopDockWin*> wins = AppDock::GetApp()._GetWinList();
+	for(TopDockWin* tdw : wins)
+	{
+		if(!tdw->HasRoot())
+			continue;
+
+		jsrepr.push_back(tdw->_JSONRepresentation());
+	}
+	std::ofstream ofs("SavedState.json");
+	ofs << jsrepr.dump(4);
+	ofs.close();
+
+}
+
 void Taskbar::OnMenu_ClearNotification(wxCommandEvent& evt)
 {
 	AppDock::ClearNoticeConfirm();
@@ -153,6 +175,7 @@ wxMenu *Taskbar::CreatePopupMenu()
 
 	// TODO: Make sure this menu option isn't built into release mode.
 	menu->Append(CMDID::RunTests,			"Run Debug Tests");
+	menu->Append(CMDID::SaveState,			"Save States");
 	menu->Append(CMDID::ClearNotification,	"Clear Notification");
 	menu->Append(CMDID::ShowNotification,	"Warning");
 	menu->Append(CMDID::ShowAbout,			"About");
@@ -173,4 +196,12 @@ void Taskbar::OnLeftButtonDClick(wxTaskBarIconEvent& evt)
 			pt.x - dlgSz.x, 
 			pt.y - dlgSz.y - 10));
 	capDlg->Thaw();
+}
+
+void Taskbar::OnMenu_DBG_Many(wxCommandEvent&)
+{
+	const std::vector<AppRef>& v = AppDock::GetApp().ReferencedApps();
+	AppDock::GetApp().LaunchAppRef(v[0]);
+	AppDock::GetApp().LaunchAppRef(v[0]);
+	AppDock::GetApp().LaunchAppRef(v[0]);
 }

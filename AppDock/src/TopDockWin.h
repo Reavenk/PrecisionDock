@@ -1,6 +1,9 @@
 #pragma once
 #include <wx/wx.h>
 #include <set>
+#include "Utils/json.hpp"
+
+using json = nlohmann::json;
 
 class DockWin;
 class Node;
@@ -91,9 +94,6 @@ public:
     /// </summary>
     void ReleaseAll();
 
-    // TODO: Reorganize to bottom.
-    bool _TestValidity();
-
 public:
     static inline int ClassInstCtr()
     { return _InstCtr;}
@@ -113,6 +113,10 @@ private:
     void OnMenu_ToggleStatusbar(wxCommandEvent& evt);
     void OnMenu_ReleaseAll(wxCommandEvent& evt);
     void OnExit(wxCommandEvent& event);
+
+public:
+    json _JSONRepresentation();
+    bool _TestValidity();
 
 protected:
     wxDECLARE_EVENT_TABLE();

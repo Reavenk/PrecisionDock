@@ -23,12 +23,24 @@ BEGIN_EVENT_TABLE(TabBar, wxWindow)
 	EVT_MENU((int)CmdIds::Menu_SystemMenu,  TabBar::OnMenu_RClick_SystemMenu   )
 END_EVENT_TABLE()
 
+int TabBar::dbgCtr = 0;
+int TabBar::instCtr = 0;
+
 TabBar::TabBar(DockWin* win, Node* node)
 	: wxWindow(win, wxID_ANY, wxDefaultPosition, wxDefaultSize, WS_EX_COMPOSITED)
 {
+	++instCtr;
+	this->id = ++dbgCtr;
+
 	this->owner = win;
 	this->node = node;
 	this->SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_PAINT);
+}
+
+TabBar::~TabBar()
+{
+	--instCtr;
+	assert(instCtr >= 0);
 }
 
 void TabBar::SwapOwner(DockWin* win)
@@ -195,8 +207,16 @@ void DrawTab(wxDC& dc, Node* node, const LProps& lp, bool isSelected)
 
 	// Draw the internals
 	wxCoord textHgt = dc.GetCharHeight();
+
+	const char* szTitle = "Massive headphones";
+#define DEBUG_TITLES 1
+#if DEBUG_TITLES
+	std::string debugTitle = std::string("DBG: ") + std::to_string(node->id);
+	szTitle = debugTitle.c_str();
+#endif
+
 	dc.DrawText(
-		"Massive headphones", 
+		szTitle, 
 		wxPoint(
 			tabRect.x + iconPad, 
 			tabRect.y + (tabRect.height - textHgt) * 0.5f));
@@ -265,7 +285,7 @@ void TabBar::OnMouseLUp(wxMouseEvent& evt)
 {
 	if(this->HasCapture() == true)
 	{
-		this->ReleaseMouse();
+		assert(DockWin::dragggingMgr != nullptr);
 		this->owner->TabClickEnd();
 	}
 }
@@ -319,15 +339,16 @@ void TabBar::OnSize(wxSizeEvent& evt)
 
 void TabBar::OnMouseCaptureLost(wxMouseCaptureLostEvent& evt)
 {
-	this->owner->TabClickEnd();
 }
 
 void TabBar::OnMouseChanged(wxMouseCaptureChangedEvent& evt)
-{
-	if(this->HasCapture() == true)
-		this->ReleaseMouse();
-	
-	this->owner->TabClickEnd();
+{	
+	// This can be nullptr if we right click the tab and bring up the system menu.
+	if(this->owner->dragggingMgr != nullptr)
+	{ 
+		if(!this->owner->dragggingMgr->dragFlaggedAsFinished)
+			this->owner->dragggingMgr->CancelTabDragging();
+	}
 }
 
 void TabBar::OnMenu_RClick_Clone(wxCommandEvent& evt)

@@ -38,9 +38,11 @@ public:
 		CloseAll,				// See OnMenu_CloseAllDocked()
 		ReleaseAll,				// See OnMenu_ReleaseAllDocked()
 		RunTests,				// See OnMenu_RunTests()
+		SaveState,				// See OnMenu_SaveState()
 		ClearNotification,		// See OnMenu_ClearNotification()
 		ShowNotification,		// See OnMenu_ShowNotification()
-		ShowAbout				// See OnMenu_ShowAbout()
+		ShowAbout,				// See OnMenu_ShowAbout()
+		_DBG_Many
 	};
 
 public:
@@ -86,10 +88,14 @@ public:
 	//
 	// Run saftey/sanity/state-health checks (debug only)
 	void OnMenu_RunTests(wxCommandEvent& evt);			
+	void OnMenu_SaveState(wxCommandEvent& evt);			
+
 	void OnMenu_ClearNotification(wxCommandEvent& evt);
 	void OnMenu_ShowNotification(wxCommandEvent& evt);
 	void OnMenu_ShowAbout(wxCommandEvent& evt);
 	void OnMenu_Quit(wxCommandEvent&);					// TODO: Remove
+
+	void OnMenu_DBG_Many(wxCommandEvent&);
 
 	wxDECLARE_EVENT_TABLE();
 };
