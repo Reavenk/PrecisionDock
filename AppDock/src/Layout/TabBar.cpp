@@ -544,7 +544,10 @@ void TabBar::OnMouseChanged(wxMouseCaptureChangedEvent& evt)
 	if(this->owner->dragggingMgr != nullptr)
 	{ 
 		if(!this->owner->dragggingMgr->dragFlaggedAsFinished)
+		{ 
 			this->owner->dragggingMgr->CancelTabDragging(true);
+			this->owner->DelegateFinishMouseDrag();
+		}
 	}
 }
 
