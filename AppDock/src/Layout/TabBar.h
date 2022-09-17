@@ -53,6 +53,20 @@ public: // TODO: Encapsulate better.
 	/// </summary>
 	Node* nodeRightClicked	= nullptr;
 
+	/// <summary>
+	/// The node that the mouse was last known to be over.
+	/// </summary>
+	Node * tabHoveringOver		= nullptr;
+
+	/// <summary>
+	/// If true, the mouse was last known to be over the close button of hoverOver.
+	/// </summary>
+	bool hoveringOverClose		= false;
+
+protected:
+	void ClearHover();
+	bool UpdateMouseOver(const wxPoint& mousePt);
+
 public: // Public methods
 
 	/// <summary>
@@ -89,6 +103,21 @@ public: // Public methods
 	/// </returns>
 	Node* GetTabAtPoint(const wxPoint& pt);
 
+	/// <summary>
+	/// Event, called when the TabBar is holding a window that was torn.
+	/// </summary>
+	void OnWindowTorn();
+
+	/// <summary>
+	/// Event, called when the TabBar is holding a tab, whos child window
+	/// was torn.
+	/// </summary>
+	/// <param name="nodeTorn">
+	/// The window that was torn. The node will have been a child, but 
+	/// was recently removed.
+	/// </param>
+	void OnTabTorn(Node* nodeTorn);
+
 	//////////////////////////////////////////////////
 	//
 	//	wxWidgets EVENT HANDLERS
@@ -102,6 +131,8 @@ public: // Public methods
 	void OnSize(wxSizeEvent& evt);
 	void OnMouseCaptureLost(wxMouseCaptureLostEvent& evt);
 	void OnMouseChanged(wxMouseCaptureChangedEvent& evt);
+	void OnMouseEnter(wxMouseEvent& evt);
+	void OnMouseExit(wxMouseEvent& evt);
 
 	void OnMenu_RClick_Clone(wxCommandEvent& evt);
 	void OnMenu_RClick_Rename(wxCommandEvent& evt);

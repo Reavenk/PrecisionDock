@@ -245,17 +245,6 @@ private: // Private methods
 public: // Public utility methods
 
 	/// <summary>
-	/// Deltes a node properly from the layout datastructure.
-	/// 
-	/// Note this doesn't handle the deletion of embedded HWNDs
-	/// (because it's used as a utility for those functions).
-	/// </summary>
-	/// <param name="targ"></param>
-	/// <param name="fa"></param>
-	/// <returns></returns>
-	bool _ForgetWindow(Node* targ, Node::ForgetAction fa);
-
-	/// <summary>
 	/// Delete a node propery from the layout datastructure.
 	/// </summary>
 	/// <param name="targ"></param>
@@ -351,13 +340,13 @@ public: // Public methods
 	/// Delete a window from the layout datastructure; 
 	/// identified by its HWND.
 	/// </summary>
-	bool DeleteWindow(HWND hwnd);
+	bool DeleteWindow(HWND hwnd, std::set<Node*>* involved);
 
 	/// <summary>
 	/// Delete a window from the layout datastructure; 
 	/// identified by its Node*.
 	/// </summary>
-	bool DeleteWindow(Node* targ);
+	bool DeleteWindow(Node* targ, std::set<Node*>* involved);
 
 	/// <summary>
 	/// Releases a contained window from being embedded,
@@ -365,7 +354,7 @@ public: // Public methods
 	/// layout datastructure. With the target being the node
 	/// in the layout.
 	/// </summary>
-	bool ReleaseWindow(Node* targ, bool delNode = true);
+	bool ReleaseWindow(Node* targ, std::set<Node*>* involved, bool delNode = true);
 
 	/// <summary>
 	/// Releases a contained window from being embedded,
@@ -373,7 +362,7 @@ public: // Public methods
 	/// layout datastructure. With the target being addressed
 	/// by the HWND its containing.
 	/// </summary>
-	bool ReleaseWindow(HWND hwnd, bool delNode = true);
+	bool ReleaseWindow(HWND hwnd, std::set<Node*>* involved, bool delNode = true);
 
 	/// <summary>
 	/// Delete all sash data.

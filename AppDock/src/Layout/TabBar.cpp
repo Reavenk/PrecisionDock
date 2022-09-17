@@ -1,9 +1,12 @@
-#include "TabBar.h"
+﻿#include "TabBar.h"
 #include "../DockWin.h"
 #include "../AppDock.h"
 #include <wx/dcbuffer.h>
 
 #include "TabCloseBtn.xpm"
+
+// TODO: Rename to TabsBar - nomenclature should be that a grouping
+// of tabs be explicitly plural.
 
 BEGIN_EVENT_TABLE(TabBar, wxWindow)
 	EVT_PAINT					(TabBar::OnDraw			)
@@ -14,6 +17,8 @@ BEGIN_EVENT_TABLE(TabBar, wxWindow)
 	EVT_SIZE					(TabBar::OnSize			)
 	EVT_MOUSE_CAPTURE_CHANGED	(TabBar::OnMouseChanged	)
 	EVT_MOUSE_CAPTURE_LOST		(TabBar::OnMouseCaptureLost)
+	EVT_ENTER_WINDOW			(TabBar::OnMouseEnter	)
+	EVT_LEAVE_WINDOW			(TabBar::OnMouseExit	)
 
 	EVT_MENU((int)CmdIds::Menu_CloneWin,    TabBar::OnMenu_RClick_Clone        )
 	EVT_MENU((int)CmdIds::Menu_RenameWin,   TabBar::OnMenu_RClick_Release      )  
@@ -25,6 +30,36 @@ END_EVENT_TABLE()
 
 int TabBar::dbgCtr = 0;
 int TabBar::instCtr = 0;
+
+bool InCircle(float x, float y, float r)
+{
+	// Cheaper to square r than to square root the left side.
+	return x * x + y * y <= r * r;
+}
+
+void CalculateCloseButtonInfo(const wxRect& wxrTab, const LProps& lp, int& outRad, wxPoint& outCenter)
+{
+	// These may eventually get put into LProps
+	const int closeButtonRad = 8;
+	const int closeRightPad = 2;
+
+	outCenter = 
+		wxPoint(
+			wxrTab.x + wxrTab.width - closeButtonRad - closeRightPad, 
+			wxrTab.height / 2 + lp.tabPadTop);
+
+	// A simple transfer, but that allows this function to be 
+	// authority on the button radius.
+	outRad = closeButtonRad;
+}
+
+bool InCloseButton(TabBar* tb, Node* n, const wxPoint mousePt)
+{
+	int closeButtonRad;
+	wxPoint closeBtnCenter;
+	CalculateCloseButtonInfo( n->cachedTabLcl, tb->owner->GetLayoutProps(), closeButtonRad, closeBtnCenter);
+	return InCircle(mousePt.x - closeBtnCenter.x, mousePt.y - closeBtnCenter.y, closeButtonRad);
+}
 
 TabBar::TabBar(DockWin* win, Node* node)
 	: wxWindow(win, wxID_ANY, wxDefaultPosition, wxDefaultSize, WS_EX_COMPOSITED)
@@ -66,6 +101,95 @@ Node* TabBar::GetTabAtPoint(const wxPoint& pt)
 		}
 	}
 	return nullptr;
+}
+
+void TabBar::ClearHover()
+{
+	this->tabHoveringOver = nullptr;
+	this->hoveringOverClose = false;
+	this->UnsetToolTip();
+	this->Refresh(false);
+}
+
+bool TabBar::UpdateMouseOver(const wxPoint& mousePt)
+{
+	Node * pnTabOver = this->GetTabAtPoint(mousePt);
+
+	// If the tab being hovered over has changed
+	bool tabHoveredChanged = false;
+	// If something has changed to where a redraw is necessary.
+	// This is basically (tabHoveredChanged || (Mouse over close button changed))
+	bool redraw = false;
+
+	// Check if hovering over a different tab
+	// This includes 
+	// - null->something or 
+	// - something->null
+	//
+	// If it has, we need to change the tooltip and tab background colors.
+	if(pnTabOver != this->tabHoveringOver)
+	{
+		redraw = true;
+		tabHoveredChanged = true;
+		this->hoveringOverClose = false; // We will recheck this
+		this->tabHoveringOver = pnTabOver;
+	}
+
+	// Check the state of the mouse being over a close button has changed.
+	//
+	// If it has, we need to redraw to change the close button colors.
+	if(this->tabHoveringOver != nullptr)
+	{
+		bool oldHoverClose = this->hoveringOverClose;
+		this->hoveringOverClose = InCloseButton(this, this->tabHoveringOver, mousePt);
+
+		if(oldHoverClose != this->hoveringOverClose)
+			redraw = true;
+	}
+	else
+		this->hoveringOverClose = false;
+
+	if(redraw)
+		this->Refresh(false);
+
+	// May as well handle this while we're at it because it's a good
+	// bottlenecked position for this logic.
+	if(tabHoveredChanged)
+	{
+		if(this->tabHoveringOver != nullptr)
+		{
+			// > ☐ TABS_TLTP_a82959419809: Tabs can be hovered over to show tooptips.
+			// > ☐ TABS_TLTP_c564222ff91b: Tooltips are relevant to the application hovered over.
+
+			wxToolTip* tooltip = 
+				new wxToolTip(
+					this, 
+					-1, 
+					this->tabHoveringOver->cmdLine,
+					this->tabHoveringOver->cachedTab);
+
+			this->SetToolTip(tooltip);
+		}
+		else
+			this->UnsetToolTip();
+	}
+
+	return tabHoveredChanged;
+}
+
+void TabBar::OnWindowTorn()
+{
+	assert(this->node->type == Node::Type::Window);
+	this->ClearHover();
+}
+
+void TabBar::OnTabTorn(Node* nodeTorn)
+{
+	assert(this->node->type == Node::Type::Tabs);
+	assert(nodeTorn != nullptr);
+
+	if(this->tabHoveringOver == nodeTorn)
+		this->ClearHover();
 }
 
 /// <summary>
@@ -146,31 +270,14 @@ void DrawTabIcon(HDC hdc, HWND hwnd, const wxRect& wxrTab, const LProps& lp)
 	}
 }
 
-void CalculateCloseButtonInfo(const wxRect& wxrTab, const LProps& lp, int& outRad, wxPoint& outCenter)
-{
-	// These may eventually get put into LProps
-	const int closeButtonRad = 8;
-	const int closeRightPad = 2;
-
-	outCenter = 
-		wxPoint(
-			wxrTab.x + wxrTab.width - closeButtonRad - closeRightPad, 
-			wxrTab.height / 2 + lp.tabPadTop);
-
-	// A simple transfer, but that allows this function to be 
-	// authority on the button radius.
-	outRad = closeButtonRad;
-}
-
-void DrawCloseButton(wxDC& dc, const wxRect& wxrTab, const LProps& lp)
+void DrawCloseButton(wxDC& dc, const wxRect& wxrTab, const wxBrush& bgColor, const LProps& lp)
 {
 	int closeButtonRad;
 	wxPoint closeBtnCenter;
 	CalculateCloseButtonInfo(wxrTab, lp, closeButtonRad, closeBtnCenter);
 
 	// Draw the circle for the close button
-	static wxBrush brushBtn = wxBrush(wxColour(220, 220, 220));	
-	dc.SetBrush(brushBtn);
+	dc.SetBrush(bgColor);
 	dc.DrawCircle(closeBtnCenter.x, closeBtnCenter.y, closeButtonRad);
 
 	// Draw the X image for the close button
@@ -183,25 +290,57 @@ void DrawCloseButton(wxDC& dc, const wxRect& wxrTab, const LProps& lp)
 		true);
 }
 
-void DrawTab(wxDC& dc, Node* node, const LProps& lp, bool isSelected)
+void DrawTab(
+	wxDC& dc, 
+	Node* node, 
+	const LProps& lp, 
+	bool isSelectedTab, 
+	bool hoveringOverTab, 
+	bool hoveringOverCloseBtn,
+	bool leftBtnDown)
 {
 	const int iconPad = 20;
+	// > ☐ TABS_DSPLY_41f7d1875e9e: Tabs to display the application name.
+	// > ☐ TABS_DSPLY_8890a1b90661: Tabs to emphasized what the selected tab is.
+	// > ☐ TABS_DSPLY_11b7985c4553: Tabs to change colors when their mouse-over state changes.
+	// > ☐ TABS_DSPLY_6e357d1e5e9c: Tabs to draw a close button to the right.
+	// > ☐ TABS_DSPLY_52d8388e8c21: Tabs close button to change colors when its mouse hover state changes.
+	// > ☐ TABS_DSPLY_8cc1ac9f23a3: Tabs to show the application's icon.
 
-	static wxBrush brushSel    = wxBrush(wxColour(255, 255, 255));	// The color of selected tabs
-	static wxBrush brushUnsel  = wxBrush(wxColour(180, 180, 180));	// The color of unselected tabs
+
+	static wxBrush brushSel				= wxBrush(wxColour(255, 255, 255));	// The color of selected tabs
+	static wxBrush brushSelHover		= wxBrush(wxColour(240, 240, 255));
+	static wxBrush brushUnsel			= wxBrush(wxColour(180, 180, 180));	// The color of unselected tabs
+	static wxBrush brushUnselHover		= wxBrush(wxColour(170, 170, 200));
+	static wxBrush brushSelMouseDown	= wxBrush(wxColour(150, 150, 255));
+
+	static wxBrush closeBtnBrushNorm	= wxBrush(wxColour(220, 220, 220));	
+	static wxBrush closeBtnBrushHover	= wxBrush(wxColour(230, 210, 210));
+	static wxBrush closeBtnBrushDown	= wxBrush(wxColour(255, 200, 200));
 
 	const wxRect& tabRect = node->cachedTabLcl;
 
 	// Draw the body of the tab
 	std::vector<wxPoint> tabPts = 
 		GenerateTabPoints(
-			isSelected, 
+			isSelectedTab, 
 			node->cachedTab.GetSize(), 
 			tabRect.x,
 			node->cacheSize.x,
 			lp);
 
-	dc.SetBrush(isSelected ? brushSel : brushUnsel);
+	if(leftBtnDown && !hoveringOverCloseBtn && hoveringOverTab)
+		dc.SetBrush(brushSelMouseDown);
+	else if(isSelectedTab)
+	{
+		if(hoveringOverTab)
+			dc.SetBrush(brushSelHover);
+		else
+			dc.SetBrush(brushSel);
+	}
+	else
+		dc.SetBrush(hoveringOverTab ? brushUnselHover : brushUnsel);
+
 	dc.DrawPolygon(tabPts.size(), &tabPts[0], 0, 0);
 
 
@@ -222,7 +361,16 @@ void DrawTab(wxDC& dc, Node* node, const LProps& lp, bool isSelected)
 			tabRect.y + (tabRect.height - textHgt) * 0.5f));
 
 	DrawTabIcon(dc.GetTempHDC().GetHDC(), node->win, node->cachedTabLcl, lp);
-	DrawCloseButton(dc, tabRect, lp);
+
+	wxBrush* closeBrush = &closeBtnBrushNorm;
+	if(hoveringOverCloseBtn && hoveringOverTab)
+	{
+		if(leftBtnDown)
+			closeBrush = &closeBtnBrushDown;
+		else
+			closeBrush = &closeBtnBrushHover;
+	}
+	DrawCloseButton(dc, tabRect, *closeBrush, lp);
 }
 
 void TabBar::OnDraw(wxPaintEvent& evt)
@@ -241,9 +389,22 @@ void TabBar::OnDraw(wxPaintEvent& evt)
 
 	const LProps& lp = this->owner->GetLayoutProps();
 
+	// > ☐ TABS_DSPLY_37ab301a73f2: Windows in the layout show the tab region.
+	// > ☐ TABS_DSPLY_400ecb65205b: Tab collections in the layout show all tabs in a notebook tab UI.
+	// > ☐ TABS_DSPLY_e8fc077e8376: Tab collections to show the correct entries.
+	// > ☐ TABS_DSPLY_8ee9a555cc7c: Tab collections to show which is the active tab displayed.
+
 	if(this->node->type == Node::Type::Window)
 	{
-		DrawTab(dc, this->node, lp, true);
+		bool isHovering = (this->node == this->tabHoveringOver);
+		DrawTab(
+			dc, 
+			this->node, 
+			lp, 
+			true, 
+			isHovering, 
+			this->hoveringOverClose, 
+			DockWin::dragggingMgr != nullptr);
 	}
 	else if(this->node->type == Node::Type::Tabs)
 	{
@@ -251,7 +412,15 @@ void TabBar::OnDraw(wxPaintEvent& evt)
 		{
 			Node* tinner = this->node->children[i];
 			bool isSelected = (this->node->selTab == i);
-			DrawTab(dc, tinner, lp, isSelected);
+			bool isHovering = (tinner == this->tabHoveringOver);
+			DrawTab(
+				dc, 
+				tinner, 
+				lp, 
+				isSelected, 
+				isHovering, 
+				this->hoveringOverClose,
+				DockWin::dragggingMgr != nullptr);
 		}
 	}
 	else
@@ -261,10 +430,17 @@ void TabBar::OnDraw(wxPaintEvent& evt)
 
 void TabBar::OnMouseLDown(wxMouseEvent& evt)
 {
+	// > ☐ TABS_CTRL_6c3f9ca8d8df: Tabs close button closes window.
+	// > ☐ TABS_CTRL_6c1f2893152f: Tabs can be clicked to initiate dragging the tab.
+	// > ☐ TABS_CTRL_b3631964179a: Tabs in the notebook tab UI can be clicked to toggle the active tab.
+
 	if(this->node->type == Node::Type::Window)
 	{
 		if(this->node->cachedTabLcl.Contains(evt.GetPosition()) == true)
-			this->owner->TabClickStart(this, this->node, this->node);
+		{
+			bool closePress = InCloseButton(this, this->node, evt.GetPosition());
+			this->owner->TabClickStart(this, this->node, this->node, closePress);
+		}
 	}
 	else if(this->node->type == Node::Type::Tabs)
 	{
@@ -273,12 +449,15 @@ void TabBar::OnMouseLDown(wxMouseEvent& evt)
 			Node* pn = this->node->children[i];
 			if(pn->cachedTabLcl.Contains(evt.GetPosition()) == true)
 			{ 
-				this->owner->TabClickStart(this, pn, this->node);
+				bool closePress = InCloseButton(this, pn, evt.GetPosition());
+				this->owner->TabClickStart(this, pn, this->node, closePress);
 				break;
 			}
 
 		}
 	}
+
+	this->Refresh(false);
 }
 
 void TabBar::OnMouseLUp(wxMouseEvent& evt)
@@ -295,12 +474,13 @@ void TabBar::OnMouseMotion(wxMouseEvent& evt)
 	if(this->HasCapture() == true)
 		this->owner->TabClickMotion();
 
-	Node * pnTabOver = this->GetTabAtPoint(evt.GetPosition());
-
-	if(pnTabOver != nullptr)
-		this->SetToolTip(pnTabOver->cmdLine);
-	else
-		this->SetToolTip("");
+	if(this->UpdateMouseOver(evt.GetPosition()))
+	{
+		if(this->tabHoveringOver != nullptr)
+			this->SetToolTip(this->tabHoveringOver->cmdLine);
+		else
+			this->SetToolTip("");
+	}
 }
 
 void TabBar::OnMouseRDown(wxMouseEvent& evt)
@@ -317,6 +497,15 @@ void TabBar::OnMouseRDown(wxMouseEvent& evt)
 
 	if(this->nodeRightClicked == nullptr)
 		return;
+
+	// > ☐ TABS_RMENU_09b5a49bfc1d: Tabs can be right clicked to bring up a dropdown menu.
+	// > ☐ TABS_RMENU_bfa93a347a32: Tabs dropdown menu references the tab that was right clicked to invoke the menu.
+	// > ☐ TABS_RMENU_5d0bfc4f7500: Tabs dropdown menu has a "Release" option
+	// > ☐ TABS_RMENU_cba5c12ace6b: Tabs dropdown menu "Release" option properly releases the window.
+	// > ☐ TABS_RMENU_4e986e5e95d0: Tabs dropdown menu has a "Dettach" option.
+	// > ☐ TABS_RMENU_449a32913b62: Tabs dropdown menu "Dettach" option properly detaches the window.
+	// > ☐ TABS_RMENU_80f542c9cbc4: Tabs dropdown menu has a "Close" option
+	// > ☐ TABS_RMENU_80f542c9cbc4: Tabs dropdown menu "Close" option closes the tab properly
 
 	wxMenu tabPopupMenu;
 	//
@@ -349,6 +538,24 @@ void TabBar::OnMouseChanged(wxMouseCaptureChangedEvent& evt)
 		if(!this->owner->dragggingMgr->dragFlaggedAsFinished)
 			this->owner->dragggingMgr->CancelTabDragging();
 	}
+}
+
+void TabBar::OnMouseEnter(wxMouseEvent& evt)
+{
+	assert(this->node != nullptr);
+
+	if(this->node->type != Node::Type::Tabs)
+		return;
+
+	this->UpdateMouseOver(evt.GetPosition());
+}
+
+void TabBar::OnMouseExit(wxMouseEvent& evt)
+{
+	assert(this->node != nullptr);
+
+	if(this->tabHoveringOver != nullptr)
+		this->ClearHover();
 }
 
 void TabBar::OnMenu_RClick_Clone(wxCommandEvent& evt)
