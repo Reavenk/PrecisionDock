@@ -172,23 +172,6 @@ bool Layout::_Replace(Node* n, Node* swapWith)
 
 bool Layout::_ForgetWindow(
 	Node* targ, 
-	Node::ForgetAction fa)
-{
-	std::vector<ForgetUndo> filler;
-	std::set<Node*> rminv;
-	if(this->_ForgetWindow(targ, fa, filler, rminv, true, true) == false)
-		return false;
-
-	for(ForgetUndo& fgt : filler)
-	{
-		if(fgt.ty == ForgetUndo::Type::Stitching)
-			delete fgt.node;
-	}
-	return true;
-}
-
-bool Layout::_ForgetWindow(
-	Node* targ, 
 	Node::ForgetAction fa, 
 	std::vector<ForgetUndo>& undo,
 	std::set<Node*>& rmInvolved,
@@ -268,7 +251,7 @@ bool Layout::_ForgetWindow(
 	// Avoid hitting some asserts later down the line.
 	targ->parent = nullptr; 
 
-	if(updateTabVisibility == true)
+	if(oldParent->type == Node::Type::Tabs &&  updateTabVisibility == true)
 		oldParent->SelectTab(oldParent->selTab, !updateTabs);
 
 
@@ -766,7 +749,7 @@ bool Layout::Integrate(InsertWinLoc ins, Node* n)
 	return true;
 }
 
-bool Layout::DeleteWindow(HWND hwnd)
+bool Layout::DeleteWindow(HWND hwnd, std::set<Node*>* involved)
 {
 	if(hwnd == NULL)
 		return false;
@@ -776,10 +759,10 @@ bool Layout::DeleteWindow(HWND hwnd)
 	if(it == this->hwndLookup.end())
 		return false;
 
-	return this->DeleteWindow(it->second);
+	return this->DeleteWindow(it->second, involved);
 }
 
-bool Layout::DeleteWindow(Node* targ)
+bool Layout::DeleteWindow(Node* targ, std::set<Node*>* involvedOut)
 {
 	HWND hwnd = targ->Hwnd();
 
@@ -793,12 +776,32 @@ bool Layout::DeleteWindow(Node* targ)
 		targ->ForgetHWND();
 	}
 
-	if(this->_ForgetWindow(targ, Node::ForgetAction::Delete) == false)
+	// TODO: Unify similar code with Layout::ReleaseWindow()
+	std::vector<Layout::ForgetUndo> involved;
+	std::set<Node*> removed;
+	if(this->_ForgetWindow(targ, Node::ForgetAction::Delete, involved, removed, true, true) == false)
 		return false;
+	
+	// Return back other things that were involved with the operation
+	if(involvedOut != nullptr)
+	{
+		for(Layout::ForgetUndo i : involved)
+		{
+			// Only report things that aren't about to be deleted.
+			if(removed.find(i.node) != removed.end())
+				continue;
+
+			involvedOut->insert(i.node);
+		}
+	}
+
+	for(Node* toRm : removed)
+		delete toRm;
+
 	return true;
 }
 
-bool Layout::ReleaseWindow(Node* targ, bool delNode)
+bool Layout::ReleaseWindow(Node* targ, std::set<Node*>* involvedOut, bool delNode)
 {
 	HWND hwnd = targ->Hwnd();
 	if(hwnd != NULL)
@@ -807,19 +810,37 @@ bool Layout::ReleaseWindow(Node* targ, bool delNode)
 		targ->ForgetHWND();
 	}
 
-	if(this->_ForgetWindow(targ, Node::ForgetAction::Forget) == false)
+	std::vector<Layout::ForgetUndo> involved;
+	std::set<Node*> removed;
+	if(this->_ForgetWindow(targ, Node::ForgetAction::Forget, involved, removed, true, true) == false)
 		return false;
+
+	// Return back other things that were involved with the operation
+	if(involvedOut != nullptr)
+	{
+		for(Layout::ForgetUndo i : involved)
+		{
+			// Only report things that aren't about to be deleted.
+			if(removed.find(i.node) != removed.end())
+				continue;
+
+			involvedOut->insert(i.node);
+		}
+	}
+
+	for(Node* toRm : removed)
+		delete toRm;
 
 	return true;
 }
 
-bool Layout::ReleaseWindow(HWND hwnd, bool delNode)
+bool Layout::ReleaseWindow(HWND hwnd, std::set<Node*>* involved, bool delNode)
 {
 	auto it = this->hwndLookup.find(hwnd);
 	if(it == this->hwndLookup.end())
 		return false;
 
-	return this->ReleaseWindow(it->second);
+	return this->ReleaseWindow(it->second, involved);
 }
 
 void Layout::ClearSashes()

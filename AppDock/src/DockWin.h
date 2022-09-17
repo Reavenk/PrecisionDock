@@ -137,9 +137,15 @@ public:
 	/// </summary>
 	DockWin* winWhereDragged;
 
+	/// <summary>
+	/// If a dragging tab, this is if it was initiated by clicking
+	/// on the close button.
+	/// </summary>
+	bool clickedClose = false;
+
 public:
 	DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoint& winMousePos);
-	DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, Node* node, Node* tabOwner);
+	DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, bool clickedClose, Node* node, Node* tabOwner);
 	~DragHelperMgr();
 
 	/// <summary>
@@ -408,7 +414,10 @@ public:
 	/// <param name="tabOwner">
 	/// The TabNode that is the parent of the Node being draggged.
 	/// </param>
-	void TabClickStart(TabBar* tbInvoker, Node* node, Node* tabOwner);
+	/// <param name="closePressed">
+	/// True if the click was on the tab's close button.
+	/// </param>
+	void TabClickStart(TabBar* tbInvoker, Node* node, Node* tabOwner, bool closePressed);
 
 	/// <summary>
 	/// Handles when the mouse is moved during a tab drag.

@@ -9,8 +9,8 @@
 
 DragHelperMgr::DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoint& winMousePos)
 {
-    assert(winDragged != nullptr);
-    assert(sashDragged != nullptr);
+    assert(winDragged   != nullptr);
+    assert(sashDragged  != nullptr);
 
     assert(winDragged->HasCapture());
     this->winWithMouseCapture = winDragged;
@@ -37,12 +37,12 @@ DragHelperMgr::DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoi
     this->_AssertIsDraggingSashCorrectly();
 }
 
-DragHelperMgr::DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, Node* node, Node* tabOwner)
+DragHelperMgr::DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, bool clickedClose, Node* node, Node* tabOwner)
 {
-    assert(winDragged != nullptr);
-    assert(tbInvoker != nullptr);
-    assert(node != nullptr);
-    assert(tabOwner != nullptr);
+    assert(winDragged   != nullptr);
+    assert(tbInvoker    != nullptr);
+    assert(node         != nullptr);
+    assert(tabOwner     != nullptr);
     assert(node == tabOwner || node->parent == tabOwner);
     assert(node->type == Node::Type::Window || node->type == Node::Type::Tabs);
 
@@ -50,13 +50,14 @@ DragHelperMgr::DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, Node* node,
     this->winWithMouseCapture = tbInvoker;
 
     this->lastKnownGlobalMouse = wxGetMousePosition();
-    this->lastLeftClick = wxGetMousePosition();
-    this->dragType = DragType::Tab;
+    this->lastLeftClick     = wxGetMousePosition();
+    this->dragType          = DragType::Tab;
 
-    this->winWhereDragged = winDragged;
-    this->tabBarDrag = tbInvoker;
-    this->nodeDragged = node;
-    this->tabDragOwner = tabOwner;
+    this->winWhereDragged   = winDragged;
+    this->tabBarDrag        = tbInvoker;
+    this->nodeDragged       = node;
+    this->tabDragOwner      = tabOwner;
+    this->clickedClose      = clickedClose;
 
 
     this->_AssertIsDraggingTabCorrectly();
@@ -91,7 +92,12 @@ bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
     { 
         this->StopCapture(this->winWithMouseCapture);
 
-        if(this->nodeDragged->IsTabChild())
+        if(this->clickedClose)
+        {
+            this->winWhereDragged->CloseNodeWin(this->nodeDragged);
+
+        }
+        else if(this->nodeDragged->IsTabChild())
         {
             // TAB CLICK:
             // If we're here, the user clicked on a tab but never dragged
@@ -319,6 +325,7 @@ void DragHelperMgr::_AssertIsDraggingSashCorrectly()
     assert(this->sashPreDragProps.size() > 0);
     assert(this->draggingSash       != nullptr);
     assert(this->sashDraggedParent  != nullptr);
+    assert(!this->clickedClose);
 }
 
 void DragHelperMgr::_AssertIsDraggingTabCorrectly()
@@ -1144,11 +1151,33 @@ void DockWin::OnKeyUp(wxKeyEvent& evt)
 {
 }
 
+// Whenever we detect collateral manipulations from a node removal,
+// make sure the nodes are managed correctly. Mainly in respect to
+// their tab bar.
+void _ProcessInvolvedFromRem(std::set<Node*>& involved, DockWin* dw)
+{
+    for(Node* n : involved)
+    {
+        if(n->type == Node::Type::Tabs)
+        { 
+            n->SelectTab(n->selTab);
+        }
+        else if(
+            n->type == Node::Type::Window && 
+            (n->parent == nullptr || n->parent->type != Node::Type::Tabs))
+        {
+            dw->MaintainNodesTabBar(n);
+        }
+    }
+}
+
 bool DockWin::ReleaseNodeWin(Node* pn)
 {
-    if(this->layout.ReleaseWindow(pn) == false)
+    std::set<Node*> involved;
+    if(this->layout.ReleaseWindow(pn, &involved) == false)
         return false;
 
+    _ProcessInvolvedFromRem(involved, this);
     this->_ReactToNodeRemoval();
     return true;
 }
@@ -1159,20 +1188,26 @@ bool DockWin::DettachNodeWin(Node* pn)
     if(hwnd == NULL)
         return false;
 
-    if(this->layout.ReleaseWindow(pn) == false)
+    std::set<Node*> involved;
+    if(this->layout.ReleaseWindow(pn, &involved) == false)
         return false;
 
     AppDock::GetApp().CreateWindowFromHwnd(hwnd);
 
+    _ProcessInvolvedFromRem(involved, this);
     this->_ReactToNodeRemoval();
     return true;
 }
 
 bool DockWin::CloseNodeWin(Node* pn)
 {
-    if(this->layout.DeleteWindow(pn) == false)
+    assert(this->layout.root != nullptr);
+
+    std::set<Node*> involved;
+    if(this->layout.DeleteWindow(pn, & involved) == false)
         return false;
 
+    _ProcessInvolvedFromRem(involved, this);
     this->_ReactToNodeRemoval();
     return true;
 }
@@ -1195,12 +1230,12 @@ bool DockWin::CloneNodeWin(Node* pn)
     return true;
 }
 
-void DockWin::TabClickStart(TabBar* tbInvoker, Node* node, Node* tabOwner)
+void DockWin::TabClickStart(TabBar* tbInvoker, Node* node, Node* tabOwner, bool closePressed)
 {
     assert(this->dragggingMgr == nullptr);
 
     tbInvoker->CaptureMouse();
-    this->dragggingMgr = TabDraggingMgrPtr(new DragHelperMgr(this, tbInvoker, node, tabOwner));
+    this->dragggingMgr = TabDraggingMgrPtr(new DragHelperMgr(this, tbInvoker, closePressed, node, tabOwner));
     this->dragggingMgr->_AssertIsDraggingTabCorrectly();
 }
 
@@ -1245,7 +1280,12 @@ void DockWin::OnDelegatedEscape()
 void DockWin::_ReactToNodeRemoval()
 {
     if(this->HasRoot() == false)
-        this->Close();
+    {
+        // If no more windows, close down the entire thing. Note that we should
+        // only do this if we're not in the middle of a drag, because that can
+        // still be undone if the drag is cancelled.
+        this->owner->Close();
+    }
     else
         this->ResizeLayout();
 }
@@ -1267,6 +1307,8 @@ json DockWin::_JSONRepresentation()
             case Node::Type::Window:
                 jsRet["ty"] = "win";
                 jsRet["cmd"] = n->cmdLine;
+                if(n->GetTabBar() != nullptr)
+                    jsRet["tab"] = n->GetTabBar()->id;
                 break;
                 
             case Node::Type::Horizontal:
@@ -1280,6 +1322,8 @@ json DockWin::_JSONRepresentation()
             case Node::Type::Tabs:
                 jsRet["ty"] = "tabs";
                 jsRet["sel"] = n->selTab;
+                if(n->GetTabBar() != nullptr)
+                    jsRet["tab"] = n->GetTabBar()->id;
                 break;
 
             default:
