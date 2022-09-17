@@ -10,15 +10,11 @@ class DockWin;
 /// </summary>
 class BarDrop : public wxTopLevelWindow
 {
-public:
-	// TODO: Remove? Is this ever used? (Do not confused with BarDrag::escapeSink)
-	DockWin* escapeSink = nullptr;
+public:	DockWin* escapeSink = nullptr;
 
 public:
 	
 	BarDrop(wxWindow* parent, DockWin* escapeSink);
-
-	// TODO: Remove? Is this ever used? (Do not confused with BarDrag::OnKeyDown)
 	void OnKeyDown(wxKeyEvent& evt);
 
 	DECLARE_EVENT_TABLE();

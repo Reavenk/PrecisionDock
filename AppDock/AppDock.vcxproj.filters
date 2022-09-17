@@ -96,9 +96,6 @@
     <ClInclude Include="src\Utils\AppUtils.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\Utils\mywxUtils.h">
-      <Filter>Header Files\Utils</Filter>
-    </ClInclude>
     <ClInclude Include="src\Utils\json.hpp">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
@@ -113,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="src\Layout\TabsBar.h">
       <Filter>Header Files\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Utils\MyWxUtils.h">
+      <Filter>Header Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -133,9 +133,6 @@
     </ClCompile>
     <ClCompile Include="src\TopDockWin.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Utils\mywxUtils.cpp">
-      <Filter>Source Files\Utils</Filter>
     </ClCompile>
     <ClCompile Include="src\Utils\AppUtils.cpp">
       <Filter>Source Files\Utils</Filter>
@@ -175,6 +172,9 @@
     </ClCompile>
     <ClCompile Include="src\Layout\TabsBar.cpp">
       <Filter>Source Files\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils\MyWxUtils.cpp">
+      <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

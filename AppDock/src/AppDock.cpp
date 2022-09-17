@@ -121,7 +121,6 @@ bool AppDock::OnInit()
 
     this->taskbar = new Taskbar();
 
-    // TODO: Assign proper icon
     if (!taskbar->SetIcon(
         wxIcon(statusIcon),
         "AppDock\n"
@@ -215,7 +214,7 @@ TopDockWin* AppDock::CreateSpawned(
     createdTopDockWin->Show();
 
     if(giveAttention)
-        mywxUtils::RaiseWindowToAttention(createdTopDockWin);
+        MyWxUtils::RaiseWindowToAttention(createdTopDockWin);
     
     return createdTopDockWin;
 }
@@ -231,7 +230,7 @@ TopDockWin* AppDock::SpawnEmpty(const wxString& title, bool giveAttention)
     createdTopDockWin->Show();
 
     if(giveAttention)
-        mywxUtils::RaiseWindowToAttention(createdTopDockWin);
+        MyWxUtils::RaiseWindowToAttention(createdTopDockWin);
 
     return createdTopDockWin;
 }
@@ -252,7 +251,7 @@ TopDockWin* AppDock::CreateTorn(
     createdTopDockWin->Show();
 
     if(giveAttention)
-        mywxUtils::RaiseWindowToAttention(createdTopDockWin);
+        MyWxUtils::RaiseWindowToAttention(createdTopDockWin);
 
     return createdTopDockWin;
 }
@@ -267,11 +266,11 @@ TopDockWin* AppDock::CreateWindowFromHwnd(HWND hwnd, bool giveAttention)
 
     createdTopDockWin->Show();
 
-    // TODO: Check registration
-    createdTopDockWin->SetRoot(hwnd);
+    Node* createRoot = createdTopDockWin->SetRoot(hwnd);
+    assert(createRoot != nullptr);
 
     if(giveAttention)
-        mywxUtils::RaiseWindowToAttention(createdTopDockWin);
+        MyWxUtils::RaiseWindowToAttention(createdTopDockWin);
 
     return createdTopDockWin;
 }
@@ -291,7 +290,7 @@ bool AppDock::RegisterTopWin(TopDockWin* win, HWND hwnd)
     auto itFind = this->dockWins.find(win);
     if(itFind != this->dockWins.end())
     {
-        // TODO: How to error handle?
+        assert(!"Failed to register TopWin in RegisterTopWin().");
         return false;
     }
 

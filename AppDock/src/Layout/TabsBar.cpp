@@ -411,7 +411,7 @@ void TabsBar::OnDraw(wxPaintEvent& evt)
 		for(size_t i = 0; i < this->node->children.size(); ++i)
 		{
 			Node* tinner = this->node->children[i];
-			bool isSelected = (this->node->selTab == i);
+			bool isSelected = (this->node->selectedTabIdx == i);
 			bool isHovering = (tinner == this->tabHoveringOver);
 			DrawTab(
 				dc, 

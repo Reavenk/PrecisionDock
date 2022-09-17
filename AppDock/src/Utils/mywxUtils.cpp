@@ -1,7 +1,6 @@
-#include "mywxUtils.h"
+#include "MyWxUtils.h"
 
-// TODO: Refactor namespace to have correct caps
-namespace mywxUtils
+namespace MyWxUtils
 {
 	wxBitmap LoadFromResourceID(int resourceID)
 	{

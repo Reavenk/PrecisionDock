@@ -179,9 +179,10 @@ wxMenu *Taskbar::CreatePopupMenu()
 
 	menu->AppendSeparator();
 
-	// TODO: Make sure this menu option isn't built into release mode.
+#if _DEBUG
 	menu->Append(CMDID::RunTests,			"Run Debug Tests");
 	menu->Append(CMDID::SaveState,			"Save States");
+#endif
 	menu->Append(CMDID::ClearNotification,	"Clear Notification");
 	menu->Append(CMDID::ShowNotification,	"Warning");
 	menu->Append(CMDID::ShowAbout,			"About");

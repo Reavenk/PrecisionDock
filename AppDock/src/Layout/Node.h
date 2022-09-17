@@ -56,7 +56,8 @@ public:
 	};
 
 
-	// TODO: Compare with DropResult::Where
+	// Very similar to DropResult::Where. We may merge these together 
+	// later, but for now we'll keep them separate.
 	enum class Dest
 	{
 		Invalid = -1,
@@ -189,11 +190,12 @@ public:
 	/// 
 	/// This represents an index into this->children.
 	/// </summary>
-	// TODO: Make name a bit longer and more descriptive.
-	int selTab = 0;
+	int selectedTabIdx = 0;
 
-	// TODO: Remove?
-	std::string tabName;
+
+	// Currently UNUSED: This is a custom label that can be assigned
+	// to a window node's tab.
+	std::string customTabName;
 
 	inline HWND Hwnd() const
 	{ return this->win; }
@@ -369,15 +371,12 @@ public:
 	/// This is expected to be a tab bar that was previously forgotten.
 	/// </summary>
 	/// <param name="tb">The tab bar to set.</param>
-	// TODO: Instead of "forgetting" the tab bar, it may be more effective to hold onto it but flag that it's suppresed?
 	void SetTabsBar(TabsBar* tb);
 
 	Node* ChildOtherThan(Node* n);
 
 	/// <summary>
 	/// Get rid knowledge of the Windows bar tab.
-	/// 
-	/// TODO: See TODO for SetTabsBar().
 	/// </summary>
 	void ForgetTabsBar();
 

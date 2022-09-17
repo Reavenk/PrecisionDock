@@ -169,14 +169,22 @@ Node* DockWin::AddRootHwnd(HWND hwnd)
     return n;
 }
 
-void DockWin::ResizeLayout(bool refresh, bool rebuildSahes)
+void DockWin::ResizeLayout(bool refresh, bool rebuildSashes)
 {
-    this->layout.Resize(this->GetClientSize(), this->lprops);
+    this->ResizeLayout(
+        this->GetClientSize(), 
+        refresh, 
+        rebuildSashes);
+}
+
+void DockWin::ResizeLayout(const wxSize& sz, bool refresh, bool rebuildSashes)
+{
+    this->layout.Resize(sz, this->lprops);
 
     if(refresh == true)
         this->Refresh();
 
-    if(rebuildSahes == true)
+    if(rebuildSashes == true)
         this->layout.RebuildSashes(this->lprops);
 }
 
@@ -376,7 +384,7 @@ void _ProcessInvolvedFromRem(std::set<Node*>& involved, DockWin* dw)
     {
         if(n->type == Node::Type::Tabs)
         { 
-            n->SelectTab(n->selTab);
+            n->SelectTab(n->selectedTabIdx);
         }
         else if(
             n->type == Node::Type::Window && 
@@ -460,7 +468,6 @@ void DockWin::TabClickMotion()
     assert(this->dragggingMgr != nullptr);
     assert(this->dragggingMgr->dragType == DragHelperMgr::DragType::Tab);
 
-    // TODO: Return to let the invoker know if it needs to mouse capture
     this->dragggingMgr->HandleMouseMove();
 }
 
@@ -537,7 +544,7 @@ json DockWin::_JSONRepresentation()
 
             case Node::Type::Tabs:
                 jsRet["ty"] = "tabs";
-                jsRet["sel"] = n->selTab;
+                jsRet["sel"] = n->selectedTabIdx;
                 if(n->GetTabsBar() != nullptr)
                     jsRet["tab"] = n->GetTabsBar()->id;
                 break;

@@ -27,7 +27,7 @@ CaptureListItem::CaptureListItem(
 	this->captureIcon = icon;
 	this->captureHWND = hwnd;
 	this->captureLabel = new wxStaticText(this, wxID_ANY, title);
-	mywxUtils::SetupStaticTextMousePassthrough(this->captureLabel);
+	MyWxUtils::SetupStaticTextMousePassthrough(this->captureLabel);
 
 	wxBoxSizer* thisSizer = new wxBoxSizer(wxHORIZONTAL);
 	this->SetSizer(thisSizer);

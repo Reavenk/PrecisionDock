@@ -82,7 +82,7 @@ Layout::ForgetUndo Layout::ForgetUndo::MakeTab(Node* pn)
 	ForgetUndo ret;
 	ret.ty		= ForgetUndo::Type::TabIndex;
 	ret.node	= pn;
-	ret.idx		= pn->selTab;
+	ret.idx		= pn->selectedTabIdx;
 	return ret;
 }
 
@@ -224,11 +224,11 @@ bool Layout::_ForgetWindow(
 			int oldIdx = it - oldParent->children.begin();
 			tabParentToUpdate = oldParent;
 
-			if(oldIdx <= oldParent->selTab)
+			if(oldIdx <= oldParent->selectedTabIdx)
 			{
 				// Reset to a new tab, and update the selected tab
 				// to something valid.
-				newTabIdx = std::max(0, oldParent->selTab - 1);
+				newTabIdx = std::max(0, oldParent->selectedTabIdx - 1);
 				// We can't update the tab window just yet until the removal is done,
 				// so we just flag it for removal.
 				// The reason this is done so high up in the function though, is because 
@@ -252,7 +252,7 @@ bool Layout::_ForgetWindow(
 	targ->parent = nullptr; 
 
 	if(oldParent->type == Node::Type::Tabs &&  updateTabVisibility == true)
-		oldParent->SelectTab(oldParent->selTab, !updateTabs);
+		oldParent->SelectTab(oldParent->selectedTabIdx, !updateTabs);
 
 
 	// Check if we need to remove parents.
@@ -463,7 +463,7 @@ void Layout::_SetContentWin(HWND cWin)
 	this->contentWin = cWin;
 }
 
-Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
+Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest whereAroundTarg)
 {
 	if(this->root == nullptr)
 	{
@@ -486,7 +486,7 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
 		targ->type == Node::Type::Vertical)
 	{
 		// If it's at the far beginning of a grained container.
-		if(dest == Node::Dest::Left || dest == Node::Dest::Above)
+		if(whereAroundTarg == Node::Dest::Left || whereAroundTarg == Node::Dest::Above)
 		{
 			//Node* pnAdd = new Node();
 			//targ->children.insert(targ->children.begin(), pnAdd);
@@ -501,7 +501,7 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
 		}
 
 		// If it's at the far end of a grained container.
-		if(dest == Node::Dest::Right || dest == Node::Dest::Below) 
+		if(whereAroundTarg == Node::Dest::Right || whereAroundTarg == Node::Dest::Below) 
 		{
 			//Node* pnAdd = new Node();
 			//targ->children.push_back(pnAdd);
@@ -521,7 +521,7 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
 	if(targ->parent != nullptr && targ->parent->type == Node::Type::Tabs)
 		targ = targ->parent;
 
-	if(dest == Node::Dest::Into)
+	if(whereAroundTarg == Node::Dest::Into)
 	{
 		assert(
 			targ->type == Node::Type::Window || 
@@ -561,20 +561,20 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
 			assert(this->root == targ);
 
 			if(
-				dest == Node::Dest::Above	||
-				dest == Node::Dest::Below	||
-				dest == Node::Dest::Left	|| 
-				dest == Node::Dest::Right)
+				whereAroundTarg == Node::Dest::Above	||
+				whereAroundTarg == Node::Dest::Below	||
+				whereAroundTarg == Node::Dest::Left	|| 
+				whereAroundTarg == Node::Dest::Right)
 			{
 				// Figure out the grain.
 				Node::Type grain = Node::Type::Vertical;
-				if(dest == Node::Dest::Left || dest == Node::Dest::Right)
+				if(whereAroundTarg == Node::Dest::Left || whereAroundTarg == Node::Dest::Right)
 					grain = Node::Type::Horizontal;
 
 				// Figure out who gets what index in the split container
 				bool insAsFirst = 
-					(dest == Node::Dest::Above) || 
-					(dest == Node::Dest::Left);
+					(whereAroundTarg == Node::Dest::Above) || 
+					(whereAroundTarg == Node::Dest::Left);
 
 				// Create new grained container
 				Node* pnSplit = new Node();
@@ -599,7 +599,7 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
 
 			// Figure out the grain.
 			Node::Type grain = Node::Type::Vertical;
-			if(dest == Node::Dest::Left || dest == Node::Dest::Right)
+			if(whereAroundTarg == Node::Dest::Left || whereAroundTarg == Node::Dest::Right)
 				grain = Node::Type::Horizontal;
 
 			if(parentTy == grain)
@@ -615,8 +615,8 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
 					if(nIt == targ)
 					{
 						bool insAsFirst = 
-							(dest == Node::Dest::Above) || 
-							(dest == Node::Dest::Left);
+							(whereAroundTarg == Node::Dest::Above) || 
+							(whereAroundTarg == Node::Dest::Left);
 
 						if(insAsFirst)
 							return InsertWinLoc::AtNodeChild(targ->parent, 0);
@@ -641,8 +641,8 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
 				this->_Replace(targ, pnSplit);
 
 				bool instBefore = 
-					(dest == Node::Dest::Above) || 
-					(dest == Node::Dest::Left);
+					(whereAroundTarg == Node::Dest::Above) || 
+					(whereAroundTarg == Node::Dest::Left);
 
 				targ->parent	= pnSplit;
 				if(instBefore)
@@ -663,9 +663,9 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
 	return InsertWinLoc::AtInvalid();
 }
 
-Node* Layout::Add(HWND hwnd, Node* targ, Node::Dest dest)
+Node* Layout::Add(HWND hwnd, Node* targ, Node::Dest whereAroundTarg)
 {
-	InsertWinLoc ins = this->_ScanAndPrepAddLoc(targ, dest);
+	InsertWinLoc ins = this->_ScanAndPrepAddLoc(targ, whereAroundTarg);
 	if(ins.valid == false)
 		return nullptr;
 
@@ -683,12 +683,12 @@ Node* Layout::Add(HWND hwnd, Node* targ, Node::Dest dest)
 	return pnNew;
 }
 
-bool Layout::Steal(Node* n, Node* targ, Node::Dest dest, const LProps& /*props*/)
+bool Layout::Steal(Node* n, Node* targ, Node::Dest whereAroundTarg, const LProps& /*props*/)
 {
 	assert(n->parent == nullptr);
 	assert(n->type == Node::Type::Window);
 
-	InsertWinLoc ins = this->_ScanAndPrepAddLoc(targ, dest);
+	InsertWinLoc ins = this->_ScanAndPrepAddLoc(targ, whereAroundTarg);
 	if(ins.valid == false)
 		return false;
 
@@ -762,26 +762,16 @@ bool Layout::DeleteWindow(HWND hwnd, std::set<Node*>* involved)
 	return this->DeleteWindow(it->second, involved);
 }
 
-bool Layout::DeleteWindow(Node* targ, std::set<Node*>* involvedOut)
+bool Layout::_CleanupWindowNodeRemoval(
+	Node* targ,
+	Node::ForgetAction fa,
+	std::set<Node*>* involvedOut)
 {
-	HWND hwnd = targ->Hwnd();
-
-	if (hwnd != NULL)
-	{
-		// TODO: We still need to figure out how to do this correctly.
-		SendMessage(hwnd, WM_DESTROY, 0, 0);
-		//GetWindowThreadProcessId(hwnd,)
-		//BOOL closed = CloseWindow(hwnd);
-		//BOOL destroyed = DestroyWindow(hwnd);
-		targ->ForgetHWND();
-	}
-
-	// TODO: Unify similar code with Layout::ReleaseWindow()
 	std::vector<Layout::ForgetUndo> involved;
 	std::set<Node*> removed;
-	if(this->_ForgetWindow(targ, Node::ForgetAction::Delete, involved, removed, true, true) == false)
+	if(this->_ForgetWindow(targ, fa, involved, removed, true, true) == false)
 		return false;
-	
+
 	// Return back other things that were involved with the operation
 	if(involvedOut != nullptr)
 	{
@@ -801,6 +791,22 @@ bool Layout::DeleteWindow(Node* targ, std::set<Node*>* involvedOut)
 	return true;
 }
 
+bool Layout::DeleteWindow(Node* targ, std::set<Node*>* involvedOut)
+{
+	HWND hwnd = targ->Hwnd();
+
+	if (hwnd != NULL)
+	{
+		SendMessage(hwnd, WM_DESTROY, 0, 0);
+		targ->ForgetHWND();
+	}
+
+	return this->_CleanupWindowNodeRemoval(
+		targ,
+		Node::ForgetAction::Delete, 
+		involvedOut);
+}
+
 bool Layout::ReleaseWindow(Node* targ, std::set<Node*>* involvedOut, bool delNode)
 {
 	HWND hwnd = targ->Hwnd();
@@ -810,28 +816,10 @@ bool Layout::ReleaseWindow(Node* targ, std::set<Node*>* involvedOut, bool delNod
 		targ->ForgetHWND();
 	}
 
-	std::vector<Layout::ForgetUndo> involved;
-	std::set<Node*> removed;
-	if(this->_ForgetWindow(targ, Node::ForgetAction::Forget, involved, removed, true, true) == false)
-		return false;
-
-	// Return back other things that were involved with the operation
-	if(involvedOut != nullptr)
-	{
-		for(Layout::ForgetUndo i : involved)
-		{
-			// Only report things that aren't about to be deleted.
-			if(removed.find(i.node) != removed.end())
-				continue;
-
-			involvedOut->insert(i.node);
-		}
-	}
-
-	for(Node* toRm : removed)
-		delete toRm;
-
-	return true;
+	return this->_CleanupWindowNodeRemoval(
+		targ,
+		Node::ForgetAction::Forget,
+		involvedOut);
 }
 
 bool Layout::ReleaseWindow(HWND hwnd, std::set<Node*>* involved, bool delNode)
@@ -1125,7 +1113,7 @@ void Layout::_ResizeFromLot(const Lot& lroot, const LProps& lp)
 				xTab += pnChild->cachedTab.width;
 				pnChild->proportion		= 1.0f;
 
-				if(l.pn->selTab ==tabIdx)
+				if(l.pn->selectedTabIdx ==tabIdx)
 				{ 
 					SetWindowPos(
 						pnChild->win, 

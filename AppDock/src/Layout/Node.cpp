@@ -367,7 +367,7 @@ bool Node::SelectTab(int idx, bool updateWinVisibility)
 	if(idx < 0 || idx > this->children.size())
 		return false;
 
-	this->selTab = idx;
+	this->selectedTabIdx = idx;
 
 	if(updateWinVisibility)
 		this->UpdateTabWindowVisibility();
@@ -383,7 +383,7 @@ void Node::UpdateTabWindowVisibility()
 		Node* child = this->children[i];
 		assert(child->type == Node::Type::Window);
 
-		child->ShowWindow(i == this->selTab);
+		child->ShowWindow(i == this->selectedTabIdx);
 	}
 }
 

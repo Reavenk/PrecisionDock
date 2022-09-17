@@ -222,8 +222,7 @@ public:
 	/// </summary>
 	/// <param name="toCapture">The HWNDs to active</param>
 	/// <returns></returns>
-	// TODO: Use a better function name, the term Capture() could be better
-	// TODO: Consider initialization list instead of vector
+	// TODO: Use a better function name, the term Capture() could be improved upon
 	int Capture(std::vector<HWND> toCapture);
 
 	/// <summary>

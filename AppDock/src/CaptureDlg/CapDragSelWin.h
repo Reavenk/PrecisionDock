@@ -29,8 +29,7 @@ public:
 		Large
 	};
 
-// TODO: Encapsulation
-// private: 
+private: 
 
 	/// <summary>
 	/// The icon to use when rendering the small style.
@@ -107,15 +106,13 @@ public: // Public methods
 	/// <summary>
 	/// Set the info text infoText to its default.
 	/// </summary>
-	// TODO: Rename to ResetInfoText
-	void ResetHelpText();
+	void ResetInfoText();
 
 	/// <summary>
 	/// Set the info text to a name of a program.
 	/// </summary>
 	/// <param name="programName"></param>
-	// TODO: Rename to SetInfoTextToProgram
-	void SetProgramLabel(const wxString& programName);
+	void SetInfoTextToProgram(const wxString& programName);
 
 	/// <summary>
 	/// Update the child info text size whenever the parent

@@ -8,7 +8,7 @@
 /// should not be confused with AppUtils, which are utilities designed to create
 /// consistent app behaviour.
 /// </summary>
-namespace mywxUtils
+namespace MyWxUtils
 {
 	/// <summary>
 	/// Load Windows resource ID and generated a wxBitmap from it.

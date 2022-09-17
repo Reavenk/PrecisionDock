@@ -172,7 +172,7 @@
     <ClInclude Include="src\TopDockWin.h" />
     <ClInclude Include="src\Utils\AppUtils.h" />
     <ClInclude Include="src\Utils\json.hpp" />
-    <ClInclude Include="src\Utils\mywxUtils.h" />
+    <ClInclude Include="src\Utils\MyWxUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppDock.cpp" />
@@ -194,7 +194,7 @@
     <ClCompile Include="src\Taskbar.cpp" />
     <ClCompile Include="src\TopDockWin.cpp" />
     <ClCompile Include="src\Utils\AppUtils.cpp" />
-    <ClCompile Include="src\Utils\mywxUtils.cpp" />
+    <ClCompile Include="src\Utils\MyWxUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AppDock.rc" />

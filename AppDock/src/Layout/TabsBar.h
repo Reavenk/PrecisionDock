@@ -25,7 +25,10 @@ public:
 		Menu_SystemMenu		// See OnMenu_RClick_SystemMenu()
 	};
 
-public: // TODO: private static members
+private:
+	/// <summary>
+	/// The counter used to create debug IDs for each TabsBar created.
+	/// </summary>
 	static int dbgCtr;
 
 	// Count how many of these objects there are.

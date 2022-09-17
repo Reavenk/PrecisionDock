@@ -27,10 +27,10 @@ DragHelperMgr::DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoi
     // Both parents should be the same
     this->sashDraggedParent = this->draggingSash->r[0]->parent; 
 
-    this->sashPreDragProps.clear();
+    this->preDragSashProps.clear();
     for(size_t i = 0; i < sashDraggedParent->children.size(); ++i)
     { 
-        sashPreDragProps.push_back(
+        preDragSashProps.push_back(
             sashDraggedParent->children[i]->proportion);
     }
 
@@ -83,7 +83,7 @@ bool DragHelperMgr::RemoveDraggingCursor()
     return true;
 }
 
-bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
+void DragHelperMgr::FinishSuccessfulTabDragging()
 {
     assert(this->dragType == DragType::Tab);
     this->_AssertIsDraggingTabCorrectly(true);
@@ -134,7 +134,7 @@ bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
         this->nodeDragged = nullptr;
         this->dragType = DragHelperMgr::DragType::Invalid;
         this->_AssertIsNeutralized();
-        return true;
+        return;
     }
 
     if( 
@@ -148,7 +148,7 @@ bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
 
         this->CancelTabDragging(false);
         this->_AssertIsNeutralized();
-        return true;
+        return;
     }
 
     this->StopCapture(this->winWithMouseCapture, false);
@@ -182,7 +182,7 @@ bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
         this->tabDragOwner = nullptr;
         this->winWhereDragged = nullptr;
         this->_AssertIsNeutralized();
-        return true;
+        return;
     }
 
     assert(tabDropDst.where != DropResult::Where::Void);
@@ -251,7 +251,6 @@ bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
 
     this->dragType = DragHelperMgr::DragType::Invalid;
     this->_AssertIsNeutralized();
-    return true;
 }
 
 void DragHelperMgr::_ResolveToUpdateAfterDrag()
@@ -269,7 +268,7 @@ void DragHelperMgr::_ResolveToUpdateAfterDrag()
     }
 }
 
-bool DragHelperMgr::CancelTabDragging(bool fromCaptureLoss)
+void DragHelperMgr::CancelTabDragging(bool fromCaptureLoss)
 {
     assert(!this->dragFlaggedAsFinished);
     assert(this->winWithMouseCapture != nullptr);
@@ -316,7 +315,6 @@ bool DragHelperMgr::CancelTabDragging(bool fromCaptureLoss)
     this->dragType = DragHelperMgr::DragType::Invalid;
 
     this->_AssertIsNeutralized();
-    return true;
 }
 
 void DragHelperMgr::_AssertIsDraggingSashCorrectly(bool shouldHaveCapture)
@@ -342,7 +340,7 @@ void DragHelperMgr::_AssertIsDraggingSashCorrectly(bool shouldHaveCapture)
     assert(this->alreadyToreOffTab == false);
 
     // Assertion checks that expected stuff is filled out.
-    assert(this->sashPreDragProps.size() > 0);
+    assert(this->preDragSashProps.size() > 0);
     assert(this->draggingSash       != nullptr);
     assert(this->sashDraggedParent  != nullptr);
     assert(!this->clickedClose);
@@ -360,7 +358,7 @@ void DragHelperMgr::_AssertIsDraggingTabCorrectly(bool shouldHaveCapture)
     assert(this->winWhereDragged != nullptr);
 
     // Assertion checks that expected stuff is filled out.
-    assert(this->sashPreDragProps.empty());
+    assert(this->preDragSashProps.empty());
     assert(this->draggingSash       == nullptr);
     assert(this->sashDraggedParent  == nullptr);
 
@@ -387,7 +385,7 @@ void DragHelperMgr::_AssertIsNeutralized()
     assert( this->nodeDragged           == nullptr);
     assert( this->dragNodesInvolved.empty());
     assert( this->sashDraggedParent     == nullptr);
-    assert( this->sashPreDragProps.empty());
+    assert( this->preDragSashProps.empty());
     //assert( this->TabsBarDrag            == nullptr);
     assert( this->tabDragOwner          == nullptr);
     assert( this->toUpdateAfterDrag     == nullptr);
@@ -402,7 +400,7 @@ void DragHelperMgr::_AssertIsNeutralized()
     // assert( this->dropPreviewWin        == nullptr);
 }
 
-bool DragHelperMgr::FinishSuccessfulSashDragging()
+void DragHelperMgr::FinishSuccessfulSashDragging()
 {
     // Not much to do except stop
     this->_AssertIsDraggingSashCorrectly(true);
@@ -410,7 +408,7 @@ bool DragHelperMgr::FinishSuccessfulSashDragging()
 
     this->draggingSash = nullptr;
 
-    this->sashPreDragProps.clear();
+    this->preDragSashProps.clear();
     this->sashDraggedParent = nullptr;
 
     this->winWhereDragged->SetCursor(wxNullCursor);
@@ -418,21 +416,20 @@ bool DragHelperMgr::FinishSuccessfulSashDragging()
 
     this->dragType = DragType::Invalid;
     this->_AssertIsNeutralized();
-    return true;
 }
 
-bool DragHelperMgr::CancelSashDragging(bool fromCaptureLoss)
+void DragHelperMgr::CancelSashDragging(bool fromCaptureLoss)
 {
     this->_AssertIsDraggingSashCorrectly(!fromCaptureLoss);
 
     // Restore the children sizes in the parent the sash modifies
     this->sashDraggedParent->ResizeChildrenByProportions(
-        this->sashPreDragProps, 
+        this->preDragSashProps, 
         this->winWhereDragged->lprops);
 
     this->winWhereDragged->RebuildSashes();
 
-    this->sashPreDragProps.clear();
+    this->preDragSashProps.clear();
     this->draggingSash = nullptr;
     this->winWhereDragged->Refresh();
     this->winWhereDragged->SetCursor(wxNullCursor);
@@ -440,7 +437,6 @@ bool DragHelperMgr::CancelSashDragging(bool fromCaptureLoss)
     this->sashDraggedParent = nullptr;
 
     this->StopCapture(this->winWhereDragged, fromCaptureLoss);
-    return true;
 }
 
 DragHelperMgr::~DragHelperMgr()

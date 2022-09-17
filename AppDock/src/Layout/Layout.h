@@ -9,7 +9,6 @@
 
 class Sash;
 
-// TODO: Move into own .h/.cpp
 /// <summary>
 /// Description of where an application was inserted into a layout.
 /// </summary>
@@ -242,7 +241,14 @@ private: // Private methods
 	/// <returns></returns>
 	bool _Replace(Node* n, Node* swapWith);
 
+	bool _CleanupWindowNodeRemoval(
+		Node* targ,
+		Node::ForgetAction fa,
+		std::set<Node*>* involvedOut);
+
 public: // Public utility methods
+	// These functions are rather sensitive, but needed by outside
+	// code that know what they're doing.
 
 	/// <summary>
 	/// Delete a node propery from the layout datastructure.
@@ -263,9 +269,15 @@ public: // Public utility methods
 		bool updateTabs,
 		bool updateTabVisibility);
 
+	/// <summary>
+	/// Execute undo information that was previously collected
+	/// when a forget operation was performed.
+	/// </summary>
+	/// <param name="undo">
+	/// The actions recorded to undo a forget.
+	/// </param>
+	/// <param name="props">The display properties to use.</param>
 	void UndoForget(std::vector<ForgetUndo>& undo, const LProps& props);
-
-public: // Public methods
 
 	/// <summary>
 	/// Set the contentWin variable.
@@ -273,10 +285,6 @@ public: // Public methods
 	/// <param name="cWin">The new contentWin value.</param>
 	void _SetContentWin(HWND cWin);
 
-	// TODO: Should this be public? Consider encapsulation as protected.
-	// TODO: Change Node name to "location" to be more consistent
-	// TODO: change all location variables to dstLocation
-	// TODO: Change all "dest" to "whereAroundDst"
 	/// <summary>
 	/// Prepare for a node to be added to the layout.
 	/// 
@@ -291,15 +299,16 @@ public: // Public methods
 	/// the call.
 	/// </summary>
 	/// <param name="targ">The location a node would be added to the layout.</param>
-	/// <param name="dest">
+	/// <param name="whereAroundTarg">
 	/// Where in respect to the location to place the node in the layout.
 	/// </param>
 	/// <returns>
 	/// The results of the preparation, including whether the insertion request is 
 	/// valid and is allowed to continue.
 	/// </returns>
-	InsertWinLoc _ScanAndPrepAddLoc(Node* targ, Node::Dest dest);
+	InsertWinLoc _ScanAndPrepAddLoc(Node* targ, Node::Dest whereAroundTarg);
 
+public: // Public methods
 	/// <summary>
 	/// Add a node to the layout.
 	/// </summary>
@@ -307,11 +316,11 @@ public: // Public methods
 	/// <param name="targ">
 	/// The location to place the docked node in the layout.
 	/// </param>
-	/// <param name="dest">
+	/// <param name="whereAroundTarg">
 	/// Where in respect to the location to place the node in the layout.
 	/// </param>
 	/// <returns>The created node.</returns>
-	Node* Add(HWND hwnd, Node* targ, Node::Dest dest);
+	Node* Add(HWND hwnd, Node* targ, Node::Dest whereAroundTarg);
 
 	/// <summary>
 	/// Take a node that exists in another layout, and place it in the
@@ -321,14 +330,14 @@ public: // Public methods
 	/// <param name="targ">
 	/// The location to place the docked node in the invoking layout.
 	/// </param>
-	/// <param name="dest">
+	/// <param name="whereAroundTarg">
 	/// Where in respect to the location to place the node in the layout.
 	/// </param>
 	/// <param name="props">
 	/// The layout property that the invoking layout is using.
 	/// </param>
 	/// <returns></returns>
-	bool Steal(Node* n, Node* targ, Node::Dest dest, const LProps& props);
+	bool Steal(Node* n, Node* targ, Node::Dest whereAroundTarg, const LProps& props);
 
 	/// <summary>
 	/// Integrate a node into a InsertWinLoc (an insertion

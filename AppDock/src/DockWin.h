@@ -159,8 +159,9 @@ public:
 	/// <param name="rebuildSashes">
 	/// Rebuild all sashes.
 	/// </param>
-	// !TODO: Create an explicit ResizeLayout(const wxSize&) function and delegate to that
 	void ResizeLayout(bool refresh = true, bool rebuildSashes = true);
+
+	void ResizeLayout(const wxSize& sz, bool refresh = true, bool rebuildSashes = true);
 
 	/// <summary>
 	/// Ensured the TabsBar for the Node is correct. This includes removing

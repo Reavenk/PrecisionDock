@@ -30,17 +30,17 @@ CapDragSelWin::CapDragSelWin(wxWindow* parent, CaptureDlg* owner)
 	this->owner = owner;
 
 	if(reticuleSmall.IsNull() == true)
-		reticuleSmall = mywxUtils::LoadFromResourceID(IDB_RETICULE_SMALL);
+		reticuleSmall = MyWxUtils::LoadFromResourceID(IDB_RETICULE_SMALL);
 
 	if(reticuleLarge.IsNull() == true)
-		reticuleLarge = mywxUtils::LoadFromResourceID(IDB_RETICULE_LARGE);
+		reticuleLarge = MyWxUtils::LoadFromResourceID(IDB_RETICULE_LARGE);
 
 	this->SetBackgroundColour(wxColour(200, 255, 200));
 
 	this->infoText = new wxStaticText(this, wxID_ANY, "");
-	this->ResetHelpText();
+	this->ResetInfoText();
 
-	mywxUtils::SetupStaticTextMousePassthrough(this->infoText);
+	MyWxUtils::SetupStaticTextMousePassthrough(this->infoText);
 
 	this->SetToolTip("Click and drag on to a window.");
 
@@ -55,7 +55,7 @@ CapDragSelWin::~CapDragSelWin()
 	}
 }
 
-void CapDragSelWin::ResetHelpText()
+void CapDragSelWin::ResetInfoText()
 {
 	this->infoText->SetLabel(
 		"Click and drag this region onto a top-level window you want to capture.");
@@ -63,7 +63,7 @@ void CapDragSelWin::ResetHelpText()
 	this->UpdateInfoTextSize();
 }
 
-void CapDragSelWin::SetProgramLabel(const wxString& programName)
+void CapDragSelWin::SetInfoTextToProgram(const wxString& programName)
 {
 	this->infoText->SetLabel(programName);
 	this->UpdateInfoTextSize();
@@ -218,7 +218,7 @@ void CapDragSelWin::OnMotion(wxMouseEvent& evt)
 			std::vector<WCHAR> winText;
 			winText.resize(strLen);
 			GetWindowText(it, &winText[0], strLen);
-			this->SetProgramLabel(&winText[0]);
+			this->SetInfoTextToProgram(&winText[0]);
 			break;
 		}
 	}
@@ -303,7 +303,7 @@ void CapDragSelWin::EndDrag()
 		this->ReleaseMouse();
 
 	this->lastDraggedOver = NULL;
-	this->ResetHelpText();
+	this->ResetInfoText();
 
 	//wxPoint mousePos = this->ScreenToClient(wxGetMousePosition());
 	//if(this->GetClientRect().Contains(mousePos))

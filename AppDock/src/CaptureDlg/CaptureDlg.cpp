@@ -32,10 +32,10 @@ CaptureDlg::CaptureDlg(wxWindow* parent, const wxPoint& pos, const wxSize& size)
 	AppDock::GetApp().RegisterToplevelOwned(this->cachedHwnd);
 
 	if(questionSmall.IsNull())
-		questionSmall = mywxUtils::LoadFromResourceID(IDB_QUESTION_SMALL);
+		questionSmall = MyWxUtils::LoadFromResourceID(IDB_QUESTION_SMALL);
 
 	if(questionLarge.IsNull())
-		questionLarge = mywxUtils::LoadFromResourceID(IDB_QUESTION_LARGE);
+		questionLarge = MyWxUtils::LoadFromResourceID(IDB_QUESTION_LARGE);
 
 	const int SectionSepHeight = 20;
 	

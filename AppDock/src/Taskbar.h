@@ -34,7 +34,6 @@ public:
 		OpenLaunchList,			// See OnMenu_OpenLaunchList()
 		PU_EXIT,
 
-		Dlg_About,				// TODO: Remove? Seems redundant to ShowAbout
 		Dlg_Attach,				// TODO: Remove? Used for empty fn OnMenu_DlgAttach()
 
 		CloseAll,				// See OnMenu_CloseAllDocked()

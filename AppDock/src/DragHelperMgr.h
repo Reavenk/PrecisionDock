@@ -99,7 +99,7 @@ public:
 	/// children proportions in case the user bails (presses
 	/// escape) to restore the window sizes.
 	/// </summary>
-	std::vector<float> sashPreDragProps; // TODO: rename preDragSashProps
+	std::vector<float> preDragSashProps;
 
 	/// <summary>
 	/// When dragging a window from a TabsBar, what was that TabsBar?
@@ -195,11 +195,11 @@ public:
 
 	void _ResolveToUpdateAfterDrag();
 
-	bool FinishSuccessfulTabDragging();
-	bool CancelTabDragging(bool fromCaptureLoss);
+	void FinishSuccessfulTabDragging();
+	void CancelTabDragging(bool fromCaptureLoss);
 
-	bool FinishSuccessfulSashDragging();
-	bool CancelSashDragging(bool fromCaptureLoss);
+	void FinishSuccessfulSashDragging();
+	void CancelSashDragging(bool fromCaptureLoss);
 
 	void HandleMouseMove();
 	void _HandleMouseMoveSash(const wxPoint& delta);
