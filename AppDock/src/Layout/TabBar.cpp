@@ -465,6 +465,10 @@ void TabBar::OnMouseLUp(wxMouseEvent& evt)
 	if(this->HasCapture() == true)
 	{
 		assert(DockWin::dragggingMgr != nullptr);
+		
+		// TabClickEnd() may destroy/replace us in certain conditions,
+		// so DragHelperMgr will need to be responsible to refreshing
+		// us if we're still around.
 		this->owner->TabClickEnd();
 	}
 }
@@ -486,10 +490,14 @@ void TabBar::OnMouseMotion(wxMouseEvent& evt)
 void TabBar::OnMouseRDown(wxMouseEvent& evt)
 {
 	if(this->HasCapture() == true)
+	{
+		assert(DockWin::dragggingMgr != nullptr);
+		assert(DockWin::dragggingMgr->tabBarDrag == this);
+		this->owner->TabClickCancel();
 		return;
+	}
 
 	this->nodeRightClicked = nullptr;
-
 
 	wxPoint mousePt = evt.GetPosition();
 	this->nodeRightClicked = this->GetTabAtPoint(mousePt);
@@ -536,7 +544,7 @@ void TabBar::OnMouseChanged(wxMouseCaptureChangedEvent& evt)
 	if(this->owner->dragggingMgr != nullptr)
 	{ 
 		if(!this->owner->dragggingMgr->dragFlaggedAsFinished)
-			this->owner->dragggingMgr->CancelTabDragging();
+			this->owner->dragggingMgr->CancelTabDragging(true);
 	}
 }
 

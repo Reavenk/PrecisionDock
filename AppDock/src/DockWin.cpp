@@ -1,4 +1,4 @@
-#include "DockWin.h"
+﻿#include "DockWin.h"
 #include <queue>
 #include "AppDock.h"
 #include "Layout/Sash.h"
@@ -15,12 +15,12 @@ DragHelperMgr::DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoi
     assert(winDragged->HasCapture());
     this->winWithMouseCapture = winDragged;
 
-    this->lastKnownGlobalMouse = wxGetMousePosition();
-    this->lastLeftClick = wxGetMousePosition();
-    this->dragType = DragType::Sash;
+    this->lastKnownGlobalMouse  = wxGetMousePosition();
+    this->lastLeftClick         = wxGetMousePosition();
+    this->dragType              = DragType::Sash;
 
-    this->draggingSash = sashDragged;
-    this->dragOffset = winMousePos - sashDragged->pos;
+    this->draggingSash          = sashDragged;
+    this->dragOffset            = winMousePos - sashDragged->pos;
 
     this->winWhereDragged = winDragged;
 
@@ -34,7 +34,7 @@ DragHelperMgr::DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoi
             sashDraggedParent->children[i]->proportion);
     }
 
-    this->_AssertIsDraggingSashCorrectly();
+    this->_AssertIsDraggingSashCorrectly(true);
 }
 
 DragHelperMgr::DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, bool clickedClose, Node* node, Node* tabOwner)
@@ -60,7 +60,7 @@ DragHelperMgr::DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, bool clicke
     this->clickedClose      = clickedClose;
 
 
-    this->_AssertIsDraggingTabCorrectly();
+    this->_AssertIsDraggingTabCorrectly(true);
 }
 
 bool DragHelperMgr::RemoveDropPreviewWin()
@@ -86,11 +86,11 @@ bool DragHelperMgr::RemoveDraggingCursor()
 bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
 {
     assert(this->dragType == DragType::Tab);
-    this->_AssertIsDraggingTabCorrectly();
+    this->_AssertIsDraggingTabCorrectly(true);
 
     if(!this->startedDraggingTab)
     { 
-        this->StopCapture(this->winWithMouseCapture);
+        this->StopCapture(this->winWithMouseCapture, false);
 
         if(this->clickedClose)
         {
@@ -120,6 +120,12 @@ bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
         {
             // If we're here, a simple window tab was clicked (without being dragged)
             // which doesn't do anything.
+            //
+            // Although if we don't refresh it here, it won't get a chance to redraw
+            // itself correctly without the mouse down. We can't rely on the TabBar::OnMouseLUp()
+            // to handle it because it doesn't know if it's closing - so it can't access the
+            // Dockwin or node after delegating to DragHelperMgr.
+            this->tabBarDrag->Refresh();
         }
         this->winWhereDragged = nullptr;
         this->nodeDragged = nullptr;
@@ -140,12 +146,12 @@ bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
         // thing previously in the DockWin (leaving nothing left
         // after it was dragged off) then just restore the window.
 
-        this->CancelTabDragging();
+        this->CancelTabDragging(false);
         this->_AssertIsNeutralized();
         return true;
     }
    
-    this->StopCapture(this->winWithMouseCapture);
+    this->StopCapture(this->winWithMouseCapture, false);
 
     // At this point, some action will happen that we're commiting to,
     // so we can get rid of the undo information.
@@ -263,31 +269,43 @@ void DragHelperMgr::_ResolveToUpdateAfterDrag()
     }
 }
 
-bool DragHelperMgr::CancelTabDragging()
+bool DragHelperMgr::CancelTabDragging(bool fromCaptureLoss)
 {
     assert(!this->dragFlaggedAsFinished);
     assert(this->winWithMouseCapture != nullptr);
     assert(this->dragType == DragType::Tab);
-    //
-    // The only time we should be cancelling a drag, when dealing with tabs, 
-    // is while we're already dragging.
-    assert(this->startedDraggingTab);
-
-    this->StopCapture(this->winWithMouseCapture);
 
     Layout* layout = &this->winWhereDragged->layout;
     LProps& lp = this->winWhereDragged->lprops;
 
-    this->dragNodesInvolved.clear();
-    layout->UndoForget(this->dragUndo, lp);
-    this->dragUndo.clear();
-    this->nodeDragged->ShowWindow();
+    if(this->startedDraggingTab)
+    { 
+        assert(!this->dragUndo.empty());
+        assert(!this->dragNodesInvolved.empty());
+
+        this->StopCapture(this->winWithMouseCapture, fromCaptureLoss);
+        this->dragNodesInvolved.clear();
+        layout->UndoForget(this->dragUndo, lp);
+
+        this->dragUndo.clear();
+        this->nodeDragged->ShowWindow();
+
+        // We leave tabBarDrag non-null so that it will be deleted in the destructor
+        this->tabDragOwner->ClearTabBar();
+        this->winWhereDragged->MaintainNodesTabBar(tabDragOwner);
+    }
+    else
+    {
+        // If we entered into mouse capture from a mouse click, but never
+        // mouse to mouse to start a tear operation.
+        assert(this->dragUndo.empty());
+        assert(this->dragNodesInvolved.empty());
+
+        this->StopCapture(this->winWithMouseCapture, fromCaptureLoss);
+    }
+
     this->nodeDragged = nullptr;
     
-    // We leave tabBarDrag non-null so that it will be deleted in the destructor
-    this->tabDragOwner->ClearTabBar();
-    this->winWhereDragged->MaintainNodesTabBar(tabDragOwner);
-
     this->tabBarDrag = nullptr;
     this->tabDragOwner = nullptr;
     this->toUpdateAfterDrag = nullptr;
@@ -301,21 +319,23 @@ bool DragHelperMgr::CancelTabDragging()
     return true;
 }
 
-void DragHelperMgr::_AssertIsDraggingSashCorrectly()
+void DragHelperMgr::_AssertIsDraggingSashCorrectly(bool shouldHaveCapture)
 {
     assert(this->dragType == DragType::Sash);
     assert(this->winWhereDragged != nullptr);
     assert(!this->dragFlaggedAsFinished);
     assert(this->winWithMouseCapture != nullptr);
-    assert(this->winWithMouseCapture->HasCapture());
+
+    if(shouldHaveCapture)
+        assert(this->winWithMouseCapture->HasCapture());
 
     // Assertion checks that the wrong data wasn't touched
-    assert(this->dragPreviewOlyWin        == nullptr);
-    assert(this->dropPreviewWin == nullptr);
-    assert(this->winDraggedOnto == nullptr);
-    assert(this->nodeDragged    == nullptr);
-    assert(this->tabBarDrag     == nullptr);
-    assert(this->tabDragOwner   == nullptr);
+    assert(this->dragPreviewOlyWin  == nullptr);
+    assert(this->dropPreviewWin     == nullptr);
+    assert(this->winDraggedOnto     == nullptr);
+    assert(this->nodeDragged        == nullptr);
+    assert(this->tabBarDrag         == nullptr);
+    assert(this->tabDragOwner       == nullptr);
     assert(this->dragUndo.empty());
     assert(this->dragNodesInvolved.empty());
     assert(this->toUpdateAfterDrag == nullptr);
@@ -328,11 +348,14 @@ void DragHelperMgr::_AssertIsDraggingSashCorrectly()
     assert(!this->clickedClose);
 }
 
-void DragHelperMgr::_AssertIsDraggingTabCorrectly()
+void DragHelperMgr::_AssertIsDraggingTabCorrectly(bool shouldHaveCapture)
 {
     assert(!this->dragFlaggedAsFinished);
     assert(this->winWithMouseCapture != nullptr);
-    assert(this->winWithMouseCapture->HasCapture());
+
+    if(shouldHaveCapture)
+        assert(this->winWithMouseCapture->HasCapture());
+
     assert(this->dragType == DragType::Tab);
     assert(this->winWhereDragged != nullptr);
 
@@ -350,7 +373,6 @@ void DragHelperMgr::_AssertIsDraggingTabCorrectly()
     assert(this->dragNodesInvolved.empty()  != this->startedDraggingTab);
     //assert(this->toUpdateAfterDrag != nullptr);
 }
-
 
 void DragHelperMgr::_AssertIsNeutralized()
 {
@@ -383,8 +405,8 @@ void DragHelperMgr::_AssertIsNeutralized()
 bool DragHelperMgr::FinishSuccessfulSashDragging()
 {
     // Not much to do except stop
-    this->_AssertIsDraggingSashCorrectly();
-    this->StopCapture(this->winWhereDragged);
+    this->_AssertIsDraggingSashCorrectly(true);
+    this->StopCapture(this->winWhereDragged, false);
     
     this->draggingSash = nullptr;
 
@@ -399,24 +421,25 @@ bool DragHelperMgr::FinishSuccessfulSashDragging()
     return true;
 }
 
-bool DragHelperMgr::CancelSashDragging()
+bool DragHelperMgr::CancelSashDragging(bool fromCaptureLoss)
 {
-    this->_AssertIsDraggingSashCorrectly();
+    this->_AssertIsDraggingSashCorrectly(!fromCaptureLoss);
 
     // Restore the children sizes in the parent the sash modifies
     this->sashDraggedParent->ResizeChildrenByProportions(
-            this->sashPreDragProps, 
-            this->winWhereDragged->lprops);
+        this->sashPreDragProps, 
+        this->winWhereDragged->lprops);
 
+    this->winWhereDragged->RebuildSashes();
+
+    this->sashPreDragProps.clear();
+    this->draggingSash = nullptr;
     this->winWhereDragged->Refresh();
+    this->winWhereDragged->SetCursor(wxNullCursor);
     
     this->sashDraggedParent = nullptr;
-    this->winWhereDragged = nullptr;
 
-    this->winWhereDragged->SetCursor(wxNullCursor);
-    this->dragType = DragType::Invalid;
-
-    this->_AssertIsNeutralized();
+    this->StopCapture(this->winWhereDragged, fromCaptureLoss);
     return true;
 }
 
@@ -458,7 +481,7 @@ void DragHelperMgr::HandleMouseMove()
 
 void DragHelperMgr::_HandleMouseMoveSash(const wxPoint& delta)
 {
-    this->_AssertIsDraggingSashCorrectly();
+    this->_AssertIsDraggingSashCorrectly(true);
 
     wxPoint pt = wxGetMousePosition();
 
@@ -509,7 +532,7 @@ void DragHelperMgr::_HandleMouseMoveSash(const wxPoint& delta)
 
 void DragHelperMgr::_HandleMouseMoveTab(const wxPoint& delta)
 {
-    this->_AssertIsDraggingTabCorrectly();
+    this->_AssertIsDraggingTabCorrectly(true);
 
     if(!this->startedDraggingTab)
     {
@@ -788,19 +811,31 @@ void DragHelperMgr::ResumeCapture(wxWindow* requester)
     assert(this->winWithMouseCapture->HasCapture());
 }
 
-void DragHelperMgr::StopCapture(wxWindow* requester)
+void DragHelperMgr::StopCapture(wxWindow* requester, bool fromCaptureLoss)
 {
     assert(requester != nullptr);
     assert(this->winWithMouseCapture == requester);
-    assert(this->winWithMouseCapture->HasCapture());
     assert(!this->dragFlaggedAsFinished);
 
-    // Release the mouse will invoke callbacks which may reference this object, so
-    // we need to neutralize this stuff before releasing the mouse capture.
-    wxWindow* toRelease = this->winWithMouseCapture;
-    this->winWithMouseCapture = nullptr;
-    this->dragFlaggedAsFinished = true;
-    toRelease->ReleaseMouse();
+    if(fromCaptureLoss)
+    {
+        assert(!this->winWithMouseCapture->HasCapture());
+        this->winWithMouseCapture = nullptr;
+        this->dragFlaggedAsFinished = true;
+    }
+    else
+    {
+        // wxWindow::HasCapture() has some weird semantics that aren't 
+        // 100% reliable here.
+        assert(this->winWithMouseCapture->HasCapture());
+
+        // Release the mouse will invoke callbacks which may reference this object, so
+        // we need to neutralize this stuff before releasing the mouse capture.
+        wxWindow* toRelease = this->winWithMouseCapture;
+        this->winWithMouseCapture = nullptr;
+        this->dragFlaggedAsFinished = true;
+        toRelease->ReleaseMouse();
+    }
 }
 
 void DragHelperMgr::SetDragPreviewOlyWin(const wxPoint& whereAt)
@@ -834,7 +869,7 @@ BEGIN_EVENT_TABLE(DockWin, wxWindow)
     EVT_KEY_UP      (DockWin::OnKeyUp       )
 END_EVENT_TABLE()
 
-TabDraggingMgrPtr DockWin::dragggingMgr;
+DragHelperMgrPtr DockWin::dragggingMgr;
 
 DockWin::DockWin(
         wxWindow *parent,
@@ -1024,12 +1059,9 @@ void DockWin::ReleaseAll(bool clear)
         this->ClearDocked();
 }
 
-
-
-
-
 void DockWin::OnDraw(wxPaintEvent& paint)
 {
+    // Debug code to render layouts lots
     //wxPaintDC dc(this);
     //
     //std::queue<Node*> qn;
@@ -1079,7 +1111,7 @@ void DockWin::OnMouseLDown(wxMouseEvent& evt)
     if(olySash != nullptr)
     {
         this->CaptureMouse();
-        this->dragggingMgr = TabDraggingMgrPtr(new DragHelperMgr(this, olySash, pos));
+        this->dragggingMgr = DragHelperMgrPtr(new DragHelperMgr(this, olySash, pos));
         return;
     }
 }
@@ -1104,6 +1136,13 @@ void DockWin::OnMouseMUp(wxMouseEvent& evt)
 
 void DockWin::OnMouseRDown(wxMouseEvent& evt)
 {
+    if(
+        this->dragggingMgr != nullptr && 
+        this->dragggingMgr->dragType == DragHelperMgr::DragType::Sash)
+    {
+        this->dragggingMgr->CancelSashDragging(false);
+        this->FinishMouseDrag();
+    }
 }
 
 void DockWin::OnMouseRUp(wxMouseEvent& evt)
@@ -1124,7 +1163,21 @@ void DockWin::OnMouseCaptureChanged(wxMouseCaptureChangedEvent& evt)
     if(this->dragggingMgr != nullptr)
     { 
         if(!this->dragggingMgr->dragFlaggedAsFinished)
-            this->dragggingMgr->CancelSashDragging();
+        {
+            assert(this->dragggingMgr->dragType != DragHelperMgr::DragType::Invalid);
+
+            if(this->dragggingMgr->dragType == DragHelperMgr::DragType::Sash)
+            {
+                // > ☐ SASH_DRAG_ba0d1d458dcc: Doing an alt-tab while dragging cancels the drag.
+                // > ☐ SASH_DRAG_1e45f4aeb499: Cancelling a sash drag reset the sash to where it was before the drag.
+                this->dragggingMgr->CancelSashDragging(true);
+            }
+            else if(this->dragggingMgr->dragType == DragHelperMgr::DragType::Tab)
+                this->dragggingMgr->CancelTabDragging(true);
+            else
+                assert(!"Illegal unhandled case in DockWin::OnMouseCaptureChanged()");
+        }
+        this->FinishMouseDrag();
     }
 }
 
@@ -1140,9 +1193,15 @@ void DockWin::OnKeyDown(wxKeyEvent& evt)
         {
             assert(this->dragggingMgr != nullptr);
             assert(this->dragggingMgr->dragType == DragHelperMgr::DragType::Sash);
-            this->dragggingMgr->CancelSashDragging();
-            this->ReleaseMouse();
-            this->Refresh();
+            this->dragggingMgr->CancelSashDragging(false);
+            this->FinishMouseDrag();
+            this->Refresh(false);
+        }
+        else if(
+            this->dragggingMgr != nullptr && 
+            this->dragggingMgr->dragType == DragHelperMgr::DragType::Tab)
+        {
+            this->TabClickCancel();
         }
     }
 }
@@ -1235,8 +1294,8 @@ void DockWin::TabClickStart(TabBar* tbInvoker, Node* node, Node* tabOwner, bool 
     assert(this->dragggingMgr == nullptr);
 
     tbInvoker->CaptureMouse();
-    this->dragggingMgr = TabDraggingMgrPtr(new DragHelperMgr(this, tbInvoker, closePressed, node, tabOwner));
-    this->dragggingMgr->_AssertIsDraggingTabCorrectly();
+    this->dragggingMgr = DragHelperMgrPtr(new DragHelperMgr(this, tbInvoker, closePressed, node, tabOwner));
+    this->dragggingMgr->_AssertIsDraggingTabCorrectly(true);
 }
 
 void DockWin::TabClickMotion()
@@ -1272,7 +1331,7 @@ void DockWin::OnDelegatedEscape()
     assert(this->dragggingMgr);
     assert(this->dragggingMgr->dragType == DragHelperMgr::DragType::Tab);
 
-    this->dragggingMgr->CancelTabDragging();
+    this->dragggingMgr->CancelTabDragging(false);
     this->FinishMouseDrag();
 }
 

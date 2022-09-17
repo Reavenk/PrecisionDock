@@ -12,7 +12,8 @@ class TopDockWin;
 class Node;
 class DragPreviewOlyWin;
 
-class DragHelperMgr // TODO: Wrong name, doesn't just handle tab dragging
+// TODO: Move to seperate file
+class DragHelperMgr
 {
 public:
 	enum class DragType
@@ -166,29 +167,65 @@ public:
 	bool RemoveDropPreviewWin();
 	bool RemoveDraggingCursor();
 
-	void _AssertIsDraggingSashCorrectly();
-	void _AssertIsDraggingTabCorrectly();
+	/// <summary>
+	/// Run assert checks to see if all expectations for dragging a sash are correct.
+	/// </summary>
+	/// <param name="shouldHaveCapture">
+	/// True if the DockWin is expected to have the mouse capture.
+	/// </param>
+	void _AssertIsDraggingSashCorrectly(bool shouldHaveCapture);
+
+	/// <summary>
+	/// Run assert checks to see if all expectations for dragging a tab are correct.
+	/// </summary>
+	/// <param name="shouldHaveCapture">
+	/// True if the DockWin is expected to have the mouse capture.
+	/// </param>
+	void _AssertIsDraggingTabCorrectly(bool shouldHaveCapture);
+
+	/// <summary>
+	/// Run assert checks to see that all expected variables are null or empty. This
+	/// is because our codebase expects these things to be manually emptied to ensure
+	/// proper things are left untouched, or have explicitly been touched (and then
+	/// emptied).
+	/// </summary>
 	void _AssertIsNeutralized();
 
 	void _ResolveToUpdateAfterDrag();
 
 	bool FinishSuccessfulTabDragging();
-	bool CancelTabDragging();
+	bool CancelTabDragging(bool fromCaptureLoss);
 
 	bool FinishSuccessfulSashDragging();
-	bool CancelSashDragging();
+	bool CancelSashDragging(bool fromCaptureLoss);
 
 	void HandleMouseMove();
 	void _HandleMouseMoveSash(const wxPoint& delta);
 	void _HandleMouseMoveTab(const wxPoint& delta);
 
 	void ResumeCapture(wxWindow* requester);
-	void StopCapture(wxWindow* requester);
+
+	/// <summary>
+	/// Called when the mouse capture should be released.
+	/// 
+	/// Even if the mouse capture was taken, this function should be called to
+	/// end the drag context.
+	/// </summary>
+	/// <param name="requester">
+	/// The window requesting the mouse capture release.
+	/// This should be the same window that has the mouse capture. This is simple
+	/// a safeguard check (for asserts) and is non-functional.
+	/// </param>
+	/// <param name="fromCaptureLoss">
+	/// Set to true if StopCapture was called after the mouse capture was lost from
+	/// an OS event that forced us to loose mouse capture. Else, set to false.
+	/// </param>
+	void StopCapture(wxWindow* requester, bool fromCaptureLoss);
 
 	void SetDragPreviewOlyWin(const wxPoint& whereAt);
 };
 
-typedef std::shared_ptr<DragHelperMgr> TabDraggingMgrPtr;
+typedef std::shared_ptr<DragHelperMgr> DragHelperMgrPtr;
 
 /// <summary>
 /// The location in a TopDockWin where the layout of docked windows
@@ -218,7 +255,7 @@ public:
 		DragWin
 	};
 
-	static TabDraggingMgrPtr dragggingMgr;
+	static DragHelperMgrPtr dragggingMgr;
 
 protected:
 	
@@ -446,6 +483,11 @@ public:
 	/// Handles canceling a drag operation when being cancelled from delegation.
 	/// </summary>
 	void OnDelegatedEscape(); // TODO: Encapsulate - and expect delegation from TabClickCancel
+
+	inline void RebuildSashes()
+	{
+		this->layout.RebuildSashes(this->lprops);
+	}
 
 	/// <summary>
 	/// Called to handle when a node is removed. This includes,
