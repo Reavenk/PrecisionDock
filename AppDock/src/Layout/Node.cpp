@@ -277,7 +277,7 @@ void Node::ResizeChildrenByProportions(const LProps& lp)
 
 	if(this->type == Node::Type::Horizontal)
 	{
-		int allSash = lp.sashWidth * this->children.size();
+		int allSash = lp.sashWidth * (this->children.size() - 1);
 		int spaceNodes = this->cacheSize.x - allSash;
 		// We move across with a float instead of an int so
 		// we don't start loosing pixels to float truncation.
@@ -292,18 +292,16 @@ void Node::ResizeChildrenByProportions(const LProps& lp)
 			Layout::Resize(
 				c,
 				wxPoint((int)x, this->cachePos.y),
-				wxSize(lp.sashWidth, this->cacheSize.y),
+				wxSize(w, this->cacheSize.y),
 				lp);
 
 			x += w;
-
-			if(i != 0)
-				x += lp.sashWidth;
+			x += lp.sashWidth;
 		}
 	}
 	else if(this->type == Node::Type::Vertical)
 	{
-		int allSash = lp.sashHeight * this->children.size();
+		int allSash = lp.sashHeight * (this->children.size() - 1);
 		int spaceNodes = this->cacheSize.y - allSash;
 		float y = this->cachePos.y;
 
@@ -315,14 +313,12 @@ void Node::ResizeChildrenByProportions(const LProps& lp)
 
 			Layout::Resize(
 				c, 
-				wxPoint(this->cachePos.x, h), 
-				wxSize(this->cacheSize.x, lp.sashHeight), 
+				wxPoint(this->cachePos.x, y), 
+				wxSize(this->cacheSize.x, h), 
 				lp);
 
 			y += h;
-
-			if(i != 0)
-				h += lp.sashHeight;
+			y += lp.sashHeight;
 		}
 	}
 
