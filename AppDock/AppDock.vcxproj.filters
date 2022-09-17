@@ -111,6 +111,9 @@
     <ClInclude Include="src\DragPreviewOlyWin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\DragHelperMgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppDock.cpp">
@@ -168,6 +171,9 @@
       <Filter>Source Files\Layout</Filter>
     </ClCompile>
     <ClCompile Include="src\DragPreviewOlyWin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DragHelperMgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\AppDock.h" />
+    <ClInclude Include="src\DragHelperMgr.h" />
     <ClInclude Include="src\DragPreviewOlyWin.h" />
     <ClInclude Include="src\BarDrop.h" />
     <ClInclude Include="src\CaptureDlg\CapDragSelWin.h" />
@@ -176,6 +177,7 @@
   <ItemGroup>
     <ClCompile Include="src\AppDock.cpp" />
     <ClCompile Include="src\AppRef.cpp" />
+    <ClCompile Include="src\DragHelperMgr.cpp" />
     <ClCompile Include="src\DragPreviewOlyWin.cpp" />
     <ClCompile Include="src\BarDrop.cpp" />
     <ClCompile Include="src\CaptureDlg\CapDragSelWin.cpp" />
