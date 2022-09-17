@@ -489,6 +489,14 @@ public:
 		this->layout.RebuildSashes(this->lprops);
 	}
 
+	void DelegateFinishMouseDrag()
+	{
+		// We could just make FinishMouseDrag() public, the only advantage this
+		// gives us is that we have a bottleneck of where all outside code
+		// is calling FinishMouseDrag().
+		this->FinishMouseDrag();
+	}
+
 	/// <summary>
 	/// Called to handle when a node is removed. This includes,
 	/// * When the Window for a node is closed.
