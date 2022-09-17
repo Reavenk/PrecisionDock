@@ -101,13 +101,13 @@ public:
 	/// </summary>
 	std::vector<float> sashPreDragProps; // TODO: rename preDragSashProps
 
-										 /// <summary>
-										 /// When dragging a window from a TabBar, what was that TabBar?
-										 /// </summary>
-	TabBar* tabBarDrag = nullptr;
+	/// <summary>
+	/// When dragging a window from a TabsBar, what was that TabsBar?
+	/// </summary>
+	TabsBar* tabsBarDrag = nullptr;
 
 	/// <summary>
-	/// The node that originally owned TabBar before the drag operation.
+	/// The node that originally owned TabsBar before the drag operation.
 	/// </summary>
 	Node* tabDragOwner = nullptr;
 
@@ -148,7 +148,7 @@ public:
 
 public:
 	DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoint& winMousePos);
-	DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, bool clickedClose, Node* node, Node* tabOwner);
+	DragHelperMgr(DockWin* winDragged, TabsBar* tbInvoker, bool clickedClose, Node* node, Node* tabOwner);
 	~DragHelperMgr();
 
 	/// <summary>

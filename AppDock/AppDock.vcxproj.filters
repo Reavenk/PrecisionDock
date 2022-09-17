@@ -69,9 +69,6 @@
     <ClInclude Include="src\Layout\Sash.h">
       <Filter>Header Files\Layout</Filter>
     </ClInclude>
-    <ClInclude Include="src\Layout\TabBar.h">
-      <Filter>Header Files\Layout</Filter>
-    </ClInclude>
     <ClInclude Include="src\framework.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -113,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="src\DragHelperMgr.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Layout\TabsBar.h">
+      <Filter>Header Files\Layout</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -164,9 +164,6 @@
     <ClCompile Include="src\Layout\Node.cpp">
       <Filter>Source Files\Layout</Filter>
     </ClCompile>
-    <ClCompile Include="src\Layout\TabBar.cpp">
-      <Filter>Source Files\Layout</Filter>
-    </ClCompile>
     <ClCompile Include="src\Layout\Sash.cpp">
       <Filter>Source Files\Layout</Filter>
     </ClCompile>
@@ -175,6 +172,9 @@
     </ClCompile>
     <ClCompile Include="src\DragHelperMgr.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Layout\TabsBar.cpp">
+      <Filter>Source Files\Layout</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

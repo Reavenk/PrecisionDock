@@ -2,7 +2,7 @@
 #include <queue>
 #include "AppDock.h"
 #include "Layout/Sash.h"
-#include "Layout/TabBar.h"
+#include "Layout/TabsBar.h"
 #include "DragPreviewOlyWin.h"
 #include "TopDockWin.h"
 
@@ -55,7 +55,7 @@ Node * DockWin::AddToLayout(HWND hwnd, Node* reference, Node::Dest refDock)
     assert(instCtr >= 0);
 
     Node* n = this->layout.Add(hwnd, reference, refDock);
-    this->MaintainNodesTabBar(n);
+    this->MaintainNodesTabsBar(n);
     return n;
 }
 
@@ -65,7 +65,7 @@ bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
     // because Steal() will force the OS to exit it.
     assert(this->dragggingMgr == nullptr || this->dragggingMgr->dragFlaggedAsFinished);
 
-    n->ClearTabBar();
+    n->ClearTabsBar();
 
     bool ret = 
         this->layout.Steal(
@@ -83,11 +83,11 @@ bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
         bool sel        = nTabSys->SelectTab(n);
         assert(sel == true);
 
-        this->MaintainNodesTabBar(nTabSys);
-        nTabSys->GetTabBar()->Refresh();
+        this->MaintainNodesTabsBar(nTabSys);
+        nTabSys->GetTabsBar()->Refresh();
     }
     else
-        this->MaintainNodesTabBar(n);
+        this->MaintainNodesTabsBar(n);
 
     this->ResizeLayout(true, true);
     return true;
@@ -108,8 +108,8 @@ void DockWin::StealRoot(Node* n)
 
     this->layout.root = n;
     n->parent = nullptr;
-    n->ClearTabBar();
-    this->MaintainNodesTabBar(n);
+    n->ClearTabsBar();
+    this->MaintainNodesTabsBar(n);
     n->ShowWindow();
     this->ResizeLayout();
 }
@@ -180,7 +180,7 @@ void DockWin::ResizeLayout(bool refresh, bool rebuildSahes)
         this->layout.RebuildSashes(this->lprops);
 }
 
-void DockWin::MaintainNodesTabBar(Node* pn)
+void DockWin::MaintainNodesTabsBar(Node* pn)
 {
     assert(pn != nullptr);
     if(
@@ -188,14 +188,14 @@ void DockWin::MaintainNodesTabBar(Node* pn)
         pn->type == Node::Type::Vertical)
     {
         // Shouldn't ever do anything, sanity operation.
-        pn->ClearTabBar();
+        pn->ClearTabsBar();
         return;
     }
 
-    if(pn->GetTabBar() == nullptr)
+    if(pn->GetTabsBar() == nullptr)
     {
-        TabBar* tb = new TabBar(this, pn);
-        pn->SetTabBar(tb);
+        TabsBar* tb = new TabsBar(this, pn);
+        pn->SetTabsBar(tb);
     }
 }
 
@@ -382,7 +382,7 @@ void _ProcessInvolvedFromRem(std::set<Node*>& involved, DockWin* dw)
             n->type == Node::Type::Window && 
             (n->parent == nullptr || n->parent->type != Node::Type::Tabs))
         {
-            dw->MaintainNodesTabBar(n);
+            dw->MaintainNodesTabsBar(n);
         }
     }
 }
@@ -446,7 +446,7 @@ bool DockWin::CloneNodeWin(Node* pn)
     return true;
 }
 
-void DockWin::TabClickStart(TabBar* tbInvoker, Node* node, Node* tabOwner, bool closePressed)
+void DockWin::TabClickStart(TabsBar* tbInvoker, Node* node, Node* tabOwner, bool closePressed)
 {
     assert(this->dragggingMgr == nullptr);
 
@@ -523,8 +523,8 @@ json DockWin::_JSONRepresentation()
             case Node::Type::Window:
                 jsRet["ty"] = "win";
                 jsRet["cmd"] = n->cmdLine;
-                if(n->GetTabBar() != nullptr)
-                    jsRet["tab"] = n->GetTabBar()->id;
+                if(n->GetTabsBar() != nullptr)
+                    jsRet["tab"] = n->GetTabsBar()->id;
                 break;
                 
             case Node::Type::Horizontal:
@@ -538,8 +538,8 @@ json DockWin::_JSONRepresentation()
             case Node::Type::Tabs:
                 jsRet["ty"] = "tabs";
                 jsRet["sel"] = n->selTab;
-                if(n->GetTabBar() != nullptr)
-                    jsRet["tab"] = n->GetTabBar()->id;
+                if(n->GetTabsBar() != nullptr)
+                    jsRet["tab"] = n->GetTabsBar()->id;
                 break;
 
             default:

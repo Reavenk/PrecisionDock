@@ -1,7 +1,7 @@
 ﻿#include "Layout.h"
 #include "LProps.h"
 #include "Sash.h"
-#include "TabBar.h"
+#include "TabsBar.h"
 
 #include <queue>
 
@@ -181,7 +181,7 @@ bool Layout::_ForgetWindow(
 	if(targ->type != Node::Type::Window)
 		return false;
 
-	targ->ClearTabBar();
+	targ->ClearTabsBar();
 
 	// Unregister the HWND (if any)
 	if(targ->win != NULL)
@@ -280,7 +280,7 @@ bool Layout::_ForgetWindow(
 			undo.push_back(ForgetUndo::MakeProportion(remPar));
 			undo.push_back(ForgetUndo::MakeStitching(toRem));
 
-			toRem->ClearTabBar();
+			toRem->ClearTabsBar();
 
 			size_t swapidx = -1;
 			for(size_t i = 0; i < toRem->children.size(); ++i)
@@ -330,7 +330,7 @@ bool Layout::_ForgetWindow(
 			Node * toRem = oldParent;
 			oldParent = toRem->parent;
 
-			toRem->ClearTabBar();
+			toRem->ClearTabsBar();
 
 			this->_Replace(toRem, toRem->children[0]);
 
@@ -418,7 +418,7 @@ void Layout::UndoForget(std::vector<ForgetUndo>& undo, const LProps& props)
 
 				forgu.node->parent = forgu.prvParent;
 				if(forgu.prvParent->type == Node::Type::Tabs)
-					forgu.node->ClearTabBar();
+					forgu.node->ClearTabsBar();
 
 				// The root should be repaired by the end of processing
 				// all the undos. But we set the root to null if needed
@@ -532,15 +532,15 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest dest)
 			return InsertWinLoc::AtNodeChild(
 				targ, targ->children.size()); 
 
-			if(targ->GetTabBar() != nullptr)
-				targ->GetTabBar()->Refresh(false);
+			if(targ->GetTabsBar() != nullptr)
+				targ->GetTabsBar()->Refresh(false);
 		}
 		else // if(targ->type == Node::Type::Window)
 		{
 
 			Node* nTab			= new Node();
 			nTab->type			= Node::Type::Tabs;
-			targ->ClearTabBar();
+			targ->ClearTabsBar();
 			this->_Replace(targ, nTab);
 			nTab->children.push_back(targ);
 			targ->proportion	= 1.0f;
@@ -1099,7 +1099,7 @@ void Layout::_ResizeFromLot(const Lot& lroot, const LProps& lp)
 					l.pn->cachedClient.height,
 					SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOZORDER);
 			}
-			l.pn->ResetTabBarLayout(lp);
+			l.pn->ResetTabsBarLayout(lp);
 		}
 		else if(l.pn->type == Node::Type::Tabs)
 		{
@@ -1137,7 +1137,7 @@ void Layout::_ResizeFromLot(const Lot& lroot, const LProps& lp)
 						SWP_NOACTIVATE|SWP_NOOWNERZORDER|SWP_NOZORDER);
 				}
 			}
-			l.pn->ResetTabBarLayout(lp);
+			l.pn->ResetTabsBarLayout(lp);
 			
 		}
 		else if(l.pn->type == Node::Type::Horizontal)
@@ -1415,7 +1415,7 @@ bool InBounds(wxRect r, wxPoint pt)
 		pt);
 }
 
-int Layout::_CountInstancedTabBarsInHierarchy()
+int Layout::_CountInstancedTabsBarsInHierarchy()
 {
 	if(this->root == nullptr)
 		return 0;
@@ -1427,7 +1427,7 @@ int Layout::_CountInstancedTabBarsInHierarchy()
 		Node* curNode = toScan.back();
 		toScan.pop_back();
 
-		if(curNode->GetTabBar() != nullptr)
+		if(curNode->GetTabsBar() != nullptr)
 			++counter;
 
 		for(Node* childToProcess : toScan)

@@ -165,7 +165,7 @@
     <ClInclude Include="src\Layout\LProps.h" />
     <ClInclude Include="src\Layout\Node.h" />
     <ClInclude Include="src\Layout\Sash.h" />
-    <ClInclude Include="src\Layout\TabBar.h" />
+    <ClInclude Include="src\Layout\TabsBar.h" />
     <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\targetver.h" />
     <ClInclude Include="src\Taskbar.h" />
@@ -190,7 +190,7 @@
     <ClCompile Include="src\Layout\LProps.cpp" />
     <ClCompile Include="src\Layout\Node.cpp" />
     <ClCompile Include="src\Layout\Sash.cpp" />
-    <ClCompile Include="src\Layout\TabBar.cpp" />
+    <ClCompile Include="src\Layout\TabsBar.cpp" />
     <ClCompile Include="src\Taskbar.cpp" />
     <ClCompile Include="src\TopDockWin.cpp" />
     <ClCompile Include="src\Utils\AppUtils.cpp" />

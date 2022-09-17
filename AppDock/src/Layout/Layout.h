@@ -448,7 +448,7 @@ public: // Public static methods
 	static void _ResizeFromLot(const Lot& lroot, const LProps& lp);
 
 public:
-	int _CountInstancedTabBarsInHierarchy();
+	int _CountInstancedTabsBarsInHierarchy();
 	int _CountNodesInHierarchy();
 	bool _TestValidity();
 };

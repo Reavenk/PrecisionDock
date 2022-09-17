@@ -11,7 +11,7 @@ class DockWin;
 /// are, and so that tab drawing can be double buffered without
 /// forcing the main DockWin canvas to be double buffered.
 /// </summary>
-class TabBar : public wxWindow
+class TabsBar : public wxWindow
 {
 public:
 	// wxWidget Command IDs
@@ -42,7 +42,7 @@ public: // TODO: Encapsulate better.
 
 	/// <summary>
 	/// A reference to the Dock win that owns the layout the 
-	/// TabBar object is in.
+	/// TabsBar object is in.
 	/// </summary>
 	DockWin* owner			= nullptr;
 
@@ -73,22 +73,22 @@ public: // Public methods
 	/// Constructor.
 	/// </summary>
 	/// <param name="win">
-	/// The DockWin containing the Tab Node that the TabBar is 
+	/// The DockWin containing the Tab Node that the TabsBar is 
 	/// managing.
 	/// </param>
 	/// <param name="node">
-	/// The TabNode that the TabBar is responsible for.
+	/// The TabNode that the TabsBar is responsible for.
 	/// </param>
-	TabBar(DockWin* win, Node* node);
+	TabsBar(DockWin* win, Node* node);
 
-	~TabBar();
+	~TabsBar();
 
 	/// <summary>
 	/// If the tabs have been moved to a different window, this can
 	/// be used to update this->owner.
 	/// </summary>
 	/// <param name="win">
-	/// The DockWin that now contains the Tab Node that the TabBar
+	/// The DockWin that now contains the Tab Node that the TabsBar
 	/// is responsible for.
 	/// </param>
 	void SwapOwner(DockWin* win);
@@ -104,12 +104,12 @@ public: // Public methods
 	Node* GetTabAtPoint(const wxPoint& pt);
 
 	/// <summary>
-	/// Event, called when the TabBar is holding a window that was torn.
+	/// Event, called when the TabsBar is holding a window that was torn.
 	/// </summary>
 	void OnWindowTorn();
 
 	/// <summary>
-	/// Event, called when the TabBar is holding a tab, whos child window
+	/// Event, called when the TabsBar is holding a tab, whos child window
 	/// was torn.
 	/// </summary>
 	/// <param name="nodeTorn">

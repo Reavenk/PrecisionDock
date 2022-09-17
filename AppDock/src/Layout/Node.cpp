@@ -1,7 +1,7 @@
 #include "Node.h"
 #include "Layout.h"
 #include "LProps.h"
-#include "TabBar.h"
+#include "TabsBar.h"
 
 
 int Node::IDCT = 0;
@@ -397,7 +397,7 @@ bool Node::SelectTab(Node* winChild)
 	return false;
 }
 
-void Node::ClearTabBar()
+void Node::ClearTabsBar()
 {
 	if(this->tabsBar == nullptr)
 		return;
@@ -420,18 +420,18 @@ Node* Node::ChildOtherThan(Node* n)
 	return nullptr;
 }
 
-void Node::SetTabBar(TabBar* tb)
+void Node::SetTabsBar(TabsBar* tb)
 {
 	assert(this->tabsBar == nullptr);
 	this->tabsBar = tb;
 }
 
-void Node::ForgetTabBar()
+void Node::ForgetTabsBar()
 {
 	this->tabsBar = nullptr;
 }
 
-void Node::ResetTabBarLayout(const LProps& lp)
+void Node::ResetTabsBarLayout(const LProps& lp)
 {
 	if(this->tabsBar == nullptr)
 		return;

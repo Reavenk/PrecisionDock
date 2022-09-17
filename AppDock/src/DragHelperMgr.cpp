@@ -3,7 +3,7 @@
 #include "Layout/Sash.h"
 #include "DockWin.h"
 #include "TopDockWin.h"
-#include "Layout/TabBar.h"
+#include "Layout/TabsBar.h"
 #include "AppDock.h"
 #include "DragPreviewOlyWin.h"
 
@@ -37,7 +37,7 @@ DragHelperMgr::DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoi
     this->_AssertIsDraggingSashCorrectly(true);
 }
 
-DragHelperMgr::DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, bool clickedClose, Node* node, Node* tabOwner)
+DragHelperMgr::DragHelperMgr(DockWin* winDragged, TabsBar* tbInvoker, bool clickedClose, Node* node, Node* tabOwner)
 {
     assert(winDragged   != nullptr);
     assert(tbInvoker    != nullptr);
@@ -54,7 +54,7 @@ DragHelperMgr::DragHelperMgr(DockWin* winDragged, TabBar* tbInvoker, bool clicke
     this->dragType          = DragType::Tab;
 
     this->winWhereDragged   = winDragged;
-    this->tabBarDrag        = tbInvoker;
+    this->tabsBarDrag        = tbInvoker;
     this->nodeDragged       = node;
     this->tabDragOwner      = tabOwner;
     this->clickedClose      = clickedClose;
@@ -122,15 +122,15 @@ bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
             // which doesn't do anything.
             //
             // Although if we don't refresh it here, it won't get a chance to redraw
-            // itself correctly without the mouse down. We can't rely on the TabBar::OnMouseLUp()
+            // itself correctly without the mouse down. We can't rely on the TabsBar::OnMouseLUp()
             // to handle it because it doesn't know if it's closing - so it can't access the
             // Dockwin or node after delegating to DragHelperMgr.
-            this->tabBarDrag->Refresh();
+            this->tabsBarDrag->Refresh();
         }
         this->winWhereDragged = nullptr;
         this->nodeDragged = nullptr;
         this->tabDragOwner = nullptr;
-        this->tabBarDrag = nullptr;
+        this->tabsBarDrag = nullptr;
         this->nodeDragged = nullptr;
         this->dragType = DragHelperMgr::DragType::Invalid;
         this->_AssertIsNeutralized();
@@ -233,7 +233,7 @@ bool DragHelperMgr::FinishSuccessfulTabDragging() // TODO: Take out return value
     {
         // If nothin happened, restore it, and don't hold on to it
         // so it won't get deleted.
-        this->tabBarDrag = nullptr;
+        this->tabsBarDrag = nullptr;
     }
 
     this->nodeDragged         = nullptr;
@@ -290,9 +290,9 @@ bool DragHelperMgr::CancelTabDragging(bool fromCaptureLoss)
         this->dragUndo.clear();
         this->nodeDragged->ShowWindow();
 
-        // We leave tabBarDrag non-null so that it will be deleted in the destructor
-        this->tabDragOwner->ClearTabBar();
-        this->winWhereDragged->MaintainNodesTabBar(tabDragOwner);
+        // We leave tabsBarDrag non-null so that it will be deleted in the destructor
+        this->tabDragOwner->ClearTabsBar();
+        this->winWhereDragged->MaintainNodesTabsBar(tabDragOwner);
     }
     else
     {
@@ -306,7 +306,7 @@ bool DragHelperMgr::CancelTabDragging(bool fromCaptureLoss)
 
     this->nodeDragged = nullptr;
 
-    this->tabBarDrag = nullptr;
+    this->tabsBarDrag = nullptr;
     this->tabDragOwner = nullptr;
     this->toUpdateAfterDrag = nullptr;
     this->winWhereDragged->ResizeLayout();
@@ -334,7 +334,7 @@ void DragHelperMgr::_AssertIsDraggingSashCorrectly(bool shouldHaveCapture)
     assert(this->dropPreviewWin     == nullptr);
     assert(this->winDraggedOnto     == nullptr);
     assert(this->nodeDragged        == nullptr);
-    assert(this->tabBarDrag         == nullptr);
+    assert(this->tabsBarDrag         == nullptr);
     assert(this->tabDragOwner       == nullptr);
     assert(this->dragUndo.empty());
     assert(this->dragNodesInvolved.empty());
@@ -367,7 +367,7 @@ void DragHelperMgr::_AssertIsDraggingTabCorrectly(bool shouldHaveCapture)
     assert((this->draggingCursorGraphic != nullptr) == this->alreadyToreOffTab);
     //assert((this->dropPreviewWin != nullptr) == this->startedDraggingTab);
     assert(this->nodeDragged != nullptr);
-    assert(this->tabBarDrag != nullptr  || this->alreadyToreOffTab);
+    assert(this->tabsBarDrag != nullptr  || this->alreadyToreOffTab);
     assert(this->tabDragOwner != nullptr);
     assert(this->dragUndo.empty()           != this->alreadyToreOffTab);
     assert(this->dragNodesInvolved.empty()  != this->alreadyToreOffTab);
@@ -388,7 +388,7 @@ void DragHelperMgr::_AssertIsNeutralized()
     assert( this->dragNodesInvolved.empty());
     assert( this->sashDraggedParent     == nullptr);
     assert( this->sashPreDragProps.empty());
-    //assert( this->tabBarDrag            == nullptr);
+    //assert( this->TabsBarDrag            == nullptr);
     assert( this->tabDragOwner          == nullptr);
     assert( this->toUpdateAfterDrag     == nullptr);
     assert( this->draggingSash          == nullptr);
@@ -450,11 +450,11 @@ DragHelperMgr::~DragHelperMgr()
 
     // This may be left non-null to delete AFTER a tab drag operation
     // is completed. This is because it needs to be managed after the
-    // entire drag operation because it (tabBarDrag) will have had
+    // entire drag operation because it (tabsBarDrag) will have had
     // the mouse capture so it has to stay alive through the entire 
     // process.
-    if(this->tabBarDrag != nullptr)
-        delete this->tabBarDrag;
+    if(this->tabsBarDrag != nullptr)
+        delete this->tabsBarDrag;
 
     // If these asserts fail, it means the drag-and-drop didn't go through
     // the proper channels (or the proper channels have a bug).
@@ -548,31 +548,31 @@ void DragHelperMgr::_HandleMouseMoveTab(const wxPoint& delta)
             if(tabDragOwner->type == Node::Type::Window)
             {
                 // Don't allow the old tab bar to draw.
-                tabDragOwner->GetTabBar()->Hide();
-                // Very hackey, but we can't let the original TabBar that was dragged
+                tabDragOwner->GetTabsBar()->Hide();
+                // Very hackey, but we can't let the original TabsBar that was dragged
                 // be destroyed while we're dragging.
                 // 
                 // We'll set it back later if nothing happened, or we'll destroy it if
                 // the tab was moved around (in which case it will create another
-                // TabBar for itself and we can get rid of the original one.
-                tabDragOwner->ForgetTabBar();
+                // TabsBar for itself and we can get rid of the original one.
+                tabDragOwner->ForgetTabsBar();
                 // Keep it around but hide it by moving it way off the window
-                tabBarDrag->SetPosition(wxPoint(0, -100000));
+                tabsBarDrag->SetPosition(wxPoint(0, -100000));
             }
             else if(tabDragOwner->type == Node::Type::Tabs)
             {
                 if(tabDragOwner->children.size() > 2)
                 { 
                     toUpdateAfterDrag = tabDragOwner;
-                    tabBarDrag = nullptr; // Don't delete it in ~DragHelperMgr
+                    tabsBarDrag = nullptr; // Don't delete it in ~DragHelperMgr
                 }
                 else
                 {
                     toUpdateAfterDrag = tabDragOwner->ChildOtherThan(nodeDragged);
 
-                    tabDragOwner->GetTabBar()->Hide();
-                    tabDragOwner->ForgetTabBar();
-                    tabBarDrag->SetPosition(wxPoint(0, -100000));
+                    tabDragOwner->GetTabsBar()->Hide();
+                    tabDragOwner->ForgetTabsBar();
+                    tabsBarDrag->SetPosition(wxPoint(0, -100000));
                 }
             }
 
@@ -603,7 +603,7 @@ void DragHelperMgr::_HandleMouseMoveTab(const wxPoint& delta)
 
                 if(fundo.prvParent->type == Node::Type::Tabs)
                 { 
-                    this->winWhereDragged->MaintainNodesTabBar(fundo.node);
+                    this->winWhereDragged->MaintainNodesTabsBar(fundo.node);
                     doLayout = true;
                 }
             }

@@ -30,7 +30,7 @@ public:
 	{
 		// Not dragging
 		Normal,
-		// Draggin a tab (usually through delegation of a TabBar)
+		// Draggin a tab (usually through delegation of a TabsBar)
 		DragTab,
 		// Dragging a sash
 		DragSash,
@@ -163,11 +163,11 @@ public:
 	void ResizeLayout(bool refresh = true, bool rebuildSashes = true);
 
 	/// <summary>
-	/// Ensured the TabBar for the Node is correct. This includes removing
+	/// Ensured the TabsBar for the Node is correct. This includes removing
 	/// it when it's no needed, and creating it if it's missing.
 	/// </summary>
-	/// <param name="pn">The Node to process the TabBar for.</param>
-	void MaintainNodesTabBar(Node* pn);
+	/// <param name="pn">The Node to process the TabsBar for.</param>
+	void MaintainNodesTabsBar(Node* pn);
 
 	/// <summary>
 	/// Clear the layout information. Note that this is only responsible
@@ -229,7 +229,7 @@ public:
 	/// Includes logic to prepare for a tab dragging operation.
 	/// </summary>
 	/// <param name="tbInvoker">
-	/// The TabBar that is delegating the call.
+	/// The TabsBar that is delegating the call.
 	/// </param>
 	/// <param name="node">
 	/// The node of the tab being dragged.
@@ -240,7 +240,7 @@ public:
 	/// <param name="closePressed">
 	/// True if the click was on the tab's close button.
 	/// </param>
-	void TabClickStart(TabBar* tbInvoker, Node* node, Node* tabOwner, bool closePressed);
+	void TabClickStart(TabsBar* tbInvoker, Node* node, Node* tabOwner, bool closePressed);
 
 	/// <summary>
 	/// Handles when the mouse is moved during a tab drag.

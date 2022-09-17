@@ -1,4 +1,4 @@
-﻿#include "TabBar.h"
+﻿#include "TabsBar.h"
 #include "../DockWin.h"
 #include "../AppDock.h"
 #include <wx/dcbuffer.h>
@@ -8,28 +8,28 @@
 // TODO: Rename to TabsBar - nomenclature should be that a grouping
 // of tabs be explicitly plural.
 
-BEGIN_EVENT_TABLE(TabBar, wxWindow)
-	EVT_PAINT					(TabBar::OnDraw			)
-	EVT_LEFT_DOWN				(TabBar::OnMouseLDown	)
-	EVT_LEFT_UP					(TabBar::OnMouseLUp		)
-	EVT_MOTION					(TabBar::OnMouseMotion	)
-	EVT_RIGHT_DOWN				(TabBar::OnMouseRDown	)
-	EVT_SIZE					(TabBar::OnSize			)
-	EVT_MOUSE_CAPTURE_CHANGED	(TabBar::OnMouseChanged	)
-	EVT_MOUSE_CAPTURE_LOST		(TabBar::OnMouseCaptureLost)
-	EVT_ENTER_WINDOW			(TabBar::OnMouseEnter	)
-	EVT_LEAVE_WINDOW			(TabBar::OnMouseExit	)
+BEGIN_EVENT_TABLE(TabsBar, wxWindow)
+	EVT_PAINT					(TabsBar::OnDraw			)
+	EVT_LEFT_DOWN				(TabsBar::OnMouseLDown	)
+	EVT_LEFT_UP					(TabsBar::OnMouseLUp		)
+	EVT_MOTION					(TabsBar::OnMouseMotion	)
+	EVT_RIGHT_DOWN				(TabsBar::OnMouseRDown	)
+	EVT_SIZE					(TabsBar::OnSize			)
+	EVT_MOUSE_CAPTURE_CHANGED	(TabsBar::OnMouseChanged	)
+	EVT_MOUSE_CAPTURE_LOST		(TabsBar::OnMouseCaptureLost)
+	EVT_ENTER_WINDOW			(TabsBar::OnMouseEnter	)
+	EVT_LEAVE_WINDOW			(TabsBar::OnMouseExit	)
 
-	EVT_MENU((int)CmdIds::Menu_CloneWin,    TabBar::OnMenu_RClick_Clone        )
-	EVT_MENU((int)CmdIds::Menu_RenameWin,   TabBar::OnMenu_RClick_Release      )  
-	EVT_MENU((int)CmdIds::Menu_ReleaseWin,  TabBar::OnMenu_RClick_Release      )
-	EVT_MENU((int)CmdIds::Menu_CloseWin,    TabBar::OnMenu_RClick_CloseWin     )
-	EVT_MENU((int)CmdIds::Menu_DettachWin,  TabBar::OnMenu_RClick_DettachWin   )
-	EVT_MENU((int)CmdIds::Menu_SystemMenu,  TabBar::OnMenu_RClick_SystemMenu   )
+	EVT_MENU((int)CmdIds::Menu_CloneWin,    TabsBar::OnMenu_RClick_Clone        )
+	EVT_MENU((int)CmdIds::Menu_RenameWin,   TabsBar::OnMenu_RClick_Release      )  
+	EVT_MENU((int)CmdIds::Menu_ReleaseWin,  TabsBar::OnMenu_RClick_Release      )
+	EVT_MENU((int)CmdIds::Menu_CloseWin,    TabsBar::OnMenu_RClick_CloseWin     )
+	EVT_MENU((int)CmdIds::Menu_DettachWin,  TabsBar::OnMenu_RClick_DettachWin   )
+	EVT_MENU((int)CmdIds::Menu_SystemMenu,  TabsBar::OnMenu_RClick_SystemMenu   )
 END_EVENT_TABLE()
 
-int TabBar::dbgCtr = 0;
-int TabBar::instCtr = 0;
+int TabsBar::dbgCtr = 0;
+int TabsBar::instCtr = 0;
 
 bool InCircle(float x, float y, float r)
 {
@@ -53,7 +53,7 @@ void CalculateCloseButtonInfo(const wxRect& wxrTab, const LProps& lp, int& outRa
 	outRad = closeButtonRad;
 }
 
-bool InCloseButton(TabBar* tb, Node* n, const wxPoint mousePt)
+bool InCloseButton(TabsBar* tb, Node* n, const wxPoint mousePt)
 {
 	int closeButtonRad;
 	wxPoint closeBtnCenter;
@@ -61,7 +61,7 @@ bool InCloseButton(TabBar* tb, Node* n, const wxPoint mousePt)
 	return InCircle(mousePt.x - closeBtnCenter.x, mousePt.y - closeBtnCenter.y, closeButtonRad);
 }
 
-TabBar::TabBar(DockWin* win, Node* node)
+TabsBar::TabsBar(DockWin* win, Node* node)
 	: wxWindow(win, wxID_ANY, wxDefaultPosition, wxDefaultSize, WS_EX_COMPOSITED)
 {
 	++instCtr;
@@ -72,20 +72,20 @@ TabBar::TabBar(DockWin* win, Node* node)
 	this->SetBackgroundStyle(wxBackgroundStyle::wxBG_STYLE_PAINT);
 }
 
-TabBar::~TabBar()
+TabsBar::~TabsBar()
 {
 	--instCtr;
 	assert(instCtr >= 0);
 }
 
-void TabBar::SwapOwner(DockWin* win)
+void TabsBar::SwapOwner(DockWin* win)
 {
 	this->Reparent(win);
 	this->owner = win;
 	this->Show(true);
 }
 
-Node* TabBar::GetTabAtPoint(const wxPoint& pt)
+Node* TabsBar::GetTabAtPoint(const wxPoint& pt)
 {
 	if(this->node->type == Node::Type::Window)
 	{
@@ -103,7 +103,7 @@ Node* TabBar::GetTabAtPoint(const wxPoint& pt)
 	return nullptr;
 }
 
-void TabBar::ClearHover()
+void TabsBar::ClearHover()
 {
 	this->tabHoveringOver = nullptr;
 	this->hoveringOverClose = false;
@@ -111,7 +111,7 @@ void TabBar::ClearHover()
 	this->Refresh(false);
 }
 
-bool TabBar::UpdateMouseOver(const wxPoint& mousePt)
+bool TabsBar::UpdateMouseOver(const wxPoint& mousePt)
 {
 	Node * pnTabOver = this->GetTabAtPoint(mousePt);
 
@@ -177,13 +177,13 @@ bool TabBar::UpdateMouseOver(const wxPoint& mousePt)
 	return tabHoveredChanged;
 }
 
-void TabBar::OnWindowTorn()
+void TabsBar::OnWindowTorn()
 {
 	assert(this->node->type == Node::Type::Window);
 	this->ClearHover();
 }
 
-void TabBar::OnTabTorn(Node* nodeTorn)
+void TabsBar::OnTabTorn(Node* nodeTorn)
 {
 	assert(this->node->type == Node::Type::Tabs);
 	assert(nodeTorn != nullptr);
@@ -281,7 +281,7 @@ void DrawCloseButton(wxDC& dc, const wxRect& wxrTab, const wxBrush& bgColor, con
 	dc.DrawCircle(closeBtnCenter.x, closeBtnCenter.y, closeButtonRad);
 
 	// Draw the X image for the close button
-	const wxBitmap& closeBtnBmp = TabBar::GetCloseBtnBitmap();
+	const wxBitmap& closeBtnBmp = TabsBar::GetCloseBtnBitmap();
 	dc.DrawBitmap(
 		closeBtnBmp, 
 		wxPoint(
@@ -373,7 +373,7 @@ void DrawTab(
 	DrawCloseButton(dc, tabRect, *closeBrush, lp);
 }
 
-void TabBar::OnDraw(wxPaintEvent& evt)
+void TabsBar::OnDraw(wxPaintEvent& evt)
 {
 	assert(this->node != nullptr);
 	assert(this->owner != nullptr);
@@ -424,11 +424,11 @@ void TabBar::OnDraw(wxPaintEvent& evt)
 		}
 	}
 	else
-		assert(!"Unhandled node type for TabBar::OnDraw");
+		assert(!"Unhandled node type for TabsBar::OnDraw");
 
 }
 
-void TabBar::OnMouseLDown(wxMouseEvent& evt)
+void TabsBar::OnMouseLDown(wxMouseEvent& evt)
 {
 	// > ☐ TABS_CTRL_6c3f9ca8d8df: Tabs close button closes window.
 	// > ☐ TABS_CTRL_6c1f2893152f: Tabs can be clicked to initiate dragging the tab.
@@ -460,7 +460,7 @@ void TabBar::OnMouseLDown(wxMouseEvent& evt)
 	this->Refresh(false);
 }
 
-void TabBar::OnMouseLUp(wxMouseEvent& evt)
+void TabsBar::OnMouseLUp(wxMouseEvent& evt)
 {
 	if(this->HasCapture() == true)
 	{
@@ -473,7 +473,7 @@ void TabBar::OnMouseLUp(wxMouseEvent& evt)
 	}
 }
 
-void TabBar::OnMouseMotion(wxMouseEvent& evt)
+void TabsBar::OnMouseMotion(wxMouseEvent& evt)
 {
 	if(this->HasCapture() == true)
 		this->owner->TabClickMotion();
@@ -487,12 +487,12 @@ void TabBar::OnMouseMotion(wxMouseEvent& evt)
 	}
 }
 
-void TabBar::OnMouseRDown(wxMouseEvent& evt)
+void TabsBar::OnMouseRDown(wxMouseEvent& evt)
 {
 	if(this->HasCapture() == true)
 	{
 		assert(DockWin::dragggingMgr != nullptr);
-		assert(DockWin::dragggingMgr->tabBarDrag == this);
+		assert(DockWin::dragggingMgr->tabsBarDrag == this);
 		this->owner->TabClickCancel();
 		return;
 	}
@@ -529,16 +529,16 @@ void TabBar::OnMouseRDown(wxMouseEvent& evt)
 	this->PopupMenu(&tabPopupMenu);
 }
 
-void TabBar::OnSize(wxSizeEvent& evt)
+void TabsBar::OnSize(wxSizeEvent& evt)
 {
 	this->Refresh();
 }
 
-void TabBar::OnMouseCaptureLost(wxMouseCaptureLostEvent& evt)
+void TabsBar::OnMouseCaptureLost(wxMouseCaptureLostEvent& evt)
 {
 }
 
-void TabBar::OnMouseChanged(wxMouseCaptureChangedEvent& evt)
+void TabsBar::OnMouseChanged(wxMouseCaptureChangedEvent& evt)
 {	
 	// This can be nullptr if we right click the tab and bring up the system menu.
 	if(this->owner->dragggingMgr != nullptr)
@@ -551,7 +551,7 @@ void TabBar::OnMouseChanged(wxMouseCaptureChangedEvent& evt)
 	}
 }
 
-void TabBar::OnMouseEnter(wxMouseEvent& evt)
+void TabsBar::OnMouseEnter(wxMouseEvent& evt)
 {
 	assert(this->node != nullptr);
 
@@ -561,7 +561,7 @@ void TabBar::OnMouseEnter(wxMouseEvent& evt)
 	this->UpdateMouseOver(evt.GetPosition());
 }
 
-void TabBar::OnMouseExit(wxMouseEvent& evt)
+void TabsBar::OnMouseExit(wxMouseEvent& evt)
 {
 	assert(this->node != nullptr);
 
@@ -569,7 +569,7 @@ void TabBar::OnMouseExit(wxMouseEvent& evt)
 		this->ClearHover();
 }
 
-void TabBar::OnMenu_RClick_Clone(wxCommandEvent& evt)
+void TabsBar::OnMenu_RClick_Clone(wxCommandEvent& evt)
 {
 	if(this->nodeRightClicked == nullptr)
 		return;
@@ -577,14 +577,14 @@ void TabBar::OnMenu_RClick_Clone(wxCommandEvent& evt)
 	this->owner->CloneNodeWin(this->nodeRightClicked);
 }
 
-void TabBar::OnMenu_RClick_Rename(wxCommandEvent& evt)
+void TabsBar::OnMenu_RClick_Rename(wxCommandEvent& evt)
 {
 	if(this->nodeRightClicked == nullptr)
 		return;
 
 }
 
-void TabBar::OnMenu_RClick_Release(wxCommandEvent& evt)
+void TabsBar::OnMenu_RClick_Release(wxCommandEvent& evt)
 {
 	if(this->nodeRightClicked == nullptr)
 		return;
@@ -592,7 +592,7 @@ void TabBar::OnMenu_RClick_Release(wxCommandEvent& evt)
 	this->owner->ReleaseNodeWin(this->nodeRightClicked);
 }
 
-void TabBar::OnMenu_RClick_CloseWin(wxCommandEvent& evt)
+void TabsBar::OnMenu_RClick_CloseWin(wxCommandEvent& evt)
 {
 	if(this->nodeRightClicked == nullptr)
 		return;
@@ -600,7 +600,7 @@ void TabBar::OnMenu_RClick_CloseWin(wxCommandEvent& evt)
 	this->owner->CloseNodeWin(this->nodeRightClicked);
 }
 
-void TabBar::OnMenu_RClick_DettachWin(wxCommandEvent& evt)
+void TabsBar::OnMenu_RClick_DettachWin(wxCommandEvent& evt)
 {
 	if(this->nodeRightClicked == nullptr)
 		return;
@@ -608,7 +608,7 @@ void TabBar::OnMenu_RClick_DettachWin(wxCommandEvent& evt)
 	this->owner->DettachNodeWin(this->nodeRightClicked);
 }
 
-void TabBar::OnMenu_RClick_SystemMenu(wxCommandEvent& evt)
+void TabsBar::OnMenu_RClick_SystemMenu(wxCommandEvent& evt)
 {
 	if(this->nodeRightClicked == nullptr)
 		return;
@@ -647,13 +647,13 @@ void TabBar::OnMenu_RClick_SystemMenu(wxCommandEvent& evt)
 	AppDock::RaiseTODO("Create delegation system of message to HWND");
 }
 
-const wxBitmap& TabBar::GetCloseBtnBitmap()
+const wxBitmap& TabsBar::GetCloseBtnBitmap()
 {
 	static wxBitmap closeBtnBitmap = wxBitmap(pszTabCloseBtn);
 	return closeBtnBitmap;
 }
 
-bool TabBar::_TestValidity()
+bool TabsBar::_TestValidity()
 {
 	return true;
 }

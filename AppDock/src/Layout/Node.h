@@ -3,7 +3,7 @@
 #include <wx/wx.h>
 
 class LProps;
-class TabBar;
+class TabsBar;
 
 /// <summary>
 /// A container to hold a window in the layout.
@@ -74,7 +74,7 @@ private:
 	/// 
 	/// Else, this will be nullptr.
 	/// </summary>
-	TabBar* tabsBar = nullptr;
+	TabsBar* tabsBar = nullptr;
 
 public:
 
@@ -209,7 +209,7 @@ public:
 			this->parent->type == Node::Type::Tabs;
 	}
 
-	inline TabBar* GetTabBar()
+	inline TabsBar* GetTabsBar()
 	{
 		return this->tabsBar;
 	}
@@ -361,7 +361,7 @@ public:
 	/// <summary>
 	/// Destroy the windows bar tab.
 	/// </summary>
-	void ClearTabBar();
+	void ClearTabsBar();
 
 	/// <summary>
 	/// Set the value of the tab bar. 
@@ -370,16 +370,16 @@ public:
 	/// </summary>
 	/// <param name="tb">The tab bar to set.</param>
 	// TODO: Instead of "forgetting" the tab bar, it may be more effective to hold onto it but flag that it's suppresed?
-	void SetTabBar(TabBar* tb);
+	void SetTabsBar(TabsBar* tb);
 
 	Node* ChildOtherThan(Node* n);
 
 	/// <summary>
 	/// Get rid knowledge of the Windows bar tab.
 	/// 
-	/// TODO: See TODO for SetTabBar().
+	/// TODO: See TODO for SetTabsBar().
 	/// </summary>
-	void ForgetTabBar();
+	void ForgetTabsBar();
 
-	void ResetTabBarLayout(const LProps& lp);
+	void ResetTabsBarLayout(const LProps& lp);
 };
