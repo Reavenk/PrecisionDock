@@ -4,3 +4,5 @@ x64
 *.vcxproj.user
 SavedState.json
 enc_temp_folder
+*.props
+.editorconfig
