@@ -19,6 +19,7 @@
 
 class TopDockWin;
 class Node;
+class CaptureDlg;
 
 /// <summary>
 /// The application instance.
@@ -78,13 +79,16 @@ private:
     std::vector<AppRef> launchRefs;
 
     Taskbar * taskbar = nullptr;
+
+    std::vector<HWINEVENTHOOK> winHooks;
+
 public:
     virtual bool OnInit();
     virtual int OnExit();
 
 protected:
     /// <summary>
-    /// Top-level HWNDs owned by the application. We need to make sure
+    /// Top-level HWNDs (TopDockWin) owned by the application. We need to make sure
     /// these aren't captured.
     /// </summary>
     std::set<HWND> ownedWins;
@@ -93,6 +97,21 @@ protected:
     /// Thread protection for ownedWins.
     /// </summary>
     std::mutex ownedWinMutex;
+
+
+    /// <summary>
+    /// The Captured HWND objects
+    /// </summary>
+    std::map<HWND, TopDockWin*> capturedWinsToTopDock;
+
+    /// <summary>
+    /// The mutex for capturedWinsToTopDock;
+    /// </summary>
+    std::mutex capturedWinsMutex;
+
+    std::set<CaptureDlg*> captureDialogs;
+	
+    std::mutex captureDlgsMutex;
 
 protected:
     void MaintenanceLoop(wxTimerEvent& evt);
@@ -220,6 +239,10 @@ public:
     bool LaunchAppRef(int idx);
     bool LaunchAppRef(const AppRef& aref);
 
+    void OnHook_WindowClosed(HWND hwnd);
+    void OnHook_WindowNameChanged(HWND hwnd);
+    void OnHook_WindowCreated(HWND hwnd);
+
     std::vector<TopDockWin*> _GetWinList();
 
 public:
@@ -253,6 +276,14 @@ public:
     /// </summary>
     /// <param name="msg">The TODO message to show.</param>
     static void RaiseTODO(const wxString& msg);
+
+    bool _RegisterCapturedHWND(TopDockWin* owner, HWND winCaptured);
+
+    bool _UnregisterCapturedHWND(HWND winCaptured);
+    bool _UnregisterCapturedHWND(std::initializer_list<HWND> winsCaptured);
+	
+	bool RegisterCaptureDlg(CaptureDlg* dlg);
+	bool UnregisterCaptureDlg(CaptureDlg* dlg);
 
 protected:
     DECLARE_EVENT_TABLE();

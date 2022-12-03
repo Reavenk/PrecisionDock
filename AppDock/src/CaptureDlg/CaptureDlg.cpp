@@ -6,7 +6,8 @@
 #include "../Utils/mywxUtils.h"
 #include "../Utils/AppUtils.h"
 #include "../resource.h"
-
+#include <windows.h>
+#include <assert.h>
 
 CaptureDlg* CaptureDlg::inst = nullptr;
 
@@ -130,6 +131,7 @@ CaptureDlg::CaptureDlg(wxWindow* parent, const wxPoint& pos, const wxSize& size)
 	this->UpdateCaptureButtonsEnabled();
 
 	AppUtils::SetDefaultIcons(this);
+	AppDock::GetApp().RegisterCaptureDlg(this);
 }
 
 CaptureDlg::~CaptureDlg()
@@ -138,6 +140,9 @@ CaptureDlg::~CaptureDlg()
 	inst = nullptr;
 
 	AppDock::GetApp().UnregisterToplevelOwned(this->cachedHwnd);
+
+	// It's unregistered on close, but one more time for sanity.
+	AppDock::GetApp().UnregisterCaptureDlg(this);
 }
 
 void CaptureDlg::_EnsureScrollWinSizer()
@@ -310,11 +315,12 @@ void CaptureDlg::RebuildListed()
 {
 	this->ClearListed();
 
-	// https://gist.github.com/blewert/b6e7b11c565cf82e7d700c609f22d023
 
 	this->_EnsureScrollWinSizer();
 
 	std::vector<HWND> vecWins;
+	// Enumerating top-level windows
+	// https://gist.github.com/blewert/b6e7b11c565cf82e7d700c609f22d023
 	HWND desktWin = GetDesktopWindow();
 	for(
 		HWND it = GetTopWindow(desktWin); 
@@ -421,6 +427,24 @@ CaptureListItem* CaptureDlg::AddListItem(HWND topWin)
 	return ret;
 }
 
+bool CaptureDlg::RemoveListItem(HWND topWin)
+{
+	if(this->setListed.find(topWin) == this->setListed.end())
+		return false;
+	
+	this->setListed.erase(topWin);
+	for (size_t rmIdx = 0; rmIdx < this->listedItems.size(); ++rmIdx)
+	{
+		if(this->listedItems[rmIdx]->captureHWND != topWin)
+			continue;
+		
+		this->listedItems[rmIdx]->Close();
+		this->listedItems.erase(this->listedItems.begin() + rmIdx);
+		break;
+	}
+	return true;
+}
+
 void CaptureDlg::OnButton_Capture(wxCommandEvent& evt)
 {
 	this->CaptureSelected();
@@ -449,6 +473,7 @@ void CaptureDlg::OnButton_ToggleHelpMode(wxCommandEvent& evt)
 
 void CaptureDlg::OnClose(wxCloseEvent& evt)
 {
+	AppDock::GetApp().UnregisterCaptureDlg(this);
 	this->Destroy();
 }
 
@@ -483,6 +508,44 @@ void CaptureDlg::OnInputDelegated_DLeftMouseDown(CaptureListItem* item, wxMouseE
 {
 	this->DoSelection(item, true, evt.ControlDown());
 }
+
+void CaptureDlg::OnTopLevelRenamed(HWND hwnd)
+{
+	assert( hwnd == ::GetParent(hwnd));
+	
+	if(this->setListed.find(hwnd) == this->setListed.end())
+		return;
+	
+	// If it's something we're listing, update the label.
+	for(CaptureListItem* cli : this->listedItems)
+	{
+		if(cli->captureHWND != hwnd)
+			continue;
+
+		cli->Refresh();
+		break;
+	}
+}
+
+void CaptureDlg::OnTopLevelCreated(HWND hwnd)
+{
+	assert(hwnd == ::GetParent(hwnd));
+	assert(this->setListed.find(hwnd) == this->setListed.end());
+	
+	CaptureListItem* capLstItem = this->AddListItem(hwnd);
+	this->scrollWin->Layout();
+	this->UpdateListColor(capLstItem);
+}
+
+void CaptureDlg::OnTopLevelDestroyed(HWND hwnd)
+{
+	if(this->RemoveListItem(hwnd))
+	{
+		this->scrollWin->Layout();
+		this->UpdateCaptureButtonsEnabled();
+	}
+}
+
 
 void CaptureDlg::DoSelection(CaptureListItem* item, bool confirm, bool ctrl)
 {

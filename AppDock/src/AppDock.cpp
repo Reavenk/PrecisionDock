@@ -19,6 +19,34 @@
 
 //HHOOK hookListener = NULL;
 
+void UnsubscribeWinSysHook(HWINEVENTHOOK& hook)
+{
+    if(hook == NULL)
+        return;
+
+    UnhookWinEvent(hook);
+    hook = NULL;
+}
+
+HWINEVENTHOOK SubscribeWinSysHook(DWORD event, WINEVENTPROC callback, std::vector<HWINEVENTHOOK>* pvec)
+{
+
+    HWINEVENTHOOK hook = 
+        SetWinEventHook(
+            event, 
+            event, 
+            NULL, 
+            callback, 
+            NULL, 
+            NULL, 
+            WINEVENT_SKIPOWNPROCESS|WINEVENT_SKIPOWNTHREAD);
+
+    if(pvec)
+        pvec->push_back(hook);
+
+    return hook;
+}
+
 wxBEGIN_EVENT_TABLE(AppDock, wxApp)
     EVT_TIMER(-1, AppDock::MaintenanceLoop)
 wxEND_EVENT_TABLE()
@@ -74,6 +102,24 @@ wxEND_EVENT_TABLE()
 //}
 
 HINSTANCE hGetProcIDDLL = NULL;
+
+VOID WindowSysEventCallback(
+    HWINEVENTHOOK hWinEventHook,
+    DWORD         event,
+    HWND          hwnd,
+    LONG          idObject,
+    LONG          idChild,
+    DWORD         idEventThread,
+    DWORD         dwmsEventTime)
+{
+ 
+    if(event == EVENT_OBJECT_DESTROY)
+        AppDock::GetApp().OnHook_WindowClosed(hwnd);
+    else if(event == EVENT_OBJECT_NAMECHANGE)
+        AppDock::GetApp().OnHook_WindowNameChanged(hwnd);
+    else if(event == EVENT_OBJECT_CREATE)
+        AppDock::GetApp().OnHook_WindowCreated(hwnd);
+}
 
 wxIMPLEMENT_APP(AppDock);
 bool AppDock::OnInit()
@@ -137,6 +183,12 @@ bool AppDock::OnInit()
     AppDock::GetApp().LaunchAppRef(v[0]);
     AppDock::GetApp().LaunchAppRef(v[0]);
     AppDock::GetApp().LaunchAppRef(v[0]);
+
+    // https://learn.microsoft.com/en-us/windows/win32/winauto/event-constants
+    SubscribeWinSysHook(EVENT_OBJECT_DESTROY,       WindowSysEventCallback, &this->winHooks);
+    SubscribeWinSysHook(EVENT_OBJECT_NAMECHANGE,    WindowSysEventCallback, &this->winHooks);
+    SubscribeWinSysHook(EVENT_OBJECT_CREATE,        WindowSysEventCallback, &this->winHooks);
+
     return true;
 }
 
@@ -156,6 +208,10 @@ int AppDock::OnExit()
     if(this->taskbar != nullptr)
         delete this->taskbar;
 
+    for(HWINEVENTHOOK wevth : this->winHooks)
+        UnsubscribeWinSysHook(wevth);
+    this->winHooks.clear();
+	
     return 0;
 }
 
@@ -398,6 +454,43 @@ bool AppDock::LaunchAppRef(const AppRef& aref)
             aref.startShown);
 }
 
+void AppDock::OnHook_WindowClosed(HWND hwnd)
+{
+    TopDockWin* twd = nullptr;
+    {
+        std::lock_guard<std::mutex> guardOwned(this->capturedWinsMutex);
+        auto itFindCaptured = this->capturedWinsToTopDock.find(hwnd);
+        if(itFindCaptured == this->capturedWinsToTopDock.end())
+            return;
+
+        twd = itFindCaptured->second;
+    }
+
+    assert(twd != nullptr);
+    twd->OnDetectLostWindow(hwnd, LostWindowReason::Destroyed);
+    MessageBeep(MB_OK);
+}
+
+void AppDock::OnHook_WindowNameChanged(HWND hwnd)
+{
+    TopDockWin* twd = nullptr;
+    {
+        std::lock_guard<std::mutex> guardOwned(this->capturedWinsMutex);
+        auto itFindCaptured = this->capturedWinsToTopDock.find(hwnd);
+        if(itFindCaptured == this->capturedWinsToTopDock.end())
+            return;
+
+        twd = itFindCaptured->second;
+    }
+
+    assert(twd != nullptr);
+    twd->UpdateWindowTitlebar(hwnd);
+    MessageBeep(MB_OK);
+}
+
+void AppDock::OnHook_WindowCreated(HWND hwnd)
+{}
+
 std::vector<TopDockWin*> AppDock::_GetWinList()
 {
     std::vector<TopDockWin*> ret;
@@ -562,6 +655,70 @@ void AppDock::ClearNoticeConfirm()
 void AppDock::RaiseTODO(const wxString& msg)
 {
     AppDock::GetApp().taskbar->ShowBalloon("TODO", msg);
+}
+
+bool AppDock::_RegisterCapturedHWND(TopDockWin* owner, HWND winCaptured)
+{
+    // This function does more than just register, it also needs to 
+    // check if things are being re-registered and send the proper
+    // event notifications.
+
+    std::lock_guard<std::mutex> capGuard(this->capturedWinsMutex);
+    
+    auto itFind = this->capturedWinsToTopDock.find(winCaptured);
+    if(itFind != this->capturedWinsToTopDock.end())
+    {
+        if(itFind->second == owner)
+        {
+            // This shouldn't ever happen, but checked for sanity.
+            assert(false);
+            return false;
+        }
+        itFind->second->OnDetectLostWindow(winCaptured, LostWindowReason::Recaptured);
+    }
+    this->capturedWinsToTopDock[winCaptured] = owner;
+    return true;
+}
+
+bool AppDock::_UnregisterCapturedHWND(HWND winCaptured)
+{
+    std::lock_guard<std::mutex> capGuard(this->capturedWinsMutex);
+    auto itFind = this->capturedWinsToTopDock.find(winCaptured);
+    if(itFind == this->capturedWinsToTopDock.end())
+        return false;
+
+    this->capturedWinsToTopDock.erase(itFind);
+    return true;
+}
+
+bool AppDock::_UnregisterCapturedHWND(std::initializer_list<HWND> winsCaptured)
+{
+    bool any = false;
+    std::lock_guard<std::mutex> capGuard(this->capturedWinsMutex);
+    for(HWND hwnd : winsCaptured)
+    {
+        auto itFind = this->capturedWinsToTopDock.find(hwnd);
+        if(itFind == this->capturedWinsToTopDock.end())
+            return false;
+
+        this->capturedWinsToTopDock.erase(itFind);
+        any = true;
+    }
+    return any;
+}
+
+bool AppDock::RegisterCaptureDlg(CaptureDlg* dlg)
+{
+	std::lock_guard<std::mutex> capsGuard(this->captureDlgsMutex);
+	this->captureDialogs.insert(dlg);
+    return true; // TODO: Re-eval use of return value
+}
+
+bool AppDock::UnregisterCaptureDlg(CaptureDlg* dlg)
+{
+    std::lock_guard<std::mutex> capsGuard(this->captureDlgsMutex);
+	this->captureDialogs.erase(dlg);
+    return true; // TODO: Re-eval use of return value
 }
 
 bool AppDock::_TestValidity()

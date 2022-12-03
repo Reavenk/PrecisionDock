@@ -248,6 +248,8 @@ public:
 	void UpdateCaptureButtonsEnabled();
 
 	CaptureListItem* AddListItem(HWND topWin);
+	
+	bool RemoveListItem(HWND topWin);
 
 	/// <summary>
 	/// Change the selection status of a Windowed process.
@@ -269,6 +271,16 @@ public:
 
 	void OnInputDelegated_LeftMouseDown(CaptureListItem* item, wxMouseEvent& evt);
 	void OnInputDelegated_DLeftMouseDown(CaptureListItem* item, wxMouseEvent& evt);
+
+	//////////////////////////////////////////////////
+	//	
+	//	System HWND Events Handlers
+	//
+	//////////////////////////////////////////////////
+	
+	void OnTopLevelRenamed(HWND hwnd);
+	void OnTopLevelCreated(HWND hwnd);
+	void OnTopLevelDestroyed(HWND hwnd);
 
 	//////////////////////////////////////////////////
 	//	

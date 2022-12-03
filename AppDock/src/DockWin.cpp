@@ -6,24 +6,44 @@
 #include "DragPreviewOlyWin.h"
 #include "TopDockWin.h"
 
+void _DockObserverBus::PublishOnLost(HWND hwnd, LostReason lr)
+{
+	if (this->eventOnLost)
+		this->eventOnLost(hwnd, lr);
+}
 
+void _DockObserverBus::PublishOnAdded(HWND hwnd, Node* node)
+{
+	if(this->eventOnAdded)
+		this->eventOnAdded(hwnd, node);
+}
+
+void _DockObserverBus::SetEventOnLost(fntyOnLost fn)
+{
+	this->eventOnLost = fn;
+}
+
+void _DockObserverBus::SetEventOnAdded(fntyOnAdded fn)
+{
+	this->eventOnAdded = fn;
+}
 
 int DockWin::instCtr = 0;
 
 BEGIN_EVENT_TABLE(DockWin, wxWindow)
-    EVT_PAINT       (DockWin::OnDraw        )
-    EVT_SIZE        (DockWin::OnSize        )
-    EVT_LEFT_DOWN   (DockWin::OnMouseLDown  )
-    EVT_LEFT_UP     (DockWin::OnMouseLUp    )
-    EVT_MIDDLE_DOWN (DockWin::OnMouseMDown  )
-    EVT_MIDDLE_UP   (DockWin::OnMouseMUp    )
-    EVT_RIGHT_DOWN  (DockWin::OnMouseRDown  )
-    EVT_RIGHT_UP    (DockWin::OnMouseRUp    )
-    EVT_MOTION      (DockWin::OnMouseMotion )
+    EVT_PAINT                   (DockWin::OnDraw        )
+    EVT_SIZE                    (DockWin::OnSize        )
+    EVT_LEFT_DOWN               (DockWin::OnMouseLDown  )
+    EVT_LEFT_UP                 (DockWin::OnMouseLUp    )
+    EVT_MIDDLE_DOWN             (DockWin::OnMouseMDown  )
+    EVT_MIDDLE_UP               (DockWin::OnMouseMUp    )
+    EVT_RIGHT_DOWN              (DockWin::OnMouseRDown  )
+    EVT_RIGHT_UP                (DockWin::OnMouseRUp    )
+    EVT_MOTION                  (DockWin::OnMouseMotion )
     EVT_MOUSE_CAPTURE_CHANGED   (DockWin::OnMouseCaptureChanged )
     EVT_MOUSE_CAPTURE_LOST      (DockWin::OnMouseCaptureLost    )
-    EVT_KEY_DOWN    (DockWin::OnKeyDown     )
-    EVT_KEY_UP      (DockWin::OnKeyUp       )
+    EVT_KEY_DOWN                (DockWin::OnKeyDown     )
+    EVT_KEY_UP                  (DockWin::OnKeyUp       )
 END_EVENT_TABLE()
 
 DragHelperMgrPtr DockWin::dragggingMgr;
@@ -55,6 +75,10 @@ Node * DockWin::AddToLayout(HWND hwnd, Node* reference, Node::Dest refDock)
     assert(instCtr >= 0);
 
     Node* n = this->layout.Add(hwnd, reference, refDock);
+	assert(n != nullptr);
+
+	this->PublishOnAdded(hwnd, n);
+	
     this->MaintainNodesTabsBar(n);
     return n;
 }
@@ -63,6 +87,9 @@ bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
 {
     // We cannot be dragging with a mouse capture if here,
     // because Steal() will force the OS to exit it.
+    assert(n != nullptr);
+	assert(n->type == Node::Type::Window);
+    assert(n->Hwnd() != NULL);
     assert(this->dragggingMgr == nullptr || this->dragggingMgr->dragFlaggedAsFinished);
 
     n->ClearTabsBar();
@@ -76,6 +103,8 @@ bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
 
     if(ret == false)
         return false;
+
+	this->PublishOnAdded(n->Hwnd(), n);
 
     if(n->IsTabChild() == true)
     {
@@ -96,7 +125,9 @@ bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
 void DockWin::StealRoot(Node* n)
 {
     assert(this->layout.root == nullptr);
+    assert(n != nullptr);
     assert(n->type == Node::Type::Window);
+	assert(n->Hwnd() != NULL);
 
     HWND hwnd = n->Hwnd();
     if(hwnd != NULL)
@@ -110,6 +141,9 @@ void DockWin::StealRoot(Node* n)
     n->parent = nullptr;
     n->ClearTabsBar();
     this->MaintainNodesTabsBar(n);
+
+	this->PublishOnAdded(n->Hwnd(), n);
+	
     n->ShowWindow();
     this->ResizeLayout();
 }
@@ -207,9 +241,17 @@ void DockWin::MaintainNodesTabsBar(Node* pn)
     }
 }
 
-void DockWin::ClearDocked()
+void DockWin::ClearDocked(std::optional<LostReason> lr)
 {
-    this->layout.Clear();
+	if(lr.has_value())
+    { 
+	    std::vector<HWND> hwnds = this->layout.CollectHWNDs();
+        this->layout.Clear();
+	    for (HWND hwndRm : hwnds)
+		    this->PublishOnLost(hwndRm, lr.value());
+    }
+    else
+        this->layout.Clear();
 }
 
 void DockWin::ReleaseAll(bool clear)
@@ -218,7 +260,10 @@ void DockWin::ReleaseAll(bool clear)
     this->layout.CollectHWNDNodes(wndNodes);
 
     for(Node* n : wndNodes)
-        n->ReleaseHWND();
+    { 
+        if(n->ReleaseHWND())
+			this->PublishOnLost(n->Hwnd(), LostReason::ManualReleased);
+    }
 
     if(clear == true)
         this->ClearDocked();
@@ -358,6 +403,7 @@ void DockWin::OnKeyDown(wxKeyEvent& evt)
         {
             assert(this->dragggingMgr != nullptr);
             assert(this->dragggingMgr->dragType == DragHelperMgr::DragType::Sash);
+			
             this->dragggingMgr->CancelSashDragging(false);
             this->FinishMouseDrag();
             this->Refresh(false);
@@ -397,17 +443,27 @@ void _ProcessInvolvedFromRem(std::set<Node*>& involved, DockWin* dw)
 
 bool DockWin::ReleaseNodeWin(Node* pn)
 {
+    assert(pn != nullptr);
+	assert(pn->type == Node::Type::Window);
+    assert(pn->Hwnd() != NULL);
+	HWND origHwnd = pn->Hwnd();
+	
     std::set<Node*> involved;
     if(this->layout.ReleaseWindow(pn, &involved) == false)
         return false;
 
     _ProcessInvolvedFromRem(involved, this);
     this->_ReactToNodeRemoval();
+	this->PublishOnLost(origHwnd, LostReason::ManualReleased);
     return true;
 }
 
 bool DockWin::DettachNodeWin(Node* pn)
 {
+    assert(pn != nullptr);
+    assert(pn->type == Node::Type::Window);
+    assert(pn->Hwnd() != NULL);
+    
     HWND hwnd = pn->Hwnd();
     if(hwnd == NULL)
         return false;
@@ -420,12 +476,17 @@ bool DockWin::DettachNodeWin(Node* pn)
 
     _ProcessInvolvedFromRem(involved, this);
     this->_ReactToNodeRemoval();
+	this->PublishOnLost(hwnd, LostReason::ManualMoved);
     return true;
 }
 
 bool DockWin::CloseNodeWin(Node* pn)
 {
     assert(this->layout.root != nullptr);
+    assert(pn != nullptr);
+	assert(pn->type == Node::Type::Window);
+	assert(pn->Hwnd() != NULL);
+    HWND origHwnd = pn->Hwnd();
 
     std::set<Node*> involved;
     if(this->layout.DeleteWindow(pn, & involved) == false)
@@ -433,7 +494,23 @@ bool DockWin::CloseNodeWin(Node* pn)
 
     _ProcessInvolvedFromRem(involved, this);
     this->_ReactToNodeRemoval();
+	this->PublishOnLost(origHwnd, LostReason::ManualClose);
     return true;
+}
+
+Node* DockWin::CloseNodeWin(HWND hwnd)
+{
+	Node* n = this->layout.GetNodeFrom(hwnd);
+	if (n == nullptr)
+		return nullptr;
+
+	if (this->CloseNodeWin(n) == false)
+    {
+		assert(!"Failed to close node");
+		return nullptr;
+    }
+	
+	return n;
 }
 
 bool DockWin::CloneNodeWin(Node* pn)
@@ -499,6 +576,26 @@ void DockWin::OnDelegatedEscape()
     this->FinishMouseDrag();
 }
 
+void DockWin::RefreshWindowTitlebar(HWND hwnd)
+{
+    Node* n = this->layout.GetNodeFrom(hwnd);
+    if(n == nullptr)
+        return;
+
+    while(true)
+    {
+        // It's either a window that has a tabs bar, or a child of a 
+        // tabs group. Either way we need the thing that has its tabs.
+        TabsBar* tb = n->GetTabsBar();
+        if(tb == nullptr)
+        {
+            n = n->parent;
+            continue;
+        }
+        tb->Refresh(false);
+        break;
+    }
+}
 
 void DockWin::_ReactToNodeRemoval()
 {

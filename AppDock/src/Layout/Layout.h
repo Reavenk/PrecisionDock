@@ -420,8 +420,10 @@ public: // Public methods
 	/// <summary>
 	/// Get a list of all contained HWNDs in the layout.
 	/// </summary>
-	void CollectHWNDs(std::vector<HWND>& outVec);
+	void CollectHWNDs(std::vector<HWND>& outVec) const;
 
+	std::vector<HWND> CollectHWNDs() const;
+	
 	/// <summary>
 	/// Get a list of all window (leaf) Node items in the 
 	///  layout.
@@ -433,6 +435,8 @@ public: // Public methods
 	/// would be inserted.
 	/// </summary>
 	DropResult ScanForDrop(const wxPoint& pt, LProps& lp);
+
+	Node* GetNodeFrom(HWND hwnd);
 
 public: // Public static methods
 

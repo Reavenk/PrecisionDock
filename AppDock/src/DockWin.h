@@ -6,6 +6,7 @@
 #include <set>
 #include "Utils/json.hpp"
 #include "DragHelperMgr.h"
+#include <optional>
 
 using json = nlohmann::json;
 
@@ -13,11 +14,41 @@ class TopDockWin;
 class Node;
 class DragPreviewOlyWin;
 
+enum class LostReason
+{
+	// IF it's a manual reason, the datastructures are already handled
+	// because the action occured inside the system.
+	ManualClose,
+	ManualMoved,
+	ManualReleased,
+
+	// Non-manual reasons may need code to respond to the event/reason.
+	DetectedClose,
+};
+
+class _DockObserverBus
+{
+	typedef std::function<void(HWND, LostReason)> fntyOnLost;
+	typedef std::function<void(HWND, Node*)> fntyOnAdded;
+private:
+	fntyOnLost eventOnLost;
+	fntyOnAdded eventOnAdded;
+	
+public:
+	void PublishOnLost(HWND hwnd, LostReason lr);
+	void PublishOnAdded(HWND, Node*);
+
+	void SetEventOnLost(fntyOnLost fn);
+	void SetEventOnAdded(fntyOnAdded fn);
+};
+
 /// <summary>
 /// The location in a TopDockWin where the layout of docked windows
 /// will be placed.
 /// </summary>
-class DockWin : public wxWindow
+class DockWin : 
+	public wxWindow, 
+	public _DockObserverBus
 {
 	friend DragHelperMgr;
 
@@ -59,6 +90,8 @@ protected:
 	/// The owner window.
 	/// </summary>
 	TopDockWin* owner;
+
+	
 
 protected:
 	/// <summary>
@@ -175,7 +208,7 @@ public:
 	/// for clearing the Node information. It will not clean up or close
 	/// UI elements for them.
 	/// </summary>
-	void ClearDocked();
+	void ClearDocked(std::optional<LostReason> lr = std::nullopt);
 
 	/// <summary>
 	/// Release all contained Window Nodes. This will result in an empty
@@ -213,6 +246,8 @@ public:
 	/// <param name="pn">The Window Node to close.</param>
 	/// <returns>True if successfully closed.</returns>
 	bool CloseNodeWin(Node* pn);
+
+	Node* CloseNodeWin(HWND hwnd);
 
 	/// <summary>
 	/// Create a Node spawned from the exact same command as another node.
@@ -270,6 +305,8 @@ public:
 	/// Handles canceling a drag operation when being cancelled from delegation.
 	/// </summary>
 	void OnDelegatedEscape(); // TODO: Encapsulate - and expect delegation from TabClickCancel
+
+	void RefreshWindowTitlebar(HWND hwnd);
 
 	inline void RebuildSashes()
 	{

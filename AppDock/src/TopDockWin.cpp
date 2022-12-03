@@ -55,6 +55,8 @@ TopDockWin::TopDockWin(const wxString& title, const wxPoint& pos, const wxSize& 
             wxDefaultSize, 
             wxCLIP_CHILDREN);
 
+    this->dockWin->SetEventOnAdded([this](HWND hwnd, Node*n){this->OnDockWin_Added(hwnd, n);});
+    this->dockWin->SetEventOnLost([this](HWND hwnd, LostReason lr){this->OnDockWin_Removed(hwnd, lr);});
     AppDock::GetApp().RegisterTopWin(this, this->GetHWND());
 
     AppUtils::SetDefaultIcons(this);
@@ -79,6 +81,10 @@ Node* TopDockWin::SetRoot(HWND hwnd)
 
 void TopDockWin::StealRoot(Node* pn)
 {
+    assert(pn != nullptr);
+    assert(pn->type == Node::Type::Window);
+    assert(pn->win != NULL);
+
     this->dockWin->StealRoot(pn);
 }
 
@@ -137,6 +143,28 @@ TopDockWin * TopDockWin::GetWinAt(const wxPoint& screenMouse)
 {
     std::set<TopDockWin*> ignores;
     return GetWinAt(screenMouse, ignores);
+}
+
+
+void TopDockWin::OnDetectLostWindow(HWND win, LostWindowReason why)
+{
+	if (why == LostWindowReason::Destroyed)
+	    this->dockWin->CloseNodeWin(win);
+}
+
+void TopDockWin::UpdateWindowTitlebar(HWND win)
+{
+    this->dockWin->RefreshWindowTitlebar(win);
+}
+
+void TopDockWin::OnDockWin_Added(HWND hwnd, Node* n)
+{
+	AppDock::GetApp()._RegisterCapturedHWND(this, hwnd);
+}
+
+void TopDockWin::OnDockWin_Removed(HWND hwnd, LostReason lr)
+{
+	AppDock::GetApp()._UnregisterCapturedHWND(hwnd);
 }
 
 void TopDockWin::OnExit(wxCommandEvent& event)

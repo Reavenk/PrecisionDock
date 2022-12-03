@@ -2,11 +2,27 @@
 #include <wx/wx.h>
 #include <set>
 #include "Utils/json.hpp"
+#include "DockWin.h"
 
 using json = nlohmann::json;
 
-class DockWin;
 class Node;
+
+/// <summary>
+/// Reasons why a TopDockWin would get a notification that a window was lost.
+/// </summary>
+enum LostWindowReason
+{
+    /// <summary>
+    /// The window was captured by another TopDockWin.
+    /// </summary>
+    Recaptured,
+
+    /// <summary>
+    /// The window was closed. Either by the app, or by external systems.
+    /// </summary>
+    Destroyed
+};
 
 /// <summary>
 /// The top-level window where contained (previously) top-level windows
@@ -102,7 +118,18 @@ public:
     static TopDockWin * GetWinAt(const wxPoint& screenMouse, TopDockWin* ignore);
     static TopDockWin * GetWinAt(const wxPoint& screenMouse);
 
+    //////////////////////////////////////////////////
+    //
+    //  System Event Handlers
+    //
+    //////////////////////////////////////////////////
+    void OnDetectLostWindow(HWND win, LostWindowReason why);
+    void UpdateWindowTitlebar(HWND win);
+
+	void OnDockWin_Added(HWND hwnd, Node* n);
+	void OnDockWin_Removed(HWND hwnd, LostReason lr);
 private:
+
 
     //////////////////////////////////////////////////
     //

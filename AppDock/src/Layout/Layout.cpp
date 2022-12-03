@@ -1203,24 +1203,6 @@ void Layout::Clear()
 	this->hwndLookup.clear();
 }
 
-void Layout::CollectHWNDs(std::vector<HWND>& outVec)
-{
-	if(this->root == nullptr)
-		return;
-
-	for(auto it : hwndLookup)
-		outVec.push_back(it.first);
-}
-
-void Layout::CollectHWNDNodes(std::vector<Node*>& outVec)
-{
-	if(this->root == nullptr)
-		return;
-
-	for(auto it : hwndLookup)
-		outVec.push_back(it.second);
-}
-
 DropResult Layout::ScanForDrop(const wxPoint& pt, LProps& lp)
 {
 	if(this->root == nullptr)
@@ -1376,6 +1358,64 @@ DropResult Layout::ScanForDrop(const wxPoint& pt, LProps& lp)
 	}
 
 	return DropResult(DropResult::Where::None, inner, nullptr, wxPoint(0,0), wxSize(0,0));
+}
+
+Node* Layout::GetNodeFrom(HWND hwnd)
+{
+	auto itFind = this->hwndLookup.find(hwnd);
+	if (itFind == this->hwndLookup.end())
+		return nullptr;
+
+	return itFind->second;
+}
+
+std::vector<HWND> Layout::CollectHWNDs() const
+{
+	std::vector<HWND> ret;
+	this->CollectHWNDs(ret);
+	return ret;
+}
+
+void Layout::CollectHWNDs(std::vector<HWND>& dst) const
+{
+	std::queue<Node*> toScan;
+	toScan.push(this->root);
+
+	while (!toScan.empty())
+	{
+		Node* pn = toScan.front();
+		toScan.pop();
+
+		if (pn->type == Node::Type::Window)
+		{ 
+			assert(pn->Hwnd() != NULL);
+			dst.push_back(pn->Hwnd());
+		}
+
+		for (Node* child : pn->children)
+			toScan.push(child);
+	}
+}
+
+void Layout::CollectHWNDNodes(std::vector<Node*>& outVec)
+{
+	std::queue<Node*> toScan;
+	toScan.push(this->root);
+
+	while (!toScan.empty())
+	{
+		Node* pn = toScan.front();
+		toScan.pop();
+
+		if (pn->type == Node::Type::Window)
+		{
+			assert(pn->Hwnd() != NULL);
+			outVec.push_back(pn);
+		}
+
+		for (Node* child : pn->children)
+			toScan.push(child);
+	}
 }
 
 bool InBounds(wxPoint r_pos, wxSize r_sz, wxPoint pt)

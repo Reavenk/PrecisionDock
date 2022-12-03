@@ -1,6 +1,11 @@
 #include <Windows.h>
+#include <ostream>
+#include "Logger.h"
+
+#define FILELOG(x) Logger::LogInst(x);
 
 #define KBM_API __declspec(dllexport) __stdcall __cdecl
+
 
 // some data will be shared across all
 // instances of the DLL
@@ -27,16 +32,20 @@ BOOL APIENTRY DllMain(HANDLE hModule,
     switch (dwReason)
     {
     case DLL_PROCESS_ATTACH :
+        FILELOG("DLL_PROCESS_ATTACH");
         hInstance = (HINSTANCE) hModule;
         break;
 
     case DLL_THREAD_ATTACH :
+        FILELOG("DLL_THREAD_ATTACH");
         break;
 
     case DLL_THREAD_DETACH :
+        FILELOG("DLL_THREAD_DETACH");
         break;
 
     case DLL_PROCESS_DETACH :
+        FILELOG("DLL_PROCESS_DETACH");
         break;
     }
     return TRUE;
@@ -65,11 +74,17 @@ LRESULT CALLBACK MouseProc(int code,       // hook code
 {
     switch (wParam){
     case WM_LBUTTONDOWN :
+        FILELOG("\tMouseProc WM_LBUTTONDOWN");
     case WM_MBUTTONDOWN :
+        FILELOG("\tMouseProc WM_MBUTTONDOWN");
     case WM_RBUTTONDOWN :
+        FILELOG("\tMouseProc WM_RBUTTONDOWN");
     case WM_LBUTTONDBLCLK :
+        FILELOG("\tMouseProc WM_LBUTTONDBLCLK");
     case WM_MBUTTONDBLCLK :
+        FILELOG("\tMouseProc WM_MBUTTONDBLCLK");
     case WM_RBUTTONDBLCLK :
+        FILELOG("\tMouseProc WM_RBUTTONDBLCLK");
         MessageBeep(0);
         break;
     }

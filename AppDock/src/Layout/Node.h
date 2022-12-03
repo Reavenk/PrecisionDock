@@ -121,6 +121,12 @@ public:
 	/// </summary>
 	std::wstring cmdLine;
 
+	/// <summary>
+	/// Only relevant for windows. Records if the Node has already been closed.
+	/// Used to guard against recursive closes.
+	/// </summary>
+	bool closed = false;
+
 	inline int CacheRight() const
 	{ return this->cachePos.x + this->cacheSize.x;}
 
