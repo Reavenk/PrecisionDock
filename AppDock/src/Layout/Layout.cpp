@@ -696,6 +696,7 @@ bool Layout::Steal(Node* n, Node* targ, Node::Dest whereAroundTarg, const LProps
 
 	if(this->Integrate(ins, n) == true)
 	{
+
 		n->proportion = 0.0f;
 		//if(n->parent != nullptr)
 		//	n->parent->ResizeChildrenByProportions(props);

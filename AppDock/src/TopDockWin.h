@@ -93,7 +93,8 @@ public:
     /// make it its own TopDockWin.
     /// </summary>
     /// <param name="pn">The Node to take.</param>
-    void StealRoot(Node* pn);
+    /// <param name="stolenFrom">The DockWin that originally owned the Node.<param>
+    void StealRoot(Node* pn, DockWin* stolenFrom);
 
     /// <summary>
     /// Check if the root node is non-null.

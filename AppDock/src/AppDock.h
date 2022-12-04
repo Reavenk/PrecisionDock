@@ -18,6 +18,7 @@
 #include "AppRef.h"
 
 class TopDockWin;
+class DockWin;
 class Node;
 class CaptureDlg;
 
@@ -175,11 +176,13 @@ public:
     /// TopDockWin.
     /// </summary>
     /// <param name="pn">The node to use at the new root.</param>
+    /// <param name="originalOwner">The DockWin that originally owned the Node.</param>
     /// <param name="title">The title of the dialog.</param>
     /// <param name="giveAttention">Make the window visable and obvious to the user.</param>
     /// <returns>The newly created TopDockWin.</returns>
     TopDockWin* CreateTorn(
         Node* pn,
+        DockWin* originalOwner,
         const wxString& title,
         bool giveAttention = true);
 

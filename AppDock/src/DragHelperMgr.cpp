@@ -138,8 +138,8 @@ void DragHelperMgr::FinishSuccessfulTabDragging()
     }
 
     if( 
-        (this->winDraggedOnto == nullptr && this->winWhereDragged->HasRoot() == false) //||
-                                                                                       //droppedDst.where == DropResult::Where::Void
+        (this->winDraggedOnto == nullptr && this->winWhereDragged->HasRoot() == false)
+        //|| droppedDst.where == DropResult::Where::Void
         )
     {
         // If we didn't drag into a window, and it was the only
@@ -176,7 +176,10 @@ void DragHelperMgr::FinishSuccessfulTabDragging()
     {
         // TODO: Figure out title change
         // It should no longer be the dummy name "Headphones"
-        AppDock::GetApp().CreateTorn(this->nodeDragged, "Headphones");
+        AppDock::GetApp().CreateTorn(
+            this->nodeDragged, 
+            this->winWhereDragged, 
+            "Headphones");
 
         this->_ResolveToUpdateAfterDrag();
         this->nodeDragged = nullptr;
@@ -215,6 +218,7 @@ void DragHelperMgr::FinishSuccessfulTabDragging()
     winDraggedOnto->GetDockWin()->StealToLayout(
         this->nodeDragged,
         this->tabDropDst.topOf,
+		this->winWhereDragged,
         whereAdd);
     //
     this->nodeDragged = nullptr;

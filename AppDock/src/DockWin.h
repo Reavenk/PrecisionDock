@@ -137,22 +137,24 @@ public:
 	/// Take a Node* that used to be a part of another (DockWin) layout, as set it
 	/// as the root.
 	/// </summary>
-	/// <param name="n">The Node to steal as the root of the invoking DockWin's layout.</param>
-	void StealRoot(Node* n);
+	/// <param name="steal">The Node to steal as the root of the invoking DockWin's layout.</param>
+	/// <param name="stolenFrom">The DockWin that the node originally belonged to</param>
+	void StealRoot(Node* steal, DockWin* stolenFrom);
 
 	/// <summary>
 	/// Take a Node* that used to be a part of another (DockWin) layout, and add it
 	/// to a specific location in the invoking DockWin's layout.
 	/// </summary>
-	/// <param name="n">The node to steal.</param>
+	/// <param name="steal">The node to steal.</param>
 	/// <param name="reference">
 	/// The location of where in respect to the reference to dock the Window.
 	/// </param>
+	/// <param name="stolenFrom">The previous owner of the steal node.</param>
 	/// <param name="refDock">
 	/// The location of where in respect to the reference to dock the Window.
 	/// </param>
 	/// <returns></returns>
-	bool StealToLayout(Node* n, Node* reference, Node::Dest refDock);
+	bool StealToLayout(Node* steal, Node* reference, DockWin* stolenFrom, Node::Dest refDock);
 
 	/// <summary>
 	/// Retrieve a sash who's area covers a specific location.

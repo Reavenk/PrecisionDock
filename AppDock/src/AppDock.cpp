@@ -293,17 +293,17 @@ TopDockWin* AppDock::SpawnEmpty(const wxString& title, bool giveAttention)
 
 TopDockWin* AppDock::CreateTorn(
     Node* pn,
+	DockWin* originalOwner,
     const wxString& title,
     bool giveAttention)
 {
-    
     TopDockWin* createdTopDockWin = 
         new TopDockWin(
             title, 
             wxGetMousePosition(),
             pn->cacheSize);
 
-    createdTopDockWin->StealRoot(pn);
+    createdTopDockWin->StealRoot(pn, originalOwner);
     createdTopDockWin->Show();
 
     if(giveAttention)

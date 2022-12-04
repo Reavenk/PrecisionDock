@@ -83,7 +83,7 @@ Node * DockWin::AddToLayout(HWND hwnd, Node* reference, Node::Dest refDock)
     return n;
 }
 
-bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
+bool DockWin::StealToLayout(Node* n, Node* reference, DockWin* stolenFrom, Node::Dest refDock)
 {
     // We cannot be dragging with a mouse capture if here,
     // because Steal() will force the OS to exit it.
@@ -102,6 +102,7 @@ bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
     if(ret == false)
         return false;
 
+    stolenFrom->PublishOnLost(n->Hwnd(), LostReason::ManualMoved);
 	this->PublishOnAdded(n->Hwnd(), n);
 
     if(n->IsTabChild() == true)
@@ -120,27 +121,27 @@ bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
     return true;
 }
 
-void DockWin::StealRoot(Node* n)
+void DockWin::StealRoot(Node* steal, DockWin* stolenFrom)
 {
     assert(this->layout.root == nullptr);
-    ASSERT_ISNODEWIN(n);
+    ASSERT_ISNODEWIN(steal);
 
-    HWND hwnd = n->Hwnd();
+    HWND hwnd = steal->Hwnd();
     if(hwnd != NULL)
     { 
         ::SetParent(hwnd, this->GetHWND());
-        this->layout.hwndLookup[hwnd] = n;
+        this->layout.hwndLookup[hwnd] = steal;
     }
 
+    this->layout.root = steal;
+    steal->parent = nullptr;
+    steal->ClearTabsBar();
+    this->MaintainNodesTabsBar(steal);
 
-    this->layout.root = n;
-    n->parent = nullptr;
-    n->ClearTabsBar();
-    this->MaintainNodesTabsBar(n);
-
-	this->PublishOnAdded(n->Hwnd(), n);
+    stolenFrom->PublishOnLost(steal->Hwnd(), LostReason::ManualMoved);
+	this->PublishOnAdded(steal->Hwnd(), steal);
 	
-    n->ShowWindow();
+    steal->ShowWindow();
     this->ResizeLayout();
 }
 

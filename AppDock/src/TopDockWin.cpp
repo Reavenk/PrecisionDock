@@ -79,10 +79,10 @@ Node* TopDockWin::SetRoot(HWND hwnd)
     return retRoot;
 }
 
-void TopDockWin::StealRoot(Node* pn)
+void TopDockWin::StealRoot(Node* pn, DockWin* stolenFrom)
 {
     ASSERT_ISNODEWIN(pn);
-    this->dockWin->StealRoot(pn);
+    this->dockWin->StealRoot(pn, stolenFrom);
 }
 
 bool TopDockWin::HasRoot() const
