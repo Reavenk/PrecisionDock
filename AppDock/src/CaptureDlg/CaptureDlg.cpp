@@ -27,7 +27,7 @@ wxBEGIN_EVENT_TABLE(CaptureDlg, wxFrame)
 wxEND_EVENT_TABLE()
 
 CaptureDlg::CaptureDlg(wxWindow* parent, const wxPoint& pos, const wxSize& size)
-	: wxFrame(parent, wxID_ANY, "AppDock Capture", pos, size)
+	: wxFrame(parent, wxID_ANY, "PrecisionDock Capture", pos, size)
 {
 	this->cachedHwnd = this->GetHWND();
 	AppDock::GetApp().RegisterToplevelOwned(this->cachedHwnd);
@@ -170,7 +170,7 @@ void CaptureDlg::_ClearScrollWinSizer()
 const char * CaptureDlg::_GetHelpText()
 {
 	static const char * helpString = 
-		"This dialog allows adding windows to the AppDock. "
+		"This dialog allows adding windows to PrecisionDock. "
 		"Either click and drag the target on to the window "
 		"you wish to capture, or select a window below. \n\n"
 		"Click on the question mark button to disable help text.";

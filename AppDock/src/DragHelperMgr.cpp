@@ -174,6 +174,8 @@ void DragHelperMgr::FinishSuccessfulTabDragging()
     // user wanted to rip it out as a new TopDockWin.
     if(this->winDraggedOnto == nullptr)
     {
+        // TODO: Figure out title change
+        // It should no longer be the dummy name "Headphones"
         AppDock::GetApp().CreateTorn(this->nodeDragged, "Headphones");
 
         this->_ResolveToUpdateAfterDrag();

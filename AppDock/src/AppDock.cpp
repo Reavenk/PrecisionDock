@@ -143,7 +143,7 @@ bool AppDock::OnInit()
             return false;
     }
 
-    this->SpawnEmpty("AppDock", true);
+    this->SpawnEmpty("PrecisionDock", true);
     HINSTANCE hInst = wxGetInstance();
     ////hookListener = SetWindowsHookExA(WH_CBT, CBTProc, GetModuleHandle(NULL), GetCurrentThreadId() );
     //DWORD err = GetLastError();
@@ -169,7 +169,7 @@ bool AppDock::OnInit()
 
     if (!taskbar->SetIcon(
         wxIcon(statusIcon),
-        "AppDock\n"
+        "PrecisionDock\n"
         "Double click for capture window.\n"
         "Right click for more options."))
     {
@@ -631,9 +631,11 @@ void AppDock::ShowAboutDlgModal()
     dlgAbout.ShowModal();
 }
 
+const char* CONFIGNAME = "PrecisionDock";
+
 bool AppDock::IsNoticeConfirmed()
 {
-    wxConfig config("AppDock");
+    wxConfig config(CONFIGNAME);
     bool ret;
     config.Read("confirmed", &ret, false);
     return ret;
@@ -641,13 +643,13 @@ bool AppDock::IsNoticeConfirmed()
 
 void AppDock::ConfirmNotice()
 {
-    wxConfig config("AppDock");
+    wxConfig config(CONFIGNAME);
     config.Write("confirmed", true);
 }
 
 void AppDock::ClearNoticeConfirm()
 {
-    wxConfig config("AppDock");
+    wxConfig config(CONFIGNAME);
     config.Write("confirmed", false);
 }
 
