@@ -81,10 +81,7 @@ Node* TopDockWin::SetRoot(HWND hwnd)
 
 void TopDockWin::StealRoot(Node* pn)
 {
-    assert(pn != nullptr);
-    assert(pn->type == Node::Type::Window);
-    assert(pn->win != NULL);
-
+    ASSERT_ISNODEWIN(pn);
     this->dockWin->StealRoot(pn);
 }
 

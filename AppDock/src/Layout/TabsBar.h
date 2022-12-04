@@ -1,7 +1,7 @@
 #pragma once
 #include <wx/wx.h>
+#include "Node.h"
 
-class Node;
 class DockWin;
 
 /// <summary>
@@ -17,12 +17,15 @@ public:
 	// wxWidget Command IDs
 	enum class CmdIds
 	{
-		Menu_CloneWin,		// See OnMenu_RClick_Clone()
-		Menu_RenameWin,		// See OnMenu_RClick_Rename()
-		Menu_ReleaseWin,	// See OnMenu_RClick_Release()
-		Menu_CloseWin,		// See OnMenu_RClick_CloseWin()
-		Menu_DettachWin,	// See OnMenu_RClick_DettachWin()
-		Menu_SystemMenu		// See OnMenu_RClick_SystemMenu()
+		Menu_ShowTBarCustom,
+		Menu_ShowTBarOriginal,
+		Menu_ShowTBarCmdLine,
+		Menu_CloneWin,			// See OnMenu_RClick_Clone()
+		Menu_RenameWin,			// See OnMenu_RClick_Rename()
+		Menu_ReleaseWin,		// See OnMenu_RClick_Release()
+		Menu_CloseWin,			// See OnMenu_RClick_CloseWin()
+		Menu_DettachWin,		// See OnMenu_RClick_DettachWin()
+		Menu_SystemMenu			// See OnMenu_RClick_SystemMenu()
 	};
 
 private:
@@ -59,7 +62,7 @@ public: // TODO: Encapsulate better.
 	/// <summary>
 	/// The node that the mouse was last known to be over.
 	/// </summary>
-	Node * tabHoveringOver		= nullptr;
+	Node * nodeOfTabHoveredOver		= nullptr;
 
 	/// <summary>
 	/// If true, the mouse was last known to be over the close button of hoverOver.
@@ -121,6 +124,24 @@ public: // Public methods
 	/// </param>
 	void OnTabTorn(Node* nodeTorn);
 
+	/// <summary>
+	/// Change what kind of titlebar is displayed for a node displayed in the
+	/// TabsBar's system.
+	/// </summary>
+	/// <param name="node">
+	/// The node to change the titlebar type for. This should only be a node that
+	/// is in the node (or a child of the node) that the TabsBar is for.
+	/// </param>
+	/// <param name="tbarTy">
+	/// The titlebar type to display.
+	/// </param>
+	/// <param name="force">
+	/// If true, the operation will always happen. Else if tbarTy is the same as
+	/// node's current titlebar type, the request will be ignored.
+	/// </param>
+	/// <return>If modified, true.</return>
+	bool ChangeTBarType(Node* node, Node::TabNameType tbarTy, bool force = false);
+
 	//////////////////////////////////////////////////
 	//
 	//	wxWidgets EVENT HANDLERS
@@ -143,6 +164,9 @@ public: // Public methods
 	void OnMenu_RClick_CloseWin(wxCommandEvent& evt);
 	void OnMenu_RClick_DettachWin(wxCommandEvent& evt);
 	void OnMenu_RClick_SystemMenu(wxCommandEvent& evt);
+	void OnMenu_RClick_ShowTBarCustom(wxCommandEvent& evt);
+	void OnMenu_RClick_ShowTBarOriginal(wxCommandEvent& evt);
+	void OnMenu_RClick_ShowTBarCmdLine(wxCommandEvent& evt);
 
 protected:
 	DECLARE_EVENT_TABLE();

@@ -2,6 +2,7 @@
 #include "../DockWin.h"
 #include "../AppDock.h"
 #include <wx/dcbuffer.h>
+#include "Node.h"
 
 #include "TabCloseBtn.xpm"
 
@@ -10,22 +11,25 @@
 
 BEGIN_EVENT_TABLE(TabsBar, wxWindow)
 	EVT_PAINT					(TabsBar::OnDraw			)
-	EVT_LEFT_DOWN				(TabsBar::OnMouseLDown	)
+	EVT_LEFT_DOWN				(TabsBar::OnMouseLDown		)
 	EVT_LEFT_UP					(TabsBar::OnMouseLUp		)
-	EVT_MOTION					(TabsBar::OnMouseMotion	)
-	EVT_RIGHT_DOWN				(TabsBar::OnMouseRDown	)
+	EVT_MOTION					(TabsBar::OnMouseMotion		)
+	EVT_RIGHT_DOWN				(TabsBar::OnMouseRDown		)
 	EVT_SIZE					(TabsBar::OnSize			)
 	EVT_MOUSE_CAPTURE_CHANGED	(TabsBar::OnMouseChanged	)
 	EVT_MOUSE_CAPTURE_LOST		(TabsBar::OnMouseCaptureLost)
-	EVT_ENTER_WINDOW			(TabsBar::OnMouseEnter	)
-	EVT_LEAVE_WINDOW			(TabsBar::OnMouseExit	)
+	EVT_ENTER_WINDOW			(TabsBar::OnMouseEnter		)
+	EVT_LEAVE_WINDOW			(TabsBar::OnMouseExit		)
 
-	EVT_MENU((int)CmdIds::Menu_CloneWin,    TabsBar::OnMenu_RClick_Clone        )
-	EVT_MENU((int)CmdIds::Menu_RenameWin,   TabsBar::OnMenu_RClick_Release      )  
-	EVT_MENU((int)CmdIds::Menu_ReleaseWin,  TabsBar::OnMenu_RClick_Release      )
-	EVT_MENU((int)CmdIds::Menu_CloseWin,    TabsBar::OnMenu_RClick_CloseWin     )
-	EVT_MENU((int)CmdIds::Menu_DettachWin,  TabsBar::OnMenu_RClick_DettachWin   )
-	EVT_MENU((int)CmdIds::Menu_SystemMenu,  TabsBar::OnMenu_RClick_SystemMenu   )
+	EVT_MENU((int)CmdIds::Menu_CloneWin,		TabsBar::OnMenu_RClick_Clone			)
+	EVT_MENU((int)CmdIds::Menu_RenameWin,		TabsBar::OnMenu_RClick_Rename			)  
+	EVT_MENU((int)CmdIds::Menu_ReleaseWin,		TabsBar::OnMenu_RClick_Release			)
+	EVT_MENU((int)CmdIds::Menu_CloseWin,		TabsBar::OnMenu_RClick_CloseWin			)
+	EVT_MENU((int)CmdIds::Menu_DettachWin,		TabsBar::OnMenu_RClick_DettachWin		)
+	EVT_MENU((int)CmdIds::Menu_SystemMenu,		TabsBar::OnMenu_RClick_SystemMenu		)
+	EVT_MENU((int)CmdIds::Menu_ShowTBarCustom,  TabsBar::OnMenu_RClick_ShowTBarCustom	)
+	EVT_MENU((int)CmdIds::Menu_ShowTBarOriginal,TabsBar::OnMenu_RClick_ShowTBarOriginal	)
+	EVT_MENU((int)CmdIds::Menu_ShowTBarCmdLine,	TabsBar::OnMenu_RClick_ShowTBarCmdLine	)
 END_EVENT_TABLE()
 
 int TabsBar::dbgCtr = 0;
@@ -105,7 +109,7 @@ Node* TabsBar::GetTabAtPoint(const wxPoint& pt)
 
 void TabsBar::ClearHover()
 {
-	this->tabHoveringOver = nullptr;
+	this->nodeOfTabHoveredOver = nullptr;
 	this->hoveringOverClose = false;
 	this->UnsetToolTip();
 	this->Refresh(false);
@@ -127,21 +131,21 @@ bool TabsBar::UpdateMouseOver(const wxPoint& mousePt)
 	// - something->null
 	//
 	// If it has, we need to change the tooltip and tab background colors.
-	if(pnTabOver != this->tabHoveringOver)
+	if(pnTabOver != this->nodeOfTabHoveredOver)
 	{
 		redraw = true;
 		tabHoveredChanged = true;
 		this->hoveringOverClose = false; // We will recheck this
-		this->tabHoveringOver = pnTabOver;
+		this->nodeOfTabHoveredOver = pnTabOver;
 	}
 
 	// Check the state of the mouse being over a close button has changed.
 	//
 	// If it has, we need to redraw to change the close button colors.
-	if(this->tabHoveringOver != nullptr)
+	if(this->nodeOfTabHoveredOver != nullptr)
 	{
 		bool oldHoverClose = this->hoveringOverClose;
-		this->hoveringOverClose = InCloseButton(this, this->tabHoveringOver, mousePt);
+		this->hoveringOverClose = InCloseButton(this, this->nodeOfTabHoveredOver, mousePt);
 
 		if(oldHoverClose != this->hoveringOverClose)
 			redraw = true;
@@ -156,17 +160,28 @@ bool TabsBar::UpdateMouseOver(const wxPoint& mousePt)
 	// bottlenecked position for this logic.
 	if(tabHoveredChanged)
 	{
-		if(this->tabHoveringOver != nullptr)
+		if(this->nodeOfTabHoveredOver != nullptr)
 		{
 			// > ☐ TABS_TLTP_a82959419809: Tabs can be hovered over to show tooptips.
 			// > ☐ TABS_TLTP_c564222ff91b: Tooltips are relevant to the application hovered over.
+
+			std::stringstream ttstring;
+			if (!this->nodeOfTabHoveredOver->cmdLine.empty())
+			{
+				ttstring << "CMD: " << this->nodeOfTabHoveredOver->cmdLine << std::endl;
+			}
+			if (this->nodeOfTabHoveredOver->UsesCustomTabTitlebar())
+			{
+				ttstring << "LBL: " << this->nodeOfTabHoveredOver->GetPreferredTabTitlebar();
+			}
+			ttstring << "TBR: " << this->nodeOfTabHoveredOver->cachedTitlebar;
 
 			wxToolTip* tooltip = 
 				new wxToolTip(
 					this, 
 					-1, 
-					this->tabHoveringOver->cmdLine,
-					this->tabHoveringOver->cachedTab);
+					ttstring.str(),
+					this->nodeOfTabHoveredOver->cachedTab);
 
 			this->SetToolTip(tooltip);
 		}
@@ -179,7 +194,7 @@ bool TabsBar::UpdateMouseOver(const wxPoint& mousePt)
 
 void TabsBar::OnWindowTorn()
 {
-	assert(this->node->type == Node::Type::Window);
+	ASSERT_ISNODEWIN(this->node);
 	this->ClearHover();
 }
 
@@ -188,7 +203,7 @@ void TabsBar::OnTabTorn(Node* nodeTorn)
 	assert(this->node->type == Node::Type::Tabs);
 	assert(nodeTorn != nullptr);
 
-	if(this->tabHoveringOver == nodeTorn)
+	if(this->nodeOfTabHoveredOver == nodeTorn)
 		this->ClearHover();
 }
 
@@ -347,18 +362,59 @@ void DrawTab(
 	// Draw the internals
 	wxCoord textHgt = dc.GetCharHeight();
 
-	const char* szTitle = "Massive headphones";
-#define DEBUG_TITLES 1
-#if DEBUG_TITLES
-	std::string debugTitle = std::string("DBG: ") + std::to_string(node->id);
-	szTitle = debugTitle.c_str();
-#endif
+	// > ☐ TABS_TLTP_b82955626689: Tabs show correct window title.
+	// > ☐ TABS_TLTP_902105626689: Tabs update if the window's title changes.
+	// Updating the tabs is done by redrawing when we detect the titlebar change
+	// from listening OS hooks.
+	node->UpdateWindowTitlebarCache();
+	std::string title = node->GetPreferredTabTitlebar();
 
-	dc.DrawText(
-		szTitle, 
-		wxPoint(
-			tabRect.x + iconPad, 
-			tabRect.y + (tabRect.height - textHgt) * 0.5f));
+#define DEBUG_TITLES false
+#if DEBUG_TITLES
+	// When debugging (a determinsitic scenario) it tends to be easier to know
+	// what the debug ID of the window is - more than anything else about the window.
+	title = std::string("DBG: ") + std::to_string(node->id);
+#endif
+	// Find out where the left of the (x) button is for the tab. We shouldn't let
+	// any of the tab's text cross this point and overlap the area dedicated for 
+	// the tab close button.
+	int closeButtonRad;
+	wxPoint closeBtnCenter;
+	CalculateCloseButtonInfo(tabRect, lp, closeButtonRad, closeBtnCenter);
+	int localEndOfText = closeBtnCenter.x - closeButtonRad - tabRect.x;
+
+	// The x end (on the left) of the area reserved for the icon
+	const int tbarTextLeft = iconPad; 
+	//
+	int allowedTBarPixelWidth = tabRect.width - tbarTextLeft - (tabRect.width - localEndOfText);
+	if (allowedTBarPixelWidth > 0)
+	{
+		// Get the substring of the text that will horizontally fit in allowedTBarPixelWidth pixels.
+		if (dc.GetTextExtent(title).x > allowedTBarPixelWidth)
+		{
+			// TODO: For now we're just going to iteratively go through the string 
+			// one character at a time, but since GetTextExtent() is a linear operation,
+			// it may be better to do a BINARY SEARCH to find the exact position of title
+			// that's showable.
+			int finalC = 0;
+			std::string buildTitle = "";
+			for (; finalC < title.size(); ++finalC)
+			{
+				buildTitle += title[finalC];
+				if (dc.GetTextExtent(buildTitle).x > allowedTBarPixelWidth)
+					break;
+			}
+			if (finalC != 0)
+				--finalC;
+			title = title.substr(0, finalC);
+		}
+
+		dc.DrawText(
+			title.c_str(),
+			wxPoint(
+				tabRect.x + tbarTextLeft,
+				tabRect.y + (tabRect.height - textHgt) * 0.5f));
+	}
 
 	DrawTabIcon(dc.GetTempHDC().GetHDC(), node->win, node->cachedTabLcl, lp);
 
@@ -371,6 +427,18 @@ void DrawTab(
 			closeBrush = &closeBtnBrushHover;
 	}
 	DrawCloseButton(dc, tabRect, *closeBrush, lp);
+}
+
+bool TabsBar::ChangeTBarType(Node* node, Node::TabNameType tbarTy, bool force)
+{
+	ASSERT_ISNODEWIN(node);
+	assert(this->node == node || this->node->ContainsChild(node));
+
+	if (!force && node->titlebarType == tbarTy)
+		return false;
+
+	node->titlebarType = tbarTy;
+	return true;
 }
 
 void TabsBar::OnDraw(wxPaintEvent& evt)
@@ -396,7 +464,7 @@ void TabsBar::OnDraw(wxPaintEvent& evt)
 
 	if(this->node->type == Node::Type::Window)
 	{
-		bool isHovering = (this->node == this->tabHoveringOver);
+		bool isHovering = (this->node == this->nodeOfTabHoveredOver);
 		DrawTab(
 			dc, 
 			this->node, 
@@ -412,7 +480,7 @@ void TabsBar::OnDraw(wxPaintEvent& evt)
 		{
 			Node* tinner = this->node->children[i];
 			bool isSelected = (this->node->selectedTabIdx == i);
-			bool isHovering = (tinner == this->tabHoveringOver);
+			bool isHovering = (tinner == this->nodeOfTabHoveredOver);
 			DrawTab(
 				dc, 
 				tinner, 
@@ -478,13 +546,7 @@ void TabsBar::OnMouseMotion(wxMouseEvent& evt)
 	if(this->HasCapture() == true)
 		this->owner->TabClickMotion();
 
-	if(this->UpdateMouseOver(evt.GetPosition()))
-	{
-		if(this->tabHoveringOver != nullptr)
-			this->SetToolTip(this->tabHoveringOver->cmdLine);
-		else
-			this->SetToolTip("");
-	}
+	this->UpdateMouseOver(evt.GetPosition());
 }
 
 void TabsBar::OnMouseRDown(wxMouseEvent& evt)
@@ -517,14 +579,41 @@ void TabsBar::OnMouseRDown(wxMouseEvent& evt)
 
 	wxMenu tabPopupMenu;
 	//
-	tabPopupMenu.Append((int)CmdIds::Menu_CloneWin,     "Clone"     );
-	tabPopupMenu.Append((int)CmdIds::Menu_RenameWin,    "Rename Window");
-	tabPopupMenu.Append((int)CmdIds::Menu_SystemMenu,   "System Menu");
+	wxMenuItem* miTBOrig = tabPopupMenu.AppendCheckItem((int)CmdIds::Menu_ShowTBarOriginal,  "Original Titlebar" );
+	//
+	wxMenuItem* miTBCust = tabPopupMenu.AppendCheckItem((int)CmdIds::Menu_ShowTBarCustom,    "Custom Titlebar"   );
+	//
+	wxMenuItem* miTBComm = nullptr;
+	if(!this->nodeRightClicked->cmdLine.empty())
+		miTBComm = tabPopupMenu.AppendCheckItem((int)CmdIds::Menu_ShowTBarCmdLine, "Command Titlebar");
+
+	switch (this->nodeRightClicked->titlebarType)
+	{
+	case Node::TabNameType::OriginalTB:
+		miTBOrig->Check();
+		miTBOrig->Enable(false);
+		break;
+	case Node::TabNameType::Custom:
+		miTBCust->Check();
+		miTBCust->Enable(false);
+		break;
+	case Node::TabNameType::Command:
+		miTBComm->Check();
+		miTBComm->Enable(false);
+		break;
+	default:
+		assert(!"Unhandled titlebar type.");
+	}
+
 	tabPopupMenu.AppendSeparator();
-	tabPopupMenu.Append((int)CmdIds::Menu_ReleaseWin,   "Release"   );
-	tabPopupMenu.Append((int)CmdIds::Menu_DettachWin,   "Dettach"   );
+	tabPopupMenu.Append((int)CmdIds::Menu_CloneWin,				"Clone"     );
+	tabPopupMenu.Append((int)CmdIds::Menu_RenameWin,			"Rename Window");
+	tabPopupMenu.Append((int)CmdIds::Menu_SystemMenu,			"System Menu");
 	tabPopupMenu.AppendSeparator();
-	tabPopupMenu.Append((int)CmdIds::Menu_CloseWin,     "Close"     );
+	tabPopupMenu.Append((int)CmdIds::Menu_ReleaseWin,			"Release"   );
+	tabPopupMenu.Append((int)CmdIds::Menu_DettachWin,			"Dettach"   );
+	tabPopupMenu.AppendSeparator();
+	tabPopupMenu.Append((int)CmdIds::Menu_CloseWin,				"Close"     );
 	//
 	this->PopupMenu(&tabPopupMenu);
 }
@@ -565,23 +654,51 @@ void TabsBar::OnMouseExit(wxMouseEvent& evt)
 {
 	assert(this->node != nullptr);
 
-	if(this->tabHoveringOver != nullptr)
+	if(this->nodeOfTabHoveredOver != nullptr)
 		this->ClearHover();
 }
 
+#define SAFEASSERT_HASRIGHTCLICKNODE()			\
+	assert(this->nodeRightClicked != nullptr);	\
+	if(this->nodeRightClicked == nullptr)		\
+		return;
+
 void TabsBar::OnMenu_RClick_Clone(wxCommandEvent& evt)
 {
-	if(this->nodeRightClicked == nullptr)
-		return;
+	SAFEASSERT_HASRIGHTCLICKNODE();
 
 	this->owner->CloneNodeWin(this->nodeRightClicked);
 }
 
 void TabsBar::OnMenu_RClick_Rename(wxCommandEvent& evt)
 {
-	if(this->nodeRightClicked == nullptr)
-		return;
+	SAFEASSERT_HASRIGHTCLICKNODE();
 
+	// TODO:
+}
+
+void TabsBar::OnMenu_RClick_ShowTBarCustom(wxCommandEvent& evt)
+{
+	SAFEASSERT_HASRIGHTCLICKNODE();
+
+	if (this->ChangeTBarType(this->nodeRightClicked, Node::TabNameType::Custom))
+		this->Refresh(false);
+}
+
+void TabsBar::OnMenu_RClick_ShowTBarOriginal(wxCommandEvent& evt)
+{
+	SAFEASSERT_HASRIGHTCLICKNODE();
+
+	if (this->ChangeTBarType(this->nodeRightClicked, Node::TabNameType::OriginalTB))
+		this->Refresh(false);
+}
+
+void TabsBar::OnMenu_RClick_ShowTBarCmdLine(wxCommandEvent& evt)
+{
+	SAFEASSERT_HASRIGHTCLICKNODE();
+
+	if (this->ChangeTBarType(this->nodeRightClicked, Node::TabNameType::Command))
+		this->Refresh(false);
 }
 
 void TabsBar::OnMenu_RClick_Release(wxCommandEvent& evt)

@@ -485,7 +485,6 @@ void AppDock::OnHook_WindowNameChanged(HWND hwnd)
 
     assert(twd != nullptr);
     twd->UpdateWindowTitlebar(hwnd);
-    MessageBeep(MB_OK);
 }
 
 void AppDock::OnHook_WindowCreated(HWND hwnd)

@@ -87,9 +87,7 @@ bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
 {
     // We cannot be dragging with a mouse capture if here,
     // because Steal() will force the OS to exit it.
-    assert(n != nullptr);
-	assert(n->type == Node::Type::Window);
-    assert(n->Hwnd() != NULL);
+    ASSERT_ISNODEWIN(n);
     assert(this->dragggingMgr == nullptr || this->dragggingMgr->dragFlaggedAsFinished);
 
     n->ClearTabsBar();
@@ -125,9 +123,7 @@ bool DockWin::StealToLayout(Node* n, Node* reference, Node::Dest refDock)
 void DockWin::StealRoot(Node* n)
 {
     assert(this->layout.root == nullptr);
-    assert(n != nullptr);
-    assert(n->type == Node::Type::Window);
-	assert(n->Hwnd() != NULL);
+    ASSERT_ISNODEWIN(n);
 
     HWND hwnd = n->Hwnd();
     if(hwnd != NULL)
@@ -443,9 +439,7 @@ void _ProcessInvolvedFromRem(std::set<Node*>& involved, DockWin* dw)
 
 bool DockWin::ReleaseNodeWin(Node* pn)
 {
-    assert(pn != nullptr);
-	assert(pn->type == Node::Type::Window);
-    assert(pn->Hwnd() != NULL);
+    ASSERT_ISNODEWIN(pn);
 	HWND origHwnd = pn->Hwnd();
 	
     std::set<Node*> involved;
@@ -460,9 +454,7 @@ bool DockWin::ReleaseNodeWin(Node* pn)
 
 bool DockWin::DettachNodeWin(Node* pn)
 {
-    assert(pn != nullptr);
-    assert(pn->type == Node::Type::Window);
-    assert(pn->Hwnd() != NULL);
+    ASSERT_ISNODEWIN(pn);
     
     HWND hwnd = pn->Hwnd();
     if(hwnd == NULL)
@@ -483,9 +475,8 @@ bool DockWin::DettachNodeWin(Node* pn)
 bool DockWin::CloseNodeWin(Node* pn)
 {
     assert(this->layout.root != nullptr);
-    assert(pn != nullptr);
-	assert(pn->type == Node::Type::Window);
-	assert(pn->Hwnd() != NULL);
+    ASSERT_ISNODEWIN(pn);
+
     HWND origHwnd = pn->Hwnd();
 
     std::set<Node*> involved;

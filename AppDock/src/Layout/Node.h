@@ -5,6 +5,13 @@
 class LProps;
 class TabsBar;
 
+#define ASSERT_ISNODEWIN(np)					\
+	{											\
+		assert(np != nullptr);					\
+		assert(np->win != NULL);				\
+		assert(np->type == Node::Type::Window); \
+	}
+
 /// <summary>
 /// A container to hold a window in the layout.
 /// </summary>
@@ -22,6 +29,26 @@ public:
 		Forget,
 		Hide,
 		Delete
+	};
+
+	/// <summary>
+	/// What text to show on the node's titlebar.
+	/// </summary>
+	enum class TabNameType
+	{
+		/// <summary>
+		/// Show a custom text set by the user. Note that this will be defaulted
+		/// to OriginalTB if there is no custom text.
+		/// </summary>
+		Custom,
+		/// <summary>
+		/// Use the titlebar text from the HWND.
+		/// </summary>
+		OriginalTB,
+		/// <summary>
+		/// Use the command string.
+		/// </summary>
+		Command
 	};
 
 public:
@@ -198,10 +225,15 @@ public:
 	/// </summary>
 	int selectedTabIdx = 0;
 
+	TabNameType titlebarType = TabNameType::OriginalTB;
 
 	// Currently UNUSED: This is a custom label that can be assigned
 	// to a window node's tab.
 	std::string customTabName;
+
+	// The titlebar of the HWND. Set when the window is first captured, 
+	// or when the tab is updated during rendering.
+	std::string cachedTitlebar;
 
 	inline HWND Hwnd() const
 	{ return this->win; }
@@ -379,7 +411,20 @@ public:
 	/// <param name="tb">The tab bar to set.</param>
 	void SetTabsBar(TabsBar* tb);
 
+	/// <summary>
+	/// Get a child node that's any node except for the input parameter.
+	/// </summary>
+	/// <param name="n">The node to not return.</param>
+	/// <returns>
+	/// Any child node that's not n - or nullptr if there's nothing else to return.
+	/// </returns>
 	Node* ChildOtherThan(Node* n);
+
+	inline bool ContainsChild(Node* n) const
+	{
+		return 
+			std::find(this->children.begin(), this->children.end(), n) != this->children.end();
+	}
 
 	/// <summary>
 	/// Get rid knowledge of the Windows bar tab.
@@ -387,4 +432,10 @@ public:
 	void ForgetTabsBar();
 
 	void ResetTabsBarLayout(const LProps& lp);
+
+	void UpdateWindowTitlebarCache();
+
+	bool UsesCustomTabTitlebar() const;
+
+	std::string GetPreferredTabTitlebar();
 };

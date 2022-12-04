@@ -673,6 +673,8 @@ Node* Layout::Add(HWND hwnd, Node* targ, Node::Dest whereAroundTarg)
 	if(this->Integrate(ins, pnNew) == true)
 	{ 
 		this->_RegisterHwndToNode(hwnd, pnNew);
+		ASSERT_ISNODEWIN(pnNew);
+		pnNew->UpdateWindowTitlebarCache();
 	}
 	else
 	{ 
@@ -686,7 +688,7 @@ Node* Layout::Add(HWND hwnd, Node* targ, Node::Dest whereAroundTarg)
 bool Layout::Steal(Node* n, Node* targ, Node::Dest whereAroundTarg, const LProps& /*props*/)
 {
 	assert(n->parent == nullptr);
-	assert(n->type == Node::Type::Window);
+	ASSERT_ISNODEWIN(n);
 
 	InsertWinLoc ins = this->_ScanAndPrepAddLoc(targ, whereAroundTarg);
 	if(ins.valid == false)
@@ -721,6 +723,9 @@ bool Layout::Integrate(InsertWinLoc ins, Node* n)
 	if(ins.valid == false)
 		return false;
 
+	// Pretty much everywhere we have a Window node, the hwnd
+	// should be set, EXCEPT here, where the Node MAY NOT be fully
+	// set up yet (since this function is part of the setup process).
 	assert(n->type == Node::Type::Window);
 
 	if(ins.parent == nullptr)

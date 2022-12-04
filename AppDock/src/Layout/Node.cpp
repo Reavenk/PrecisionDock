@@ -381,7 +381,7 @@ void Node::UpdateTabWindowVisibility()
 	for(size_t i = 0; i < this->children.size(); ++i)
 	{
 		Node* child = this->children[i];
-		assert(child->type == Node::Type::Window);
+		ASSERT_ISNODEWIN(child);
 
 		child->ShowWindow(i == this->selectedTabIdx);
 	}
@@ -439,7 +439,49 @@ void Node::ResetTabsBarLayout(const LProps& lp)
 	assert(this->tabsBar != nullptr);
 	assert(this->type == Node::Type::Tabs || this->type == Node::Type::Window);
 
-
 	this->tabsBar->SetPosition(this->cachedTab.GetPosition());
 	this->tabsBar->SetSize(wxSize(this->cacheSize.x, lp.tabPadBot + lp.tabHeight));
+}
+
+void Node::UpdateWindowTitlebarCache()
+{
+	ASSERT_ISNODEWIN(this);
+
+	// We're leaving the project to where the windows API is using a WCHAR
+	// for strings, and std::string doesn't play nice with it, so we're using
+	// wxString as a utility to handle string type conversions.
+	wxString title = "";
+
+	const int titleBuffLen = 128;
+	WCHAR szBuff[titleBuffLen];
+	if (GetWindowText(this->Hwnd(), szBuff, titleBuffLen) != 0)
+		title = szBuff;
+
+	this->cachedTitlebar = title;
+}
+
+bool Node::UsesCustomTabTitlebar() const
+{
+	ASSERT_ISNODEWIN(this);
+	
+	return this->titlebarType == TabNameType::Custom && !this->customTabName.empty();
+}
+
+std::string Node::GetPreferredTabTitlebar()
+{
+	ASSERT_ISNODEWIN(this);
+
+	switch (this->titlebarType)
+	{
+	case TabNameType::Custom:
+		if(!this->customTabName.empty())
+			return this->customTabName;
+		break;
+	case TabNameType::Command:
+		// This conversion pipeline is pretty janky - 
+		// May need to find something more elegant.
+		return (std::string)(wxString)this->cmdLine;
+	}
+	
+	return this->cachedTitlebar;
 }
