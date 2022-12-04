@@ -531,9 +531,6 @@ Layout::InsertWinLoc Layout::_ScanAndPrepAddLoc(Node* targ, Node::Dest whereArou
 		{ 
 			return InsertWinLoc::AtNodeChild(
 				targ, targ->children.size()); 
-
-			if(targ->GetTabsBar() != nullptr)
-				targ->GetTabsBar()->Refresh(false);
 		}
 		else // if(targ->type == Node::Type::Window)
 		{
@@ -719,7 +716,7 @@ bool Layout::Steal(Node* n, Node* targ, Node::Dest whereAroundTarg, const LProps
 
 }
 
-bool Layout::Integrate(InsertWinLoc ins, Node* n)
+bool Layout::Integrate(InsertWinLoc ins, Node* nodeToIntegrate)
 {
 	if(ins.valid == false)
 		return false;
@@ -727,13 +724,14 @@ bool Layout::Integrate(InsertWinLoc ins, Node* n)
 	// Pretty much everywhere we have a Window node, the hwnd
 	// should be set, EXCEPT here, where the Node MAY NOT be fully
 	// set up yet (since this function is part of the setup process).
-	assert(n->type == Node::Type::Window);
+	assert(nodeToIntegrate->type == Node::Type::Window);
 
 	if(ins.parent == nullptr)
 	{
 		assert(this->root == nullptr);
-		assert(n->parent == nullptr);
-		this->root = n;
+		assert(nodeToIntegrate->parent == nullptr);
+		
+		this->root = nodeToIntegrate;
 		return true;
 	}
 
@@ -744,14 +742,14 @@ bool Layout::Integrate(InsertWinLoc ins, Node* n)
 
 	ins.parent->children.insert(
 		ins.parent->children.begin() + ins.childIdx,
-		n);
+		nodeToIntegrate);
 
 	// If we integrate into this parent, it should
 	// end up with 2 or more children, or else there
 	// shouldn't have been a container.
 	assert(ins.parent->children.empty() == false);
 
-	n->parent = ins.parent;
+	nodeToIntegrate->parent = ins.parent;
 	return true;
 }
 

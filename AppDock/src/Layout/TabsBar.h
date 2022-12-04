@@ -142,6 +142,12 @@ public: // Public methods
 	/// <return>If modified, true.</return>
 	bool ChangeTBarType(Node* node, Node::TabNameType tbarTy, bool force = false);
 
+	/// <summary>
+	/// Open a docked window's system menu below the tab.
+	/// The function also handles redirecting the system menu to the application.
+	/// The menu will be modal.
+	/// </summary>
+	/// <param name="node">The docked window to open the menu for.</param>
 	void OpenSystemMenu(Node* node);
 
 	//////////////////////////////////////////////////

@@ -758,7 +758,33 @@ void TabsBar::OnMenu_RClick_Clone(wxCommandEvent& evt)
 {
 	SAFEASSERT_HASRIGHTCLICKNODE();
 
-	this->owner->CloneNodeWin(this->nodeRightClicked);
+	// We may loose this object within the method, so we need to cache
+	// variables that we need after the deletion.
+	DockWin* origOwner = this->owner;
+
+	Node* clonedNode = this->owner->CloneNodeWin(this->nodeRightClicked);
+	if (clonedNode == nullptr)
+		return;
+
+	ASSERT_ISNODEWIN(clonedNode);
+
+	// The cloning process will add the new clone to the target window's tab group. This could
+	// either be its existing TabsBar (this invoking instance) or a new one if a stand-alone
+	// window is converted to a tabs group with the orignal target and the new clone inside.
+	// In that case this TabsBar instance won't exist and we'll need to Refresh the new Tabs bar.
+	Node* nodeTabOwner = clonedNode->GetTabsParent();
+	ASSERT_ISNODETABS(nodeTabOwner);
+	if (nodeTabOwner->children.size() == 2)
+	{
+		TabsBar* tb = nodeTabOwner->GetTabsBar();
+		if (tb == nullptr)
+		{
+			origOwner->MaintainNodesTabsBar(nodeTabOwner);
+			tb = nodeTabOwner->GetTabsBar();
+		}
+		assert(tb != nullptr);
+		tb->owner->ResizeLayout();
+	}
 }
 
 void TabsBar::OnMenu_RClick_Rename(wxCommandEvent& evt)

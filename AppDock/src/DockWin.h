@@ -52,6 +52,10 @@ class DockWin :
 {
 	friend DragHelperMgr;
 
+	/// <summary>
+	/// The count of the number of DockWins in the system. Used for debugging and
+	/// checking state management issues.
+	/// </summary>
 	static int instCtr;
 public:
 	/// <summary>
@@ -262,8 +266,8 @@ public:
 	/// the specified Window node.
 	/// </summary>
 	/// <param name="pn">The Window node to create a duplicate process of.</param>
-	/// <returns>True if the node was cloned.</returns>
-	bool CloneNodeWin(Node* pn);
+	/// <returns>The created docked window Node, if successful. Else, nullptr</returns>
+	Node* CloneNodeWin(Node* pn);
 
 	/// <summary>
 	/// Handle when a tab is clicked.
@@ -335,6 +339,8 @@ public:
 	/// </summary>
 	void _ReactToNodeRemoval();
 
+	void UpdateCursorFromMouseOverPoint(const wxPoint& pt);
+
 	//////////////////////////////////////////////////
 	//
 	//	wxWidget EVENT HANDLERS
@@ -351,6 +357,8 @@ public:
 	void OnMouseRDown(wxMouseEvent& evt);
 	void OnMouseRUp(wxMouseEvent& evt);
 	void OnMouseMotion(wxMouseEvent& evt);
+	void OnMouseEnter(wxMouseEvent& evt);
+	void OnMouseLeave(wxMouseEvent& evt);
 	void OnMouseCaptureChanged(wxMouseCaptureChangedEvent& evt);
 	void OnMouseCaptureLost(wxMouseCaptureLostEvent& evt);
 

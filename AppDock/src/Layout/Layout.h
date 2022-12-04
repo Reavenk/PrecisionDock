@@ -343,7 +343,7 @@ public: // Public methods
 	/// Integrate a node into a InsertWinLoc (an insertion
 	/// site that's been prepared and expecting an insertion).
 	/// </summary>
-	bool Integrate(InsertWinLoc ins, Node* n);
+	bool Integrate(InsertWinLoc ins, Node* nodeToIntegrate);
 
 	/// <summary>
 	/// Delete a window from the layout datastructure; 

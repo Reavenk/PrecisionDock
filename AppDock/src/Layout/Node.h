@@ -12,6 +12,14 @@ class TabsBar;
 		assert(np->type == Node::Type::Window); \
 	}
 
+#define ASSERT_ISNODETABS(np)					\
+	{											\
+		assert(np != nullptr);					\
+		assert(np->win == NULL);				\
+		assert(np->type == Node::Type::Tabs);	\
+		assert(np->children.size() >= 2);		\
+	}
+
 /// <summary>
 /// A container to hold a window in the layout.
 /// </summary>
@@ -436,6 +444,8 @@ public:
 	void UpdateWindowTitlebarCache();
 
 	bool UsesCustomTabTitlebar() const;
+
+	Node* GetTabsParent();
 
 	std::string GetPreferredTabTitlebar();
 };

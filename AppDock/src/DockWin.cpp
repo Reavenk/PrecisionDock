@@ -31,19 +31,21 @@ void _DockObserverBus::SetEventOnAdded(fntyOnAdded fn)
 int DockWin::instCtr = 0;
 
 BEGIN_EVENT_TABLE(DockWin, wxWindow)
-    EVT_PAINT                   (DockWin::OnDraw        )
-    EVT_SIZE                    (DockWin::OnSize        )
-    EVT_LEFT_DOWN               (DockWin::OnMouseLDown  )
-    EVT_LEFT_UP                 (DockWin::OnMouseLUp    )
-    EVT_MIDDLE_DOWN             (DockWin::OnMouseMDown  )
-    EVT_MIDDLE_UP               (DockWin::OnMouseMUp    )
-    EVT_RIGHT_DOWN              (DockWin::OnMouseRDown  )
-    EVT_RIGHT_UP                (DockWin::OnMouseRUp    )
-    EVT_MOTION                  (DockWin::OnMouseMotion )
+    EVT_PAINT                   (DockWin::OnDraw                )
+    EVT_SIZE                    (DockWin::OnSize                )
+    EVT_LEFT_DOWN               (DockWin::OnMouseLDown          )
+    EVT_LEFT_UP                 (DockWin::OnMouseLUp            )
+    EVT_MIDDLE_DOWN             (DockWin::OnMouseMDown          )
+    EVT_MIDDLE_UP               (DockWin::OnMouseMUp            )
+    EVT_RIGHT_DOWN              (DockWin::OnMouseRDown          )
+    EVT_RIGHT_UP                (DockWin::OnMouseRUp            )
+    EVT_MOTION                  (DockWin::OnMouseMotion         )
     EVT_MOUSE_CAPTURE_CHANGED   (DockWin::OnMouseCaptureChanged )
     EVT_MOUSE_CAPTURE_LOST      (DockWin::OnMouseCaptureLost    )
-    EVT_KEY_DOWN                (DockWin::OnKeyDown     )
-    EVT_KEY_UP                  (DockWin::OnKeyUp       )
+    EVT_ENTER_WINDOW            (DockWin::OnMouseEnter          )
+    EVT_LEAVE_WINDOW            (DockWin::OnMouseLeave          )
+    EVT_KEY_DOWN                (DockWin::OnKeyDown             )
+    EVT_KEY_UP                  (DockWin::OnKeyUp               )
 END_EVENT_TABLE()
 
 DragHelperMgrPtr DockWin::dragggingMgr;
@@ -67,7 +69,10 @@ DockWin::DockWin(
 }
 
 DockWin::~DockWin()
-{}
+{
+    --instCtr;
+    assert(instCtr >= 0);
+}
 
 std::set<HWND> DockWin::AllDockedWindows() const
 {
@@ -79,9 +84,6 @@ std::set<HWND> DockWin::AllDockedWindows() const
 
 Node * DockWin::AddToLayout(HWND hwnd, Node* reference, Node::Dest refDock)
 {
-    --instCtr;
-    assert(instCtr >= 0);
-
     Node* n = this->layout.Add(hwnd, reference, refDock);
 	assert(n != nullptr);
 
@@ -239,10 +241,21 @@ void DockWin::MaintainNodesTabsBar(Node* pn)
         return;
     }
 
-    if(pn->GetTabsBar() == nullptr)
+    if(!pn->IsTabChild())
     {
-        TabsBar* tb = new TabsBar(this, pn);
-        pn->SetTabsBar(tb);
+        if (pn->GetTabsBar() == nullptr)
+        {
+            TabsBar* tb = new TabsBar(this, pn);
+            pn->SetTabsBar(tb);
+        }
+    }
+    else
+    {
+        // For windows that belong to a tab. They don't own the tab bar,
+        // the parent tab system does.
+        //
+        // This isn't expected to do anything - sanity guard.
+        pn->ClearTabsBar();
     }
 }
 
@@ -368,9 +381,25 @@ void DockWin::OnMouseMotion(wxMouseEvent& evt)
 {
     if(this->dragggingMgr != nullptr)
     {
+        // If dragging, the DraggingMgr will be responsible for updating the
+        // mouse cursor graphic ...
         assert(this->dragggingMgr->dragType == DragHelperMgr::DragType::Sash);
         this->dragggingMgr->HandleMouseMove();
     }
+    else
+    {
+        this->UpdateCursorFromMouseOverPoint(evt.GetPosition());
+    }
+}
+
+void DockWin::OnMouseEnter(wxMouseEvent& evt)
+{
+    this->UpdateCursorFromMouseOverPoint(evt.GetPosition());
+}
+
+void DockWin::OnMouseLeave(wxMouseEvent& evt)
+{
+    this->SetCursor(wxNullCursor);
 }
 
 void DockWin::OnMouseCaptureChanged(wxMouseCaptureChangedEvent& evt)
@@ -397,8 +426,7 @@ void DockWin::OnMouseCaptureChanged(wxMouseCaptureChangedEvent& evt)
 }
 
 void DockWin::OnMouseCaptureLost(wxMouseCaptureLostEvent& evt)
-{
-}
+{}
 
 void DockWin::OnKeyDown(wxKeyEvent& evt)
 {
@@ -525,22 +553,28 @@ Node* DockWin::CloseNodeWin(HWND hwnd)
 	return n;
 }
 
-bool DockWin::CloneNodeWin(Node* pn)
+Node* DockWin::CloneNodeWin(Node* pn)
 {
     if(pn->win == NULL)
-        return false;
+        return nullptr;
 
     HWND hwnd = 
         AppDock::CreateSpawnedWindow(pn->cmdLine);
 
     if(hwnd == NULL)
-        return false;
+        return nullptr;
 
     Node* nClone = this->AddToLayout( hwnd, pn, Node::Dest::Into);
     nClone->cmdLine = pn->cmdLine;
     this->ResizeLayout(); // Mainly to force redraw
 
-    return true;
+    // Creating a window and placing it onto a window will always result
+    // in the parent being a tabs group.
+    Node* parent = nClone->parent;
+    ASSERT_ISNODETABS(parent);
+    parent->UpdateTabWindowVisibility();
+
+    return nClone;
 }
 
 void DockWin::TabClickStart(TabsBar* tbInvoker, Node* node, Node* tabOwner, bool closePressed)
@@ -579,6 +613,24 @@ void DockWin::FinishMouseDrag()
     this->dragggingMgr.reset();
 }
 
+void DockWin::UpdateCursorFromMouseOverPoint(const wxPoint& pt)
+{
+    bool inSash = false;
+    for (Sash* s : this->layout.sashes)
+    {
+        if (s->Contains(pt))
+        {
+            inSash = true;
+            break;
+        }
+    }
+    if (inSash)
+        this->SetCursor(*wxCROSS_CURSOR);
+    else
+        this->SetCursor(wxNullCursor);
+
+}
+
 void DockWin::OnDelegatedEscape()
 {
     assert(this->dragggingMgr);
@@ -591,22 +643,25 @@ void DockWin::OnDelegatedEscape()
 void DockWin::RefreshWindowTitlebar(HWND hwnd)
 {
     Node* n = this->layout.GetNodeFrom(hwnd);
+    ASSERT_ISNODEWIN(n);
     if(n == nullptr)
         return;
 
-    while(true)
+    if (n->IsTabChild())
     {
-        // It's either a window that has a tabs bar, or a child of a 
-        // tabs group. Either way we need the thing that has its tabs.
-        TabsBar* tb = n->GetTabsBar();
-        if(tb == nullptr)
-        {
-            n = n->parent;
-            continue;
-        }
-        tb->Refresh(false);
-        break;
+        n = n->parent;
+        ASSERT_ISNODETABS(n);
     }
+	
+    TabsBar* tb = n->GetTabsBar();
+    if (tb == nullptr)
+    {
+        this->MaintainNodesTabsBar(n);
+        tb = n->GetTabsBar();
+    }
+    assert(tb != nullptr);
+
+    tb->Refresh(false);
 }
 
 void DockWin::_ReactToNodeRemoval()

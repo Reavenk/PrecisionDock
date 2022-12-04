@@ -467,6 +467,20 @@ bool Node::UsesCustomTabTitlebar() const
 	return this->titlebarType == TabNameType::Custom && !this->customTabName.empty();
 }
 
+Node* Node::GetTabsParent()
+{
+	ASSERT_ISNODEWIN(this);
+
+	if (
+		this->parent == nullptr ||
+		this->parent->type != Node::Type::Tabs)
+	{
+		return nullptr;
+	}
+
+	return this->parent;
+}
+
 std::string Node::GetPreferredTabTitlebar()
 {
 	ASSERT_ISNODEWIN(this);
