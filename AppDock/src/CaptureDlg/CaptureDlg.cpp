@@ -315,8 +315,10 @@ void CaptureDlg::RebuildListed()
 {
 	this->ClearListed();
 
-
 	this->_EnsureScrollWinSizer();
+
+	AppDock& app = AppDock::GetApp();
+	std::set<HWND> offlimitsTopDockwins = app._GetToplevelDockHWNDs();
 
 	std::vector<HWND> vecWins;
 	// Enumerating top-level windows
@@ -327,6 +329,15 @@ void CaptureDlg::RebuildListed()
 		it != NULL; 
 		it = GetWindow(it, GW_HWNDNEXT))
 	{
+		// We don't allow (re)capturing TopDockWins windows.
+		if (offlimitsTopDockwins.contains(it))
+			continue;
+
+		// And we don't allow capturing other top-level windows that are 
+		// apart of our application.
+		if (app.AppOwnsTopLevelWindow(it))
+			continue;
+
 		CaptureListItem* added = this->AddListItem(it);
 	}
 

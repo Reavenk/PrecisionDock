@@ -499,6 +499,21 @@ std::vector<TopDockWin*> AppDock::_GetWinList()
     return ret;
 }
 
+std::set<HWND> AppDock::_GetToplevelDockHWNDs() const
+{
+    std::set<HWND> ret;
+    for (auto it : this->dockWins)
+        ret.insert(it.second.rootHwnd);
+
+    return ret;
+}
+
+bool AppDock::AppOwnsTopLevelWindow(HWND hwnd) const
+{
+    std::lock_guard<std::mutex> guard(this->ownedWinMutex);
+    return this->ownedWins.find(hwnd) != this->ownedWins.end();
+}
+
 HWND AppDock::CreateSpawnedWindow(const std::wstring & cmd)
 {
     return CreateSpawnedWindow(

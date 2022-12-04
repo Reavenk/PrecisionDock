@@ -52,7 +52,7 @@ public:
     /// Get the singleton.
     /// </summary>
     /// <returns>The singleton reference.</returns>
-    static AppDock & GetApp();
+    static AppDock& GetApp();
 
 private:
     /// <summary>
@@ -66,6 +66,10 @@ private:
     /// only be one instance of AppDock running on the machine).
     /// </summary>
     std::map<TopDockWin*, WinProcessTrack> dockWins;
+    // TODO: We probably need to wrap dockWins in a mutex since this 
+    // can change if something external closes the last window of a 
+    // DockWin which forces the TopDockWin to close outside the app's
+    // program thread.
 
     /// <summary>
     /// Timer to run background maintenence logic at 
@@ -97,8 +101,7 @@ protected:
     /// <summary>
     /// Thread protection for ownedWins.
     /// </summary>
-    std::mutex ownedWinMutex;
-
+    mutable std::mutex ownedWinMutex;
 
     /// <summary>
     /// The Captured HWND objects
@@ -247,6 +250,9 @@ public:
     void OnHook_WindowCreated(HWND hwnd);
 
     std::vector<TopDockWin*> _GetWinList();
+    std::set<HWND> _GetToplevelDockHWNDs() const;
+
+    bool AppOwnsTopLevelWindow(HWND hwnd) const;
 
 public:
     // Utility functions - may be moved to deciated utility library(s) later.
