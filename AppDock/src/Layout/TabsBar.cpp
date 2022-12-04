@@ -647,7 +647,7 @@ void TabsBar::OnMouseRDown(wxMouseEvent& evt)
 		return;
 
 	const LProps& lp = this->owner->GetLayoutProps();
-	wxRect sysIconRect = GetTabIconRect(this->nodeRightClicked->cachedTab, lp);
+	wxRect sysIconRect = GetTabIconRect(this->nodeRightClicked->cachedTabLcl, lp);
 	if (sysIconRect.Contains(evt.GetPosition()))
 	{
 		this->OpenSystemMenu(this->nodeRightClicked);
