@@ -481,7 +481,7 @@ Node* Node::GetTabsParent()
 	return this->parent;
 }
 
-std::string Node::GetPreferredTabTitlebar()
+std::string Node::GetPreferredTabTitlebar() const
 {
 	ASSERT_ISNODEWIN(this);
 

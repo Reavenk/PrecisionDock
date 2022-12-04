@@ -178,8 +178,7 @@ void DragHelperMgr::FinishSuccessfulTabDragging()
         // It should no longer be the dummy name "Headphones"
         AppDock::GetApp().CreateTorn(
             this->nodeDragged, 
-            this->winWhereDragged, 
-            "Headphones");
+            this->winWhereDragged);
 
         this->_ResolveToUpdateAfterDrag();
         this->nodeDragged = nullptr;

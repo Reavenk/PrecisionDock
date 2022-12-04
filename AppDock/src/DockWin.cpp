@@ -18,6 +18,12 @@ void _DockObserverBus::PublishOnAdded(HWND hwnd, Node* node)
 		this->eventOnAdded(hwnd, node);
 }
 
+void _DockObserverBus::PublishTitleModified(Node* node)
+{
+    if(this->eventOnTitleMod)
+        this->eventOnTitleMod(node);
+}
+
 void _DockObserverBus::SetEventOnLost(fntyOnLost fn)
 {
 	this->eventOnLost = fn;
@@ -26,6 +32,11 @@ void _DockObserverBus::SetEventOnLost(fntyOnLost fn)
 void _DockObserverBus::SetEventOnAdded(fntyOnAdded fn)
 {
 	this->eventOnAdded = fn;
+}
+
+void _DockObserverBus::SetEventTitleModified(fntyOnTitleMod fn)
+{
+    this->eventOnTitleMod = fn;
 }
 
 int DockWin::instCtr = 0;

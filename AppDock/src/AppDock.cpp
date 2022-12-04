@@ -143,7 +143,7 @@ bool AppDock::OnInit()
             return false;
     }
 
-    this->SpawnEmpty("PrecisionDock", true);
+    this->SpawnEmpty(true);
     HINSTANCE hInst = wxGetInstance();
     ////hookListener = SetWindowsHookExA(WH_CBT, CBTProc, GetModuleHandle(NULL), GetCurrentThreadId() );
     //DWORD err = GetLastError();
@@ -226,12 +226,10 @@ AppDock::AppDock()
 
 TopDockWin* AppDock::CreateSpawned(
     const std::wstring& cmd, 
-    const wxString& title,
     bool giveAttention)
 {
     return this->CreateSpawned(
         cmd,
-        title,
         AppRef::_default.msBeforeAttach,
         AppRef::_default.closeIfFail,
         AppRef::_default.startShown, 
@@ -240,7 +238,6 @@ TopDockWin* AppDock::CreateSpawned(
 
 TopDockWin* AppDock::CreateSpawned(
     const std::wstring& cmd, 
-    const wxString& title,
     int warmup,
     bool closeIfFail,
     bool startShown,
@@ -260,7 +257,6 @@ TopDockWin* AppDock::CreateSpawned(
 
     TopDockWin* createdTopDockWin = 
         new TopDockWin(
-            title, 
             wxDefaultPosition, 
             wxDefaultSize);
 
@@ -275,11 +271,10 @@ TopDockWin* AppDock::CreateSpawned(
     return createdTopDockWin;
 }
 
-TopDockWin* AppDock::SpawnEmpty(const wxString& title, bool giveAttention)
+TopDockWin* AppDock::SpawnEmpty(bool giveAttention)
 {
     TopDockWin* createdTopDockWin = 
         new TopDockWin(
-            title, 
             wxDefaultPosition,
             wxSize(400, 300));
 
@@ -294,12 +289,10 @@ TopDockWin* AppDock::SpawnEmpty(const wxString& title, bool giveAttention)
 TopDockWin* AppDock::CreateTorn(
     Node* pn,
 	DockWin* originalOwner,
-    const wxString& title,
     bool giveAttention)
 {
     TopDockWin* createdTopDockWin = 
         new TopDockWin(
-            title, 
             wxGetMousePosition(),
             pn->cacheSize);
 
@@ -316,7 +309,6 @@ TopDockWin* AppDock::CreateWindowFromHwnd(HWND hwnd, bool giveAttention)
 {
     TopDockWin* createdTopDockWin = 
         new TopDockWin(
-            "Untitled",
             wxDefaultPosition,
             wxDefaultSize);
 
@@ -455,7 +447,7 @@ bool AppDock::LaunchAppRef(const AppRef& aref)
     return 
         this->CreateSpawned(
             aref.command,
-            aref.label,
+            //aref.label,
             aref.msBeforeAttach,
             aref.closeIfFail,
             aref.startShown);

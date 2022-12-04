@@ -447,5 +447,5 @@ public:
 
 	Node* GetTabsParent();
 
-	std::string GetPreferredTabTitlebar();
+	std::string GetPreferredTabTitlebar() const;
 };

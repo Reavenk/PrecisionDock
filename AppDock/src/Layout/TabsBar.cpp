@@ -799,7 +799,10 @@ void TabsBar::OnMenu_RClick_ShowTBarCustom(wxCommandEvent& evt)
 	SAFEASSERT_HASRIGHTCLICKNODE();
 
 	if (this->ChangeTBarType(this->nodeRightClicked, Node::TabNameType::Custom))
+	{
 		this->Refresh(false);
+		this->owner->PublishTitleModified(this->nodeRightClicked);
+	}
 }
 
 void TabsBar::OnMenu_RClick_ShowTBarOriginal(wxCommandEvent& evt)
@@ -807,7 +810,10 @@ void TabsBar::OnMenu_RClick_ShowTBarOriginal(wxCommandEvent& evt)
 	SAFEASSERT_HASRIGHTCLICKNODE();
 
 	if (this->ChangeTBarType(this->nodeRightClicked, Node::TabNameType::OriginalTB))
+	{
 		this->Refresh(false);
+		this->owner->PublishTitleModified(this->nodeRightClicked);
+	}
 }
 
 void TabsBar::OnMenu_RClick_ShowTBarCmdLine(wxCommandEvent& evt)
@@ -815,7 +821,10 @@ void TabsBar::OnMenu_RClick_ShowTBarCmdLine(wxCommandEvent& evt)
 	SAFEASSERT_HASRIGHTCLICKNODE();
 
 	if (this->ChangeTBarType(this->nodeRightClicked, Node::TabNameType::Command))
+	{
 		this->Refresh(false);
+		this->owner->PublishTitleModified(this->nodeRightClicked);
+	}
 }
 
 void TabsBar::OnMenu_RClick_Release(wxCommandEvent& evt)

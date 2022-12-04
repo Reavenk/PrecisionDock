@@ -12,8 +12,8 @@ wxBEGIN_EVENT_TABLE(TopDockWin, wxFrame)
     EVT_MENU((int)CMDID::DetachAll,         TopDockWin::OnMenu_DetachAll       )
 wxEND_EVENT_TABLE()
 
-TopDockWin::TopDockWin(const wxString& title, const wxPoint& pos, const wxSize& size)
-    : wxFrame(NULL, wxID_ANY, title, pos, size)
+TopDockWin::TopDockWin(const wxPoint& pos, const wxSize& size)
+    : wxFrame(NULL, wxID_ANY, "PrecisionDock", pos, size)
 {
     this->cachedHWND = this->GetHWND();
     AppDock::GetApp().RegisterToplevelOwned(this->cachedHWND);
@@ -53,10 +53,11 @@ TopDockWin::TopDockWin(const wxString& title, const wxPoint& pos, const wxSize& 
 
     this->dockWin->SetEventOnAdded([this](HWND hwnd, Node*n){this->OnDockWin_Added(hwnd, n);});
     this->dockWin->SetEventOnLost([this](HWND hwnd, LostReason lr){this->OnDockWin_Removed(hwnd, lr);});
+    this->dockWin->SetEventTitleModified([this](Node* n){this->OnDockWin_TitleModified(n);});
     AppDock::GetApp().RegisterTopWin(this, this->GetHWND());
 
     AppUtils::SetDefaultIcons(this);
-    
+    this->UpdateTitlebar();
 }
 
 TopDockWin::~TopDockWin()
@@ -113,6 +114,17 @@ void TopDockWin::DetachAll()
     this->GetDockWin()->Layout();
 }
 
+void TopDockWin::UpdateTitlebar()
+{
+    std::string titlebarStr = "PrecisionDock";
+
+    const Node* rootNode = this->dockWin->GetRoot();
+    if (rootNode != nullptr && rootNode->type == Node::Type::Window)
+        titlebarStr += std::string(" | ") + rootNode->GetPreferredTabTitlebar();
+
+    this->SetTitle(titlebarStr.c_str());
+}
+
 TopDockWin * TopDockWin::GetWinAt(const wxPoint& screenMouse, const std::set<TopDockWin*>& ignores)
 {
     HWND deskHwnd = GetDesktopWindow();
@@ -147,6 +159,12 @@ TopDockWin * TopDockWin::GetWinAt(const wxPoint& screenMouse, const std::set<Top
     return nullptr;
 }
 
+void TopDockWin::OnDockWin_TitleModified(Node* n)
+{
+    ASSERT_ISNODEWIN(n);
+    this->UpdateTitlebar();
+}
+
 TopDockWin * TopDockWin::GetWinAt(const wxPoint& screenMouse, TopDockWin* ignore)
 {
     std::set<TopDockWin*> ignores;
@@ -175,11 +193,13 @@ void TopDockWin::UpdateWindowTitlebar(HWND win)
 void TopDockWin::OnDockWin_Added(HWND hwnd, Node* n)
 {
 	AppDock::GetApp()._RegisterCapturedHWND(this, hwnd);
+    this->UpdateTitlebar();
 }
 
 void TopDockWin::OnDockWin_Removed(HWND hwnd, LostReason lr)
 {
 	AppDock::GetApp()._UnregisterCapturedHWND(hwnd);
+    this->UpdateTitlebar();
 }
 
 void TopDockWin::OnExit(wxCommandEvent& event)

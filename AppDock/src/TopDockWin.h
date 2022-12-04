@@ -72,7 +72,7 @@ private:
     HWND cachedHWND = NULL;
 
 public:
-    TopDockWin(const wxString& title, const wxPoint& pos, const wxSize& size);
+    TopDockWin(const wxPoint& pos, const wxSize& size);
     ~TopDockWin();
 
     /// <summary>
@@ -113,6 +113,8 @@ public:
 
     void DetachAll();
 
+    void UpdateTitlebar();
+
 public:
     static inline int ClassInstCtr()
     { return _InstCtr;}
@@ -131,6 +133,7 @@ public:
 
 	void OnDockWin_Added(HWND hwnd, Node* n);
 	void OnDockWin_Removed(HWND hwnd, LostReason lr);
+    void OnDockWin_TitleModified(Node* n);
 private:
 
 

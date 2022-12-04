@@ -131,12 +131,10 @@ public:
     /// parameters.
     /// </summary>
     /// <param name="cmd">The command line to capture the window of.</param>
-    /// <param name="title">The title of the window.</param>
     /// <param name="giveAttention">Make the window visable and obvious to the user.</param>
     /// <returns>The created captured window.</returns>
     TopDockWin* CreateSpawned(
         const std::wstring& cmd, 
-        const wxString& title,
         bool giveAttention = true);
 
     /// <summary>
@@ -144,7 +142,6 @@ public:
     /// arbitrarily started command line.
     /// </summary>
     /// <param name="cmd">The command line to capture the window of.</param>
-    /// <param name="title">The title of the window.</param>
     /// <param name="warmup">
     /// The amount of time to wait for a program to create its toplevel 
     /// window before attempting to capture it.
@@ -158,7 +155,6 @@ public:
     /// <returns>The created captured window.</returns>
     TopDockWin* CreateSpawned(
         const std::wstring& cmd, 
-        const wxString& title,
         int warmup,
         bool closeIfFail,
         bool startShown,
@@ -167,11 +163,9 @@ public:
     /// <summary>
     /// Spawn an empty TopDockWin.
     /// </summary>
-    /// <param name="title">The title of the new window.</param>
     /// <param name="giveAttention">Make the window visable and obvious to the user.</param>
     /// <returns>The created empty TopDockWin.</returns>
     TopDockWin* SpawnEmpty(
-        const wxString& title,
         bool giveAttention = true);
 
     /// <summary>
@@ -180,13 +174,11 @@ public:
     /// </summary>
     /// <param name="pn">The node to use at the new root.</param>
     /// <param name="originalOwner">The DockWin that originally owned the Node.</param>
-    /// <param name="title">The title of the dialog.</param>
     /// <param name="giveAttention">Make the window visable and obvious to the user.</param>
     /// <returns>The newly created TopDockWin.</returns>
     TopDockWin* CreateTorn(
         Node* pn,
         DockWin* originalOwner,
-        const wxString& title,
         bool giveAttention = true);
 
     /// <summary>

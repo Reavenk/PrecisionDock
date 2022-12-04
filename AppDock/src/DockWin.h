@@ -30,16 +30,20 @@ class _DockObserverBus
 {
 	typedef std::function<void(HWND, LostReason)> fntyOnLost;
 	typedef std::function<void(HWND, Node*)> fntyOnAdded;
+	typedef std::function<void(Node*)> fntyOnTitleMod;
 private:
 	fntyOnLost eventOnLost;
 	fntyOnAdded eventOnAdded;
+	fntyOnTitleMod eventOnTitleMod;
 	
 public:
 	void PublishOnLost(HWND hwnd, LostReason lr);
 	void PublishOnAdded(HWND, Node*);
+	void PublishTitleModified(Node*);
 
 	void SetEventOnLost(fntyOnLost fn);
 	void SetEventOnAdded(fntyOnAdded fn);
+	void SetEventTitleModified(fntyOnTitleMod fn);
 };
 
 /// <summary>
@@ -120,6 +124,9 @@ public:
 
 	inline bool HasRoot() const
 	{return this->layout.root != nullptr;}
+
+	inline const Node* GetRoot() const
+	{ return this->layout.root; }
 
 	std::set<HWND> AllDockedWindows() const;
 
