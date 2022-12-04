@@ -9,6 +9,7 @@ wxBEGIN_EVENT_TABLE(TopDockWin, wxFrame)
     EVT_MENU(wxID_EXIT,  TopDockWin::OnExit)
     EVT_MENU((int)CMDID::ToggleStatusbar,   TopDockWin::OnMenu_ToggleStatusbar  )
     EVT_MENU((int)CMDID::ReleaseAll,        TopDockWin::OnMenu_ReleaseAll       )
+    EVT_MENU((int)CMDID::DetachAll,         TopDockWin::OnMenu_DetachAll       )
 wxEND_EVENT_TABLE()
 
 TopDockWin::TopDockWin(const wxString& title, const wxPoint& pos, const wxSize& size)
@@ -21,17 +22,13 @@ TopDockWin::TopDockWin(const wxString& title, const wxPoint& pos, const wxSize& 
 
     wxMenu* menuFile = new wxMenu;
     {
-        menuFile->AppendSeparator();
-        menuFile->Append(wxID_EXIT);
+        menuFile->Append((int)CMDID::ReleaseAll,    "Release All",  "Release all windows in this collection");
+        menuFile->Append((int)CMDID::DetachAll,     "Detach All",   "Detach all windows in this collection into their own collections.");
+        menuFile->Append(wxID_EXIT,                 "Close All",    "Close all windows in this collection.");
     }
     wxMenu* menuView = new wxMenu;
     {
         menuView->Append((int)CMDID::ToggleStatusbar, "Toggle Statusbar", "Show and hide the status bar (this bar down below)");
-    }
-    wxMenu* menuWins = new wxMenu;
-    {
-        menuWins->Append((int)CMDID::ReleaseAll, "Release All", "Release all windows in this collection");
-        menuWins->Append((int)CMDID::DettachAll, "Dettach All", "Detach all windows in this collection into their own collections.");
     }
     wxMenu* menuHelp = new wxMenu;
     {
@@ -42,7 +39,6 @@ TopDockWin::TopDockWin(const wxString& title, const wxPoint& pos, const wxSize& 
     wxMenuBar *menuBar = new wxMenuBar;
     menuBar->Append( menuFile,  "&File"  );
     menuBar->Append( menuView,  "&View"  );
-    menuBar->Append( menuWins,  "&Window");
     menuBar->Append( menuHelp,  "&Help"  );
     SetMenuBar( menuBar );
 
@@ -93,6 +89,28 @@ bool TopDockWin::HasRoot() const
 void TopDockWin::ReleaseAll()
 {
     this->dockWin->ReleaseAll();
+}
+
+void TopDockWin::DetachAll()
+{
+    // There's probably a cheaper way to do this by trashing the
+    // layout - which isn't a problem because we'd close the (Top)DockWin
+    // right after detaching everything. 
+    //
+    // But for now we'll do the more expensive thing (out of simplicity)
+    // and cleanly remove every individual captured HWND one by one.
+    std::set<HWND> dockedHwnds = this->GetDockWin()->AllDockedWindows();
+	
+	// Detaching only makes sense if we have more than one window, or else
+	// we would just create a TopDockWin that had the exact same contents.
+    if (dockedHwnds.size() <= 1)
+        return;
+
+	// We'll let the first window (the root) stay in this TopDockWin.
+    for (auto it = ++dockedHwnds.begin(); it != dockedHwnds.end(); ++it)
+        this->dockWin->DetachNodeWin(*it);
+
+    this->GetDockWin()->Layout();
 }
 
 TopDockWin * TopDockWin::GetWinAt(const wxPoint& screenMouse, const std::set<TopDockWin*>& ignores)
@@ -183,8 +201,18 @@ void TopDockWin::OnMenu_ToggleStatusbar(wxCommandEvent& evt)
     }
 }
 
+void TopDockWin::OnMenu_DetachAll(wxCommandEvent& evt)
+{
+    this->DetachAll();
+}
+
 void TopDockWin::OnMenu_ReleaseAll(wxCommandEvent& evt)
 {
+    this->dockWin->ReleaseAll();
+    // NOTE: Eventually we may want to release them in an ordered way.
+    // But for now when we release them, we'll just leave them wherever
+    // they happen to end up.
+    this->Close(true);
 }
 
 json TopDockWin::_JSONRepresentation()

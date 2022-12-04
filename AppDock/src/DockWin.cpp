@@ -69,6 +69,14 @@ DockWin::DockWin(
 DockWin::~DockWin()
 {}
 
+std::set<HWND> DockWin::AllDockedWindows() const
+{
+    std::set<HWND> ret;
+    for (auto it : this->layout.hwndLookup)
+        ret.insert(it.first);
+    return ret;
+}
+
 Node * DockWin::AddToLayout(HWND hwnd, Node* reference, Node::Dest refDock)
 {
     --instCtr;
@@ -453,7 +461,7 @@ bool DockWin::ReleaseNodeWin(Node* pn)
     return true;
 }
 
-bool DockWin::DettachNodeWin(Node* pn)
+bool DockWin::DetachNodeWin(Node* pn)
 {
     ASSERT_ISNODEWIN(pn);
     
@@ -465,12 +473,24 @@ bool DockWin::DettachNodeWin(Node* pn)
     if(this->layout.ReleaseWindow(pn, &involved) == false)
         return false;
 
+    this->PublishOnLost(hwnd, LostReason::ManualMoved);
     AppDock::GetApp().CreateWindowFromHwnd(hwnd);
 
     _ProcessInvolvedFromRem(involved, this);
     this->_ReactToNodeRemoval();
-	this->PublishOnLost(hwnd, LostReason::ManualMoved);
     return true;
+}
+
+bool DockWin::DetachNodeWin(HWND hwnd)
+{
+    auto itFind = this->layout.hwndLookup.find(hwnd);
+    if (itFind == this->layout.hwndLookup.end())
+        return false;
+
+    Node* nodeDetaching = itFind->second;
+    assert(nodeDetaching != nullptr);
+
+    return this->DetachNodeWin(nodeDetaching);
 }
 
 bool DockWin::CloseNodeWin(Node* pn)

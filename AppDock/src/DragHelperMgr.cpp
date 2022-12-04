@@ -410,18 +410,25 @@ void DragHelperMgr::FinishSuccessfulSashDragging()
 {
     // Not much to do except stop
     this->_AssertIsDraggingSashCorrectly(true);
+
+    // StopCapture 
     this->StopCapture(this->winWhereDragged, false);
 
-    this->draggingSash = nullptr;
-
-    this->preDragSashProps.clear();
-    this->sashDraggedParent = nullptr;
-
-    this->winWhereDragged->SetCursor(wxNullCursor);
-    this->winWhereDragged = nullptr;
-
-    this->dragType = DragType::Invalid;
-    this->_AssertIsNeutralized();
+    // NOTE: We need to either move the code below to a better spot
+    // remove it. It's not longer valid since this->StopCapture() deletes
+    // "this".
+    // (wleu 12/03/2022)
+    // 
+    //this->draggingSash = nullptr;
+    //
+    //this->preDragSashProps.clear();
+    //this->sashDraggedParent = nullptr;
+    //
+    //this->winWhereDragged->SetCursor(wxNullCursor);
+    //this->winWhereDragged = nullptr;
+    //
+    //this->dragType = DragType::Invalid;
+    //this->_AssertIsNeutralized();
 }
 
 void DragHelperMgr::CancelSashDragging(bool fromCaptureLoss)

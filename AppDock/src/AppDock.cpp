@@ -387,6 +387,13 @@ void AppDock::ReleaseAll()
     this->CloseAll();
 }
 
+void AppDock::DetachAll()
+{
+    for(auto it : this->dockWins)
+        it.first->DetachAll();
+
+}
+
 void AppDock::MaintenanceLoop(wxTimerEvent& evt)
 {
     // Do maintenence on sparse intervals

@@ -24,7 +24,7 @@ public:
 		Menu_RenameWin,			// See OnMenu_RClick_Rename()
 		Menu_ReleaseWin,		// See OnMenu_RClick_Release()
 		Menu_CloseWin,			// See OnMenu_RClick_CloseWin()
-		Menu_DettachWin,		// See OnMenu_RClick_DettachWin()
+		Menu_DetachWin,			// See OnMenu_RClick_DetachWin()
 		Menu_SystemMenu			// See OnMenu_RClick_SystemMenu()
 	};
 
@@ -162,7 +162,7 @@ public: // Public methods
 	void OnMenu_RClick_Rename(wxCommandEvent& evt);
 	void OnMenu_RClick_Release(wxCommandEvent& evt);
 	void OnMenu_RClick_CloseWin(wxCommandEvent& evt);
-	void OnMenu_RClick_DettachWin(wxCommandEvent& evt);
+	void OnMenu_RClick_DetachWin(wxCommandEvent& evt);
 	void OnMenu_RClick_SystemMenu(wxCommandEvent& evt);
 	void OnMenu_RClick_ShowTBarCustom(wxCommandEvent& evt);
 	void OnMenu_RClick_ShowTBarOriginal(wxCommandEvent& evt);

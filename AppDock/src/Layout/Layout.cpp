@@ -817,10 +817,7 @@ bool Layout::ReleaseWindow(Node* targ, std::set<Node*>* involvedOut, bool delNod
 {
 	HWND hwnd = targ->Hwnd();
 	if(hwnd != NULL)
-	{ 
-		targ->ReleaseHWND(true);
-		targ->ForgetHWND();
-	}
+		targ->ReleaseHWND(false);
 
 	return this->_CleanupWindowNodeRemoval(
 		targ,

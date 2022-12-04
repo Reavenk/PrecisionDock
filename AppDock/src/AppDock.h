@@ -232,6 +232,12 @@ public:
     void ReleaseAll();
 
     /// <summary>
+    /// Detach all windows contained in all TopDockWins,
+    /// So each captured HWND will be the root of their own TopDockWin.
+    /// </summary>
+    void DetachAll();
+
+    /// <summary>
     /// Gets the path where reference launch applications are
     /// specified. These are a list of authored program names
     /// that can be launched from the taskbar.

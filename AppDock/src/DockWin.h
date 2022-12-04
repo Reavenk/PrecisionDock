@@ -117,6 +117,8 @@ public:
 	inline bool HasRoot() const
 	{return this->layout.root != nullptr;}
 
+	std::set<HWND> AllDockedWindows() const;
+
 	/// <summary>
 	/// Add a HWND to dock the layout.
 	/// </summary>
@@ -240,7 +242,9 @@ public:
 	/// The Window Node to remove and give its own TopDockWin to.
 	/// </param>
 	/// <returns>True if successful.</returns>
-	bool DettachNodeWin(Node* pn);
+	bool DetachNodeWin(Node* pn);
+
+	bool DetachNodeWin(HWND hwnd);
 
 	/// <summary>
 	/// Close a Window node.

@@ -43,7 +43,7 @@ private:
     {
         ToggleStatusbar,
         ReleaseAll,
-        DettachAll
+        DetachAll
     };
 
     static int      _InstCtr;
@@ -111,6 +111,8 @@ public:
     /// </summary>
     void ReleaseAll();
 
+    void DetachAll();
+
 public:
     static inline int ClassInstCtr()
     { return _InstCtr;}
@@ -139,6 +141,7 @@ private:
     //////////////////////////////////////////////////
 
     void OnMenu_ToggleStatusbar(wxCommandEvent& evt);
+    void OnMenu_DetachAll(wxCommandEvent& evt);
     void OnMenu_ReleaseAll(wxCommandEvent& evt);
     void OnExit(wxCommandEvent& event);
 

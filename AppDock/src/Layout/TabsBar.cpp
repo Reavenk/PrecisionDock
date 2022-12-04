@@ -25,7 +25,7 @@ BEGIN_EVENT_TABLE(TabsBar, wxWindow)
 	EVT_MENU((int)CmdIds::Menu_RenameWin,		TabsBar::OnMenu_RClick_Rename			)  
 	EVT_MENU((int)CmdIds::Menu_ReleaseWin,		TabsBar::OnMenu_RClick_Release			)
 	EVT_MENU((int)CmdIds::Menu_CloseWin,		TabsBar::OnMenu_RClick_CloseWin			)
-	EVT_MENU((int)CmdIds::Menu_DettachWin,		TabsBar::OnMenu_RClick_DettachWin		)
+	EVT_MENU((int)CmdIds::Menu_DetachWin,		TabsBar::OnMenu_RClick_DetachWin		)
 	EVT_MENU((int)CmdIds::Menu_SystemMenu,		TabsBar::OnMenu_RClick_SystemMenu		)
 	EVT_MENU((int)CmdIds::Menu_ShowTBarCustom,  TabsBar::OnMenu_RClick_ShowTBarCustom	)
 	EVT_MENU((int)CmdIds::Menu_ShowTBarOriginal,TabsBar::OnMenu_RClick_ShowTBarOriginal	)
@@ -572,8 +572,8 @@ void TabsBar::OnMouseRDown(wxMouseEvent& evt)
 	// > ☐ TABS_RMENU_bfa93a347a32: Tabs dropdown menu references the tab that was right clicked to invoke the menu.
 	// > ☐ TABS_RMENU_5d0bfc4f7500: Tabs dropdown menu has a "Release" option
 	// > ☐ TABS_RMENU_cba5c12ace6b: Tabs dropdown menu "Release" option properly releases the window.
-	// > ☐ TABS_RMENU_4e986e5e95d0: Tabs dropdown menu has a "Dettach" option.
-	// > ☐ TABS_RMENU_449a32913b62: Tabs dropdown menu "Dettach" option properly detaches the window.
+	// > ☐ TABS_RMENU_4e986e5e95d0: Tabs dropdown menu has a "Detach" option.
+	// > ☐ TABS_RMENU_449a32913b62: Tabs dropdown menu "Detach" option properly detaches the window.
 	// > ☐ TABS_RMENU_80f542c9cbc4: Tabs dropdown menu has a "Close" option
 	// > ☐ TABS_RMENU_80f542c9cbc4: Tabs dropdown menu "Close" option closes the tab properly
 
@@ -611,7 +611,7 @@ void TabsBar::OnMouseRDown(wxMouseEvent& evt)
 	tabPopupMenu.Append((int)CmdIds::Menu_SystemMenu,			"System Menu");
 	tabPopupMenu.AppendSeparator();
 	tabPopupMenu.Append((int)CmdIds::Menu_ReleaseWin,			"Release"   );
-	tabPopupMenu.Append((int)CmdIds::Menu_DettachWin,			"Dettach"   );
+	tabPopupMenu.Append((int)CmdIds::Menu_DetachWin,			"Detach"   );
 	tabPopupMenu.AppendSeparator();
 	tabPopupMenu.Append((int)CmdIds::Menu_CloseWin,				"Close"     );
 	//
@@ -717,12 +717,12 @@ void TabsBar::OnMenu_RClick_CloseWin(wxCommandEvent& evt)
 	this->owner->CloseNodeWin(this->nodeRightClicked);
 }
 
-void TabsBar::OnMenu_RClick_DettachWin(wxCommandEvent& evt)
+void TabsBar::OnMenu_RClick_DetachWin(wxCommandEvent& evt)
 {
 	if(this->nodeRightClicked == nullptr)
 		return;
 
-	this->owner->DettachNodeWin(this->nodeRightClicked);
+	this->owner->DetachNodeWin(this->nodeRightClicked);
 }
 
 void TabsBar::OnMenu_RClick_SystemMenu(wxCommandEvent& evt)

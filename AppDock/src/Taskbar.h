@@ -38,6 +38,7 @@ public:
 
 		CloseAll,				// See OnMenu_CloseAllDocked()
 		ReleaseAll,				// See OnMenu_ReleaseAllDocked()
+		DetachAll,				// See OnMenu_DetachAllDocked()
 		RunTests,				// See OnMenu_RunTests()
 		SaveState,				// See OnMenu_SaveState()
 		ClearNotification,		// See OnMenu_ClearNotification()
@@ -86,6 +87,8 @@ public:
 	void OnMenu_CloseAllDocked(wxCommandEvent& evt);	
 	// Close all dock window - BUT, release the contained windows first.
 	void OnMenu_ReleaseAllDocked(wxCommandEvent& evt);
+	// Detach all dock windows so that each windows in the system will be a root in its own TopDockWin
+	void OnMenu_DetachAllDocked(wxCommandEvent& evt);
 	//
 	// Run saftey/sanity/state-health checks (debug only)
 	void OnMenu_RunTests(wxCommandEvent& evt);			

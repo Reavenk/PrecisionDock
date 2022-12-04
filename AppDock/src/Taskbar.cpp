@@ -14,8 +14,9 @@ wxBEGIN_EVENT_TABLE(Taskbar, wxTaskBarIcon)
 	EVT_MENU(CMDID::Ex_SpawnEmpty,		Taskbar::OnMenu_SpawnEmpty          )
 	//EVT_MENU(CMDID::Dlg_About,		Taskbar::OnMenu_About)
 	EVT_MENU(CMDID::Dlg_Attach,			Taskbar::OnMenu_DlgAttach           )
-	EVT_MENU(CMDID::CloseAll,			Taskbar::OnMenu_CloseAllDocked      )
 	EVT_MENU(CMDID::ReleaseAll,			Taskbar::OnMenu_ReleaseAllDocked    )
+	EVT_MENU(CMDID::DetachAll,			Taskbar::OnMenu_DetachAllDocked     )
+	EVT_MENU(CMDID::CloseAll,			Taskbar::OnMenu_CloseAllDocked      )
 	EVT_MENU(CMDID::OpenLaunchList,		Taskbar::OnMenu_OpenLaunchList		)
 	EVT_MENU(CMDID::RunTests,			Taskbar::OnMenu_RunTests			)
 	EVT_MENU(CMDID::SaveState,			Taskbar::OnMenu_SaveState			)
@@ -108,6 +109,11 @@ void Taskbar::OnMenu_ReleaseAllDocked(wxCommandEvent&)
 	AppDock::GetApp().ReleaseAll();
 }
 
+void Taskbar::OnMenu_DetachAllDocked(wxCommandEvent& evt)
+{
+	AppDock::GetApp().DetachAll();
+}
+
 void Taskbar::OnMenu_RunTests(wxCommandEvent&)
 {
 	if(AppDock::GetApp()._TestValidity() == true)
@@ -174,8 +180,9 @@ wxMenu *Taskbar::CreatePopupMenu()
 	
 	menu->AppendSeparator();
 
-	menu->Append(CMDID::CloseAll,       "Close All Docked");
-	menu->Append(CMDID::ReleaseAll,     "Release All Docked");
+	menu->Append(CMDID::ReleaseAll,			"Release All Docked");
+	menu->Append(CMDID::DetachAll,			"Detach All");
+	menu->Append(CMDID::CloseAll,			"Close All Docked");
 
 	menu->AppendSeparator();
 

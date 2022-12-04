@@ -138,7 +138,7 @@ public:
 	/// <summary>
 	/// The DockWin that has the mouse capture during a tab drag.
 	/// </summary>
-	DockWin* winWhereDragged;
+	DockWin* winWhereDragged = nullptr;
 
 	/// <summary>
 	/// If a dragging tab, this is if it was initiated by clicking
