@@ -57,6 +57,13 @@ void CalculateCloseButtonInfo(const wxRect& wxrTab, const LProps& lp, int& outRa
 	outRad = closeButtonRad;
 }
 
+/// <summary>
+/// Test if a mouse point is within a tab's close button.
+/// </summary>
+/// <param name="tb">The bar that owns the tab.</param>
+/// <param name="n">The node that the tab is for.</param>
+/// <param name="mousePt">The mouse point, local to tb.</param>
+/// <returns>True if mousePt is inside the tab for n.</returns>
 bool InCloseButton(TabsBar* tb, Node* n, const wxPoint mousePt)
 {
 	int closeButtonRad;
@@ -261,6 +268,26 @@ std::vector<wxPoint> GenerateTabPoints(
 	return tabPts;
 }
 
+/// <summary>
+/// Get the region of a tab dedicated to the application's icon.
+/// </summary>
+/// <param name="wxrTab">The cached tab region of the tab being evaluated.</param>
+/// <param name="lp">Layout properties</param>
+/// <returns>The region inside wxrTab reserved for rendering the icon.</returns>
+/// <remarks>
+/// The lp parameter is currently not used but should be kept because if there are
+/// ever variable options that define the icon region, they will be passed in there.
+/// </remarks>
+wxRect GetTabIconRect(const wxRect& wxrTab, const LProps& lp)
+{
+	const int iconDim = 16;
+	return wxRect(
+		wxrTab.x + 2,
+		wxrTab.y + (wxrTab.height - iconDim) / 2,
+		iconDim,
+		iconDim);
+}
+
 void DrawTabIcon(HDC hdc, HWND hwnd, const wxRect& wxrTab, const LProps& lp)
 {
 	if(hwnd == NULL)
@@ -270,15 +297,15 @@ void DrawTabIcon(HDC hdc, HWND hwnd, const wxRect& wxrTab, const LProps& lp)
 	if(winIcon != NULL)
 	{
 		// The width and height of the square region to draw the icon.
-		const int iconDim = 16;
-
+		
+		wxRect iconRect = GetTabIconRect(wxrTab, lp);
 		DrawIconEx(
 			hdc,
-			wxrTab.x + 2,
-			wxrTab.y + (wxrTab.height - iconDim) / 2,
+			iconRect.x,
+			iconRect.y,
 			winIcon,
-			iconDim,
-			iconDim,
+			iconRect.width,
+			iconRect.height,
 			0,
 			NULL,
 			DI_NORMAL);
@@ -441,6 +468,57 @@ bool TabsBar::ChangeTBarType(Node* node, Node::TabNameType tbarTy, bool force)
 	return true;
 }
 
+void TabsBar::OpenSystemMenu(Node* node)
+{
+	ASSERT_ISNODEWIN(node);
+
+	HWND hwnd = node->Hwnd();
+	if(hwnd == NULL)
+		return;
+
+	HMENU hMenuSys = GetSystemMenu(hwnd, FALSE);
+
+	// GetSystemMenu doesn't work on all windows, best guess is
+	// the function only gives a menu if it has a non-default
+	// system menu.
+	if(hMenuSys == NULL)
+		AppDock::RaiseTODO("Missing System menu, perform fallback menu");
+
+	wxPoint localSysMenuPt =
+		wxPoint(
+			node->cachedTabLcl.x,
+			node->cachedTabLcl.GetBottom());
+
+	wxPoint tabCornerOnScr = this->ClientToScreen(localSysMenuPt);
+
+	// We're not allowed to open the menu on the actual HWND, probably because
+	// it doesn't have a titlebar to display it at. 
+	// What we need to do instead is intercept the message on a dummy window, and
+	// redirect it via SendMessage to the window.
+	wxWindow* redirector = new wxWindow(this, -1);
+	// Hide it out of sight
+	redirector->SetPosition(wxPoint(-1, -1));
+	redirector->SetSize(wxSize(1, 1));
+
+	// The use of the TPM_RETURNCMD flag will let us get the
+	// selected menu value back immediately.
+	static const UINT menuFlags = TPM_LEFTALIGN|TPM_TOPALIGN|TPM_RETURNCMD ;
+	INT popup = 
+		TrackPopupMenu(
+			hMenuSys,
+			menuFlags,
+			tabCornerOnScr.x,
+			tabCornerOnScr.y,
+			0,
+			redirector->GetHWND(),
+			NULL);
+
+	if(popup != 0)
+		SendMessage(this->nodeRightClicked->Hwnd(), WM_SYSCOMMAND, MAKELPARAM(popup, 0), NULL);
+
+	redirector->Destroy(); // No longer needed after it handles the menu
+}
+
 void TabsBar::OnDraw(wxPaintEvent& evt)
 {
 	assert(this->node != nullptr);
@@ -568,6 +646,14 @@ void TabsBar::OnMouseRDown(wxMouseEvent& evt)
 	if(this->nodeRightClicked == nullptr)
 		return;
 
+	const LProps& lp = this->owner->GetLayoutProps();
+	wxRect sysIconRect = GetTabIconRect(this->nodeRightClicked->cachedTab, lp);
+	if (sysIconRect.Contains(evt.GetPosition()))
+	{
+		this->OpenSystemMenu(this->nodeRightClicked);
+		return;
+	}
+
 	// > ☐ TABS_RMENU_09b5a49bfc1d: Tabs can be right clicked to bring up a dropdown menu.
 	// > ☐ TABS_RMENU_bfa93a347a32: Tabs dropdown menu references the tab that was right clicked to invoke the menu.
 	// > ☐ TABS_RMENU_5d0bfc4f7500: Tabs dropdown menu has a "Release" option
@@ -608,7 +694,12 @@ void TabsBar::OnMouseRDown(wxMouseEvent& evt)
 	tabPopupMenu.AppendSeparator();
 	tabPopupMenu.Append((int)CmdIds::Menu_CloneWin,				"Clone"     );
 	tabPopupMenu.Append((int)CmdIds::Menu_RenameWin,			"Rename Window");
-	tabPopupMenu.Append((int)CmdIds::Menu_SystemMenu,			"System Menu");
+	HMENU hMenuSys = GetSystemMenu(this->nodeRightClicked->Hwnd(), FALSE);
+	if (hMenuSys)
+	{
+		tabPopupMenu.AppendSeparator();
+		tabPopupMenu.Append((int)CmdIds::Menu_SystemMenu,		"System Menu");
+	}
 	tabPopupMenu.AppendSeparator();
 	tabPopupMenu.Append((int)CmdIds::Menu_ReleaseWin,			"Release"   );
 	tabPopupMenu.Append((int)CmdIds::Menu_DetachWin,			"Detach"   );
@@ -730,38 +821,7 @@ void TabsBar::OnMenu_RClick_SystemMenu(wxCommandEvent& evt)
 	if(this->nodeRightClicked == nullptr)
 		return;
 
-	HWND hwnd = this->nodeRightClicked->Hwnd();
-	if(hwnd == NULL)
-		return;
-
-	HMENU hMenuSys = GetSystemMenu(hwnd, FALSE);
-	static const UINT menuFlags = TPM_LEFTALIGN|TPM_TOPALIGN;
-
-	// GetSystemMenu doesn't work on all windows, best guess is
-	// the function only gives a menu if it has a non-default
-	// system menu.
-	if(hMenuSys == NULL)
-		AppDock::RaiseTODO("Missing System menu, perform fallback menu");
-
-	wxPoint tabCornerOnScr = 
-		this->ClientToScreen(
-			this->nodeRightClicked->cachedTabLcl.GetPosition());
-
-	BOOL popup = 
-		TrackPopupMenu(
-			hMenuSys,
-			menuFlags,
-			tabCornerOnScr.x,
-			tabCornerOnScr.y,
-			0,
-			this->GetHWND(),
-			NULL);
-
-	// We're not allowed to open the menu on the actual HWND, probably because
-	// it doesn't have a titlebar to display it at. 
-	// What we need to do instead is intercept the message on a dummy window, and
-	// redirect it via SendMessage to the window. Pretty sure that would work.
-	AppDock::RaiseTODO("Create delegation system of message to HWND");
+	OpenSystemMenu(this->nodeRightClicked);
 }
 
 const wxBitmap& TabsBar::GetCloseBtnBitmap()

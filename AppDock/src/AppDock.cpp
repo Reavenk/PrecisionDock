@@ -491,7 +491,12 @@ void AppDock::OnHook_WindowNameChanged(HWND hwnd)
     }
 
     assert(twd != nullptr);
-    twd->UpdateWindowTitlebar(hwnd);
+
+    // Check validity because I've seen an edge case where the 
+    // TopDockWin (twd) is closed and destructed before 
+    // UpdateWindowTitlebar() is called.
+    if(IsWindow(hwnd))
+        twd->UpdateWindowTitlebar(hwnd);
 }
 
 void AppDock::OnHook_WindowCreated(HWND hwnd)

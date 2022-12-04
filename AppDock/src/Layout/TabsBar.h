@@ -142,6 +142,8 @@ public: // Public methods
 	/// <return>If modified, true.</return>
 	bool ChangeTBarType(Node* node, Node::TabNameType tbarTy, bool force = false);
 
+	void OpenSystemMenu(Node* node);
+
 	//////////////////////////////////////////////////
 	//
 	//	wxWidgets EVENT HANDLERS
