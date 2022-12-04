@@ -7,13 +7,14 @@ int TopDockWin::_InstCtr = 0;
 
 wxBEGIN_EVENT_TABLE(TopDockWin, wxFrame)
     EVT_MENU(wxID_EXIT,  TopDockWin::OnExit)
-    EVT_MENU((int)CMDID::ToggleStatusbar,   TopDockWin::OnMenu_ToggleStatusbar  )
-    EVT_MENU((int)CMDID::ReleaseAll,        TopDockWin::OnMenu_ReleaseAll       )
-    EVT_MENU((int)CMDID::DetachAll,         TopDockWin::OnMenu_DetachAll       )
+    EVT_MENU((int)CMDID::ToggleStatusbar,       TopDockWin::OnMenu_ToggleStatusbar  )
+    EVT_MENU((int)CMDID::ReleaseAll,            TopDockWin::OnMenu_ReleaseAll       )
+    EVT_MENU((int)CMDID::DetachAll,             TopDockWin::OnMenu_DetachAll        )
+    EVT_MENU((int)CMDID::CloseAll,              TopDockWin::OnMenu_CloseAll         )
 wxEND_EVENT_TABLE()
 
 TopDockWin::TopDockWin(const wxPoint& pos, const wxSize& size)
-    : wxFrame(NULL, wxID_ANY, "PrecisionDock", pos, size)
+    :   wxFrame(NULL, wxID_ANY, "PrecisionDock", pos, size)
 {
     this->cachedHWND = this->GetHWND();
     AppDock::GetApp().RegisterToplevelOwned(this->cachedHWND);
@@ -22,9 +23,10 @@ TopDockWin::TopDockWin(const wxPoint& pos, const wxSize& size)
 
     wxMenu* menuFile = new wxMenu;
     {
-        menuFile->Append((int)CMDID::ReleaseAll,    "Release All",  "Release all windows in this collection");
-        menuFile->Append((int)CMDID::DetachAll,     "Detach All",   "Detach all windows in this collection into their own collections.");
-        menuFile->Append(wxID_EXIT,                 "Close All",    "Close all windows in this collection.");
+        menuFile->Append((int)CMDID::ReleaseAll,    "Release All",          "Release all windows in this collection");
+        menuFile->Append((int)CMDID::DetachAll,     "Detach All",           "Detach all windows in this collection into their own collections.");
+        menuFile->Append((int)CMDID::CloseAll,      "Close All",            "Close all windows in this collection.");
+        menuFile->Append(wxID_EXIT,                 "Force Close All",      "Force close all windows in this collection.");
     }
     wxMenu* menuView = new wxMenu;
     {
@@ -114,13 +116,20 @@ void TopDockWin::DetachAll()
     this->GetDockWin()->Layout();
 }
 
+void TopDockWin::CloseAllHWNDs()
+{
+    std::set<HWND> dockedHwnds = this->GetDockWin()->AllDockedWindows();
+    for (HWND hwnd : dockedHwnds)
+        SendMessage(hwnd, WM_CLOSE, 0, 0);
+}
+
 void TopDockWin::UpdateTitlebar()
 {
     std::string titlebarStr = "PrecisionDock";
 
     const Node* rootNode = this->dockWin->GetRoot();
     if (rootNode != nullptr && rootNode->type == Node::Type::Window)
-        titlebarStr += std::string(" | ") + rootNode->GetPreferredTabTitlebar();
+        titlebarStr = std::string("PrDok | ") + rootNode->GetPreferredTabTitlebar();
 
     this->SetTitle(titlebarStr.c_str());
 }
@@ -185,9 +194,11 @@ void TopDockWin::OnDetectLostWindow(HWND win, LostWindowReason why)
 	    this->dockWin->CloseNodeWin(win);
 }
 
-void TopDockWin::UpdateWindowTitlebar(HWND win)
+void TopDockWin::OnWindowTitlebarModified(HWND win)
 {
-    this->dockWin->RefreshWindowTitlebar(win);
+    // See comments at titlebarsToUpdate for more information.
+    if(this->dockWin->RefreshWindowTitlebar(win))
+        this->UpdateTitlebar();
 }
 
 void TopDockWin::OnDockWin_Added(HWND hwnd, Node* n)
@@ -224,6 +235,11 @@ void TopDockWin::OnMenu_ToggleStatusbar(wxCommandEvent& evt)
 void TopDockWin::OnMenu_DetachAll(wxCommandEvent& evt)
 {
     this->DetachAll();
+}
+
+void TopDockWin::OnMenu_CloseAll(wxCommandEvent& evt)
+{
+    this->CloseAllHWNDs();
 }
 
 void TopDockWin::OnMenu_ReleaseAll(wxCommandEvent& evt)

@@ -840,7 +840,7 @@ void TabsBar::OnMenu_RClick_CloseWin(wxCommandEvent& evt)
 	if(this->nodeRightClicked == nullptr)
 		return;
 
-	this->owner->CloseNodeWin(this->nodeRightClicked);
+	this->owner->CloseNodeWinHWND(this->nodeRightClicked);
 }
 
 void TabsBar::OnMenu_RClick_DetachWin(wxCommandEvent& evt)

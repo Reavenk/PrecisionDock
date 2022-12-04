@@ -16,7 +16,7 @@ wxBEGIN_EVENT_TABLE(Taskbar, wxTaskBarIcon)
 	EVT_MENU(CMDID::Dlg_Attach,			Taskbar::OnMenu_DlgAttach           )
 	EVT_MENU(CMDID::ReleaseAll,			Taskbar::OnMenu_ReleaseAllDocked    )
 	EVT_MENU(CMDID::DetachAll,			Taskbar::OnMenu_DetachAllDocked     )
-	EVT_MENU(CMDID::CloseAll,			Taskbar::OnMenu_CloseAllDocked      )
+	EVT_MENU(CMDID::ForceCloseAll,		Taskbar::OnMenu_CloseAllDocked      )
 	EVT_MENU(CMDID::OpenLaunchList,		Taskbar::OnMenu_OpenLaunchList		)
 	EVT_MENU(CMDID::RunTests,			Taskbar::OnMenu_RunTests			)
 	EVT_MENU(CMDID::SaveState,			Taskbar::OnMenu_SaveState			)
@@ -42,7 +42,7 @@ void Taskbar::OnMenuExit(wxCommandEvent& )
 	// > ☐ TSKBR_MAIN_10ded6c7be77: Taskbar close option works as expected.
 
 	//gs_dialog->Close(true);
-	AppDock::GetApp().CloseAll();
+	AppDock::GetApp().ForceCloseAll();
 	AppDock::GetApp().Exit();
 }
 
@@ -101,7 +101,7 @@ void Taskbar::OnMenu_DlgAttach(wxCommandEvent&)
 
 void Taskbar::OnMenu_CloseAllDocked(wxCommandEvent&)
 {
-	AppDock::GetApp().CloseAll();
+	AppDock::GetApp().ForceCloseAll();
 }
 
 void Taskbar::OnMenu_ReleaseAllDocked(wxCommandEvent&)
@@ -182,7 +182,7 @@ wxMenu *Taskbar::CreatePopupMenu()
 
 	menu->Append(CMDID::ReleaseAll,			"Release All Docked");
 	menu->Append(CMDID::DetachAll,			"Detach All");
-	menu->Append(CMDID::CloseAll,			"Close All Docked");
+	menu->Append(CMDID::ForceCloseAll,		"Force Close All Docked");
 
 	menu->AppendSeparator();
 

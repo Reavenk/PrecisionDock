@@ -264,6 +264,18 @@ public:
 	/// <returns>True if successfully closed.</returns>
 	bool CloseNodeWin(Node* pn);
 
+	/// <summary>
+	/// Send a message to the HWND of a docked window to close.
+	/// 
+	/// Instead of closing through the layout, we close the window and let OS
+	/// hooks tell us it should be removed. This will allow the application to
+	/// veto the close - such as if it has a "Unsaved stuff, are you sure you
+	/// wish to exit?" dialog.
+	/// </summary>
+	/// /// <param name="pn">The Window Node to close.</param>
+	/// <returns>True if successfully closed.</returns>
+	bool CloseNodeWinHWND(Node* pn);
+
 	Node* CloseNodeWin(HWND hwnd);
 
 	/// <summary>
@@ -323,7 +335,15 @@ public:
 	/// </summary>
 	void OnDelegatedEscape(); // TODO: Encapsulate - and expect delegation from TabClickCancel
 
-	void RefreshWindowTitlebar(HWND hwnd);
+	/// <summary>
+	/// Function to react to a docked window's titlebar changing.
+	/// </summary>
+	/// <param name="hwnd">The HWND of the docked window whos titlebar changed.</param>
+	/// <returns>
+	/// If successfully handled, true. Else, the hwnd parameter probably didn't map to a 
+	/// docked window managed by the DockWin.
+	/// </returns>
+	bool RefreshWindowTitlebar(HWND hwnd);
 
 	inline void RebuildSashes()
 	{

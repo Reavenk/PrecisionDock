@@ -360,7 +360,7 @@ bool AppDock::UnregisterTopWin(TopDockWin* win)
     return true;
 }
 
-void AppDock::CloseAll()
+void AppDock::ForceCloseAll()
 {
     std::vector<TopDockWin*> tdw;
     for(auto it : this->dockWins)
@@ -376,7 +376,7 @@ void AppDock::ReleaseAll()
     for(auto it : this->dockWins)
         it.first->ReleaseAll();
 
-    this->CloseAll();
+    this->ForceCloseAll();
 }
 
 void AppDock::DetachAll()
@@ -467,7 +467,6 @@ void AppDock::OnHook_WindowClosed(HWND hwnd)
 
     assert(twd != nullptr);
     twd->OnDetectLostWindow(hwnd, LostWindowReason::Destroyed);
-    MessageBeep(MB_OK);
 }
 
 void AppDock::OnHook_WindowNameChanged(HWND hwnd)
@@ -488,7 +487,7 @@ void AppDock::OnHook_WindowNameChanged(HWND hwnd)
     // TopDockWin (twd) is closed and destructed before 
     // UpdateWindowTitlebar() is called.
     if(IsWindow(hwnd))
-        twd->UpdateWindowTitlebar(hwnd);
+        twd->OnWindowTitlebarModified(hwnd);
 }
 
 void AppDock::OnHook_WindowCreated(HWND hwnd)

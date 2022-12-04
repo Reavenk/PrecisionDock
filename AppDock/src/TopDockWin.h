@@ -43,7 +43,14 @@ private:
     {
         ToggleStatusbar,
         ReleaseAll,
+        CloseAll,
         DetachAll
+    };
+
+    struct UpdateTargetTimes
+    {
+        wxLongLong msTime;
+        HWND hwndTarg;
     };
 
     static int      _InstCtr;
@@ -67,7 +74,6 @@ private:
     /// Upon creation, the TopDockWin is registered to make sure the application
     /// doesn't try to capture in a layout. This cached HWND is used to properly 
     /// unregister the node from the system after the TopDockWin is closed.
-    /// window is closed.
     /// </summary>
     HWND cachedHWND = NULL;
 
@@ -113,6 +119,8 @@ public:
 
     void DetachAll();
 
+    void CloseAllHWNDs();
+
     void UpdateTitlebar();
 
 public:
@@ -129,7 +137,7 @@ public:
     //
     //////////////////////////////////////////////////
     void OnDetectLostWindow(HWND win, LostWindowReason why);
-    void UpdateWindowTitlebar(HWND win);
+    void OnWindowTitlebarModified(HWND win);
 
 	void OnDockWin_Added(HWND hwnd, Node* n);
 	void OnDockWin_Removed(HWND hwnd, LostReason lr);
@@ -143,9 +151,12 @@ private:
     //
     //////////////////////////////////////////////////
 
+    void OnTimer_UpdateDelayedTitlebars(wxTimerEvent& evt);
+
     void OnMenu_ToggleStatusbar(wxCommandEvent& evt);
     void OnMenu_DetachAll(wxCommandEvent& evt);
     void OnMenu_ReleaseAll(wxCommandEvent& evt);
+    void OnMenu_CloseAll(wxCommandEvent& evt);
     void OnExit(wxCommandEvent& event);
 
 public:

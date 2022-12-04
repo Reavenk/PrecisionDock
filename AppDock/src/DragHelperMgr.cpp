@@ -94,7 +94,7 @@ void DragHelperMgr::FinishSuccessfulTabDragging()
 
         if(this->clickedClose)
         {
-            this->winWhereDragged->CloseNodeWin(this->nodeDragged);
+            this->winWhereDragged->CloseNodeWinHWND(this->nodeDragged);
 
         }
         else if(this->nodeDragged->IsTabChild())

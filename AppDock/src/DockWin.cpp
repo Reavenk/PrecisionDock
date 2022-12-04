@@ -564,6 +564,21 @@ Node* DockWin::CloseNodeWin(HWND hwnd)
 	return n;
 }
 
+bool DockWin::CloseNodeWinHWND(Node* pn)
+{
+    assert(this->layout.root != nullptr);
+    ASSERT_ISNODEWIN(pn);
+    // Check that our Layout actually owns it. If this fails, it probably
+    // won't do so in an unsafe way, but means something is programmed wrong.
+    assert(this->layout.GetNodeFrom(pn->Hwnd()) != nullptr);
+
+    SendMessage(pn->Hwnd(), WM_CLOSE, 0, 0);
+	
+	// We're not saying we've closed it, just that we've successfully sent
+	// the rest for it to close.
+    return true;
+}
+
 Node* DockWin::CloneNodeWin(Node* pn)
 {
     if(pn->win == NULL)
@@ -651,12 +666,14 @@ void DockWin::OnDelegatedEscape()
     this->FinishMouseDrag();
 }
 
-void DockWin::RefreshWindowTitlebar(HWND hwnd)
+bool DockWin::RefreshWindowTitlebar(HWND hwnd)
 {
     Node* n = this->layout.GetNodeFrom(hwnd);
     ASSERT_ISNODEWIN(n);
     if(n == nullptr)
-        return;
+        return false;
+
+    n->UpdateWindowTitlebarCache();
 
     if (n->IsTabChild())
     {
@@ -673,6 +690,7 @@ void DockWin::RefreshWindowTitlebar(HWND hwnd)
     assert(tb != nullptr);
 
     tb->Refresh(false);
+    return true;
 }
 
 void DockWin::_ReactToNodeRemoval()

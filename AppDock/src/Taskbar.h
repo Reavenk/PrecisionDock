@@ -36,7 +36,7 @@ public:
 
 		Dlg_Attach,				// TODO: Remove? Used for empty fn OnMenu_DlgAttach()
 
-		CloseAll,				// See OnMenu_CloseAllDocked()
+		ForceCloseAll,			// See OnMenu_CloseAllDocked()
 		ReleaseAll,				// See OnMenu_ReleaseAllDocked()
 		DetachAll,				// See OnMenu_DetachAllDocked()
 		RunTests,				// See OnMenu_RunTests()

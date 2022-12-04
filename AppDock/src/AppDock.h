@@ -215,7 +215,7 @@ public:
     /// <summary>
     /// Close all TopDockWins.
     /// </summary>
-    void CloseAll();
+    void ForceCloseAll();
 
     /// <summary>
     /// Release all windows contained in all TopDockWins,
