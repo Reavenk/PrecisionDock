@@ -176,6 +176,7 @@ public:
 	static DragHelperMgrPtr GetInst();
 	static void SetInst(DragHelperMgr* _newInst);
 	static bool HasInst();
+	static bool IsInstType(DragHelperMgr::DragType ty);
 	static bool ReleaseInst();
 
 	/// <summary>
@@ -255,4 +256,11 @@ public:
 	void StopCapture(wxWindow* requester, bool fromCaptureLoss);
 
 	void SetDragPreviewOlyWin(const wxPoint& whereAt);
+
+	/// <summary>
+	/// Utility function to handle figuring out where a window would be docked
+	/// in ANY TopDockWin, if a mouse drag dropped that window there.
+	/// </summary>
+	/// <param name="globalMousePt">The global mouse position</param>
+	void FigureOutWherePointWouldDock(const wxPoint& globalMousePt);
 };

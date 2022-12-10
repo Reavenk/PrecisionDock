@@ -57,6 +57,8 @@ public: // Public methods
 	/// Set references to null, and the state to be invalid.
 	/// </summary>
 	void Invalidate();
+
+	Node::Dest WhereToNodeDest() const;
 };
 
 /// <summary>
@@ -434,7 +436,7 @@ public: // Public methods
 	/// Given a (mouse) point, scan the layout for where a node 
 	/// would be inserted.
 	/// </summary>
-	DropResult ScanForDrop(const wxPoint& pt, LProps& lp);
+	DropResult ScanForDrop(const wxPoint& pt, const LProps& lp);
 
 	Node* GetNodeFrom(HWND hwnd);
 

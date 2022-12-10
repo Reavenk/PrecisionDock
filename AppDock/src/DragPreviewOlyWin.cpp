@@ -6,18 +6,18 @@
 // > ☐ DRAGOLY_MAIN_6893e998f2be: Drag overlay to shop showing when the drag operation is complete.
 // > ☐ DRAGOLY_MAIN_6397bbd27efe: Drag overlay to shop showing when the drag operation is cancelled.
 
-wxBEGIN_EVENT_TABLE(DragPreviewOlyWin, wxTopLevelWindow)
+wxBEGIN_EVENT_TABLE(DragPreviewOlyWin, wxFrame)
 	EVT_KEY_DOWN(DragPreviewOlyWin::OnKeyDown)
 wxEND_EVENT_TABLE();
 
 DragPreviewOlyWin::DragPreviewOlyWin(wxWindow * parent, DockWin* escapeSink)
-	: wxTopLevelWindow(
+	: wxFrame(
 		parent, 
 		-1, 
 		"BarDrag", 
 		wxDefaultPosition, 
 		wxSize(60, 15), 
-		wxBORDER_NONE|wxCLIP_CHILDREN)
+		wxBORDER_NONE|wxCLIP_CHILDREN|wxFRAME_NO_TASKBAR)
 {
 	this->escapeSink = escapeSink;
 

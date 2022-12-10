@@ -36,6 +36,28 @@ void DropResult::Invalidate()
 	this->where = DropResult::Where::None;
 }
 
+Node::Dest DropResult::WhereToNodeDest() const
+{
+	switch(this->where)
+	{
+	case DropResult::Where::Left:
+		return Node::Dest::Left;
+		break;
+	case DropResult::Where::Right:
+		return Node::Dest::Right;
+		break;
+	case DropResult::Where::Top:
+		return Node::Dest::Above;
+		break;
+	case DropResult::Where::Bottom:
+		return Node::Dest::Below;
+		break;
+	case DropResult::Where::Onto:
+		return  Node::Dest::Into;
+	}
+	return Node::Dest::Invalid;
+}
+
 
 Layout::ForgetUndo Layout::ForgetUndo::MakeProportion(Node* pn)
 {
@@ -1204,7 +1226,7 @@ void Layout::Clear()
 	this->hwndLookup.clear();
 }
 
-DropResult Layout::ScanForDrop(const wxPoint& pt, LProps& lp)
+DropResult Layout::ScanForDrop(const wxPoint& pt, const LProps& lp)
 {
 	if(this->root == nullptr)
 		return DropResult(DropResult::Where::None);

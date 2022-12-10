@@ -71,6 +71,7 @@ DragHelperMgr::DragHelperMgr(HWND winDragged)
     assert(winDragged != NULL);
     assert(OSUtils::IsToplevel(winDragged));
 
+    this->dragType = DragType::NativeWin;
     this->nativeDragged = winDragged;
 }
 
@@ -87,6 +88,14 @@ void DragHelperMgr::SetInst(DragHelperMgr* _newInst)
 bool DragHelperMgr::HasInst()
 {
 	return inst != nullptr;
+}
+
+bool DragHelperMgr::IsInstType(DragHelperMgr::DragType ty)
+{
+    if (inst == nullptr)
+        return (ty == DragType::Invalid);
+		
+	return (inst->dragType == ty);
 }
 
 bool DragHelperMgr::ReleaseInst()
@@ -225,28 +234,7 @@ void DragHelperMgr::FinishSuccessfulTabDragging()
     }
 
     assert(tabDropDst.where != DropResult::Where::Void);
-
-    Node::Dest whereAdd = Node::Dest::Invalid;
-
-    // NOTE: We may just want to get rid of one of the enums.
-    switch(tabDropDst.where)
-    {
-    case DropResult::Where::Left:
-        whereAdd = Node::Dest::Left;
-        break;
-    case DropResult::Where::Right:
-        whereAdd = Node::Dest::Right;
-        break;
-    case DropResult::Where::Top:
-        whereAdd = Node::Dest::Above;
-        break;
-    case DropResult::Where::Bottom:
-        whereAdd = Node::Dest::Below;
-        break;
-    case DropResult::Where::Onto:
-        whereAdd = Node::Dest::Into;
-    }
-
+    Node::Dest whereAdd = tabDropDst.WhereToNodeDest();
 
     this->nodeDragged->parent = nullptr; // To not trigger asserts
     winDraggedOnto->GetDockWin()->StealToLayout(
@@ -372,7 +360,7 @@ void DragHelperMgr::_AssertIsDraggingSashCorrectly(bool shouldHaveCapture)
     assert(this->dropPreviewWin     == nullptr);
     assert(this->winDraggedOnto     == nullptr);
     assert(this->nodeDragged        == nullptr);
-    assert(this->tabsBarDrag         == nullptr);
+    assert(this->tabsBarDrag        == nullptr);
     assert(this->tabDragOwner       == nullptr);
     assert(this->dragUndo.empty());
     assert(this->dragNodesInvolved.empty());
@@ -679,161 +667,17 @@ void DragHelperMgr::_HandleMouseMoveTab(const wxPoint& delta)
     {
         wxPoint globMouse = wxGetMousePosition();
         this->SetDragPreviewOlyWin(globMouse);
-
-        bool foundTarg = false;
-        winDraggedOnto = TopDockWin::GetWinAt(globMouse);
-        if(winDraggedOnto != nullptr)
-        { 
-            wxPoint othMouse = winDraggedOnto->GetDockWin()->ScreenToClient(globMouse);
-
-            // DRAGGING ONTO A SASH?
-            //////////////////////////////////////////////////
-            Sash* s = winDraggedOnto->GetDockWin()->layout.GetSashAt(othMouse);
-
-            if(s != nullptr)
-            {
-                tabDropDst = 
-                    DropResult(
-                        s->dir == Sash::Dir::Horiz ?
-                        DropResult::Where::Right : 
-                        DropResult::Where::Bottom,
-                        s->r[0],
-                        s,
-                        s->pos,
-                        s->size);
-
-                this->SetDropPreviewWin(
-                    s->pos,
-                    s->size,
-                    this->winWhereDragged, 
-                    winDraggedOnto->GetDockWin());
-
-                foundTarg = true;
-            }
-            else
-            {
-                // DRAGGING ONTO A NODE IN THE LAYOUT?
-                //////////////////////////////////////////////////
-                Node* pn = winDraggedOnto->GetDockWin()->layout.GetNodeAt(othMouse);
-
-                if(pn == nullptr && winDraggedOnto->GetDockWin()->layout.root == nullptr)
-                {
-                    // If there's no node found in the region, we're going to
-                    // assume it's the root
-                    //
-                    // NOTE: This is NOT 100% correct because there may be a border
-                    // outside of the grid.
-                    wxSize otherClientsz = winDraggedOnto->GetClientSize();
-                    tabDropDst = 
-                        DropResult(
-                            DropResult::Where::Onto, 
-                            nullptr, 
-                            nullptr, 
-                            wxPoint(0,0), 
-                            otherClientsz);
-
-                    SetDropPreviewWin(
-                        tabDropDst.dropRgnPt, 
-                        tabDropDst.dropRgnSz, 
-                        this->winWhereDragged, 
-                        winDraggedOnto->GetDockWin());
-
-                    foundTarg = true;
-                }
-                else
-                {
-                    //SetDropPreviewWin(--)
-
-
-                    tabDropDst = 
-                        this->winDraggedOnto->GetDockWin()->layout.ScanForDrop(
-                            othMouse, 
-                            this->winWhereDragged->lprops);
-
-                    if(tabDropDst.where == DropResult::Where::Left)
-                    {
-                        SetDropPreviewWin(
-                            tabDropDst.topOf->cachePos, 
-                            wxSize(
-                                this->winWhereDragged->lprops.dropEdgeWidth, 
-                                tabDropDst.topOf->cacheSize.y),
-                            this->winWhereDragged,
-                            winDraggedOnto->GetDockWin());
-
-                        foundTarg = true;
-                    }
-                    else if(tabDropDst.where == DropResult::Where::Right)
-                    {
-                        SetDropPreviewWin(
-                            wxPoint(
-                                tabDropDst.topOf->CacheRight() - this->winWhereDragged->lprops.dropEdgeWidth,
-                                tabDropDst.topOf->cachePos.y), 
-                            wxSize(
-                                this->winWhereDragged->lprops.dropEdgeWidth, 
-                                tabDropDst.topOf->cacheSize.y),
-                            this->winWhereDragged,
-                            winDraggedOnto->GetDockWin());
-
-                        foundTarg = true;
-                    }
-                    else if(tabDropDst.where == DropResult::Where::Top)
-                    {
-                        SetDropPreviewWin(
-                            tabDropDst.topOf->cachePos,
-                            wxSize(
-                                tabDropDst.topOf->cacheSize.x, 
-                                this->winWhereDragged->lprops.dropEdgeWidth),
-                            this->winWhereDragged,
-                            winDraggedOnto->GetDockWin());
-
-                        foundTarg = true;
-                    }
-                    else if(tabDropDst.where == DropResult::Where::Bottom)
-                    {
-                        SetDropPreviewWin(
-                            wxPoint(
-                                tabDropDst.topOf->cachePos.x,
-                                tabDropDst.topOf->CacheBot() - this->winWhereDragged->lprops.dropEdgeWidth),
-                            wxSize(
-                                tabDropDst.topOf->cacheSize.x,
-                                this->winWhereDragged->lprops.dropEdgeWidth),
-                            this->winWhereDragged,
-                            winDraggedOnto->GetDockWin());
-
-
-                        foundTarg = true;
-                    }
-                    else if(tabDropDst.where == DropResult::Where::Onto)
-                    {
-                        SetDropPreviewWin(
-                            tabDropDst.dropRgnPt,
-                            tabDropDst.dropRgnSz,
-                            this->winWhereDragged,
-                            winDraggedOnto->GetDockWin());
-
-                        foundTarg = true;
-                    }
-                }
-            }
-        }
-
-        if(foundTarg == false && this->dropPreviewWin != nullptr)
-        {
-            // Hide it, but don't destroy it because we might end up
-            // recreating it soon as the user continues to drag the
-            // mouse.
-            this->dropPreviewWin->Hide();
-        }
+        this->FigureOutWherePointWouldDock(globMouse);
     }
 }
 
 void DragHelperMgr::_HandleMouseMoveTopHWND()
 {
-    wxPoint globMousePt = wxGetMousePosition();
+    assert(DragHelperMgr::IsInstType(DragType::NativeWin));
+    assert(DragHelperMgr::GetInst()->nativeDragged != NULL);
 
-	// Find the window that the mouse is over
-	// Make sure it's a TopDockWin
-	// Set the top target
+    wxPoint globMousePt = wxGetMousePosition();
+    this->FigureOutWherePointWouldDock(globMousePt);
 }
 
 void DragHelperMgr::SetDropPreviewWin(
@@ -850,16 +694,23 @@ void DragHelperMgr::SetDropPreviewWin(
         // Creating the new window will steal keyboard focus, but we
         // still want it to detect pressing the escape key.
     }
+
+	//ShowWindow(dropPreviewWin->GetHWND(), SW_SHOWNOACTIVATE);
     dropPreviewWin->Show();
+    wxPoint dstScreenPt = dwDst->ClientToScreen(pt);
+    
+    SetWindowPos(
+        dropPreviewWin->GetHWND(),
+        HWND_TOPMOST,
+        dstScreenPt.x, dstScreenPt.y,
+        sz.x, sz.y,
+        SWP_NOACTIVATE);
 
-    wxPoint dstScreenOrigin = 
-        dwDst->ClientToScreen(wxPoint(0,0));
-
-    dropPreviewWin->SetPosition(dstScreenOrigin + pt);
-    dropPreviewWin->SetSize(sz);
-
-    if(raise == true)
-        dropPreviewWin->Raise();
+    // We can't use wxWidgets' Raise() because that will cause any
+    // kind of mouse capture or window move/size to be interrupted.
+    // 
+    //if(raise)
+    //  dropPreviewWin->Raise();
 }
 
 void DragHelperMgr::ResumeCapture(wxWindow* requester)
@@ -915,7 +766,156 @@ void DragHelperMgr::SetDragPreviewOlyWin(const wxPoint& whereAt)
     {
         this->draggingCursorGraphic = new DragPreviewOlyWin(this->winWhereDragged, this->winWhereDragged);
         this->draggingCursorGraphic->SetCursor(*wxCROSS_CURSOR);
-        this->draggingCursorGraphic->Show();
+        this->draggingCursorGraphic->ShowWithoutActivating();
     }
     this->draggingCursorGraphic->SetPosition(whereAt);
+}
+
+void DragHelperMgr::FigureOutWherePointWouldDock(const wxPoint& globalMousePt)
+{
+    bool foundTarg = false;
+    winDraggedOnto = TopDockWin::GetWinAt(globalMousePt);
+    if(winDraggedOnto != nullptr)
+    { 
+        wxPoint othMouse = winDraggedOnto->GetDockWin()->ScreenToClient(globalMousePt);
+        const LProps& dragToLayoutProps = winDraggedOnto->GetDockWin()->lprops;
+
+        // DRAGGING ONTO A SASH?
+        //////////////////////////////////////////////////
+        Sash* s = winDraggedOnto->GetDockWin()->layout.GetSashAt(othMouse);
+
+        if(s != nullptr)
+        {
+            tabDropDst = 
+                DropResult(
+                    s->dir == Sash::Dir::Horiz ?
+                    DropResult::Where::Right : 
+                    DropResult::Where::Bottom,
+                    s->r[0],
+                    s,
+                    s->pos,
+                    s->size);
+
+            this->SetDropPreviewWin(
+                s->pos,
+                s->size,
+                this->winWhereDragged, 
+                winDraggedOnto->GetDockWin());
+
+            foundTarg = true;
+        }
+        else
+        {
+            // DRAGGING ONTO A NODE IN THE LAYOUT?
+            //////////////////////////////////////////////////
+            Node* pn = winDraggedOnto->GetDockWin()->layout.GetNodeAt(othMouse);
+
+            if(pn == nullptr && winDraggedOnto->GetDockWin()->layout.root == nullptr)
+            {
+                // If there's no node found in the region, we're going to
+                // assume it's the root
+                //
+                // NOTE: This is NOT 100% correct because there may be a border
+                // outside of the grid.
+                wxSize otherClientsz = winDraggedOnto->GetClientSize();
+                tabDropDst = 
+                    DropResult(
+                        DropResult::Where::Onto, 
+                        nullptr, 
+                        nullptr, 
+                        wxPoint(0,0), 
+                        otherClientsz);
+
+                SetDropPreviewWin(
+                    tabDropDst.dropRgnPt, 
+                    tabDropDst.dropRgnSz, 
+                    this->winWhereDragged, 
+                    winDraggedOnto->GetDockWin());
+
+                foundTarg = true;
+            }
+            else
+            {
+                //SetDropPreviewWin(--)
+
+
+                tabDropDst = 
+                    this->winDraggedOnto->GetDockWin()->layout.ScanForDrop(
+                        othMouse, 
+                        dragToLayoutProps);
+
+                if(tabDropDst.where == DropResult::Where::Left)
+                {
+                    SetDropPreviewWin(
+                        tabDropDst.topOf->cachePos, 
+                        wxSize(
+                            dragToLayoutProps.dropEdgeWidth, 
+                            tabDropDst.topOf->cacheSize.y),
+                        this->winWhereDragged,
+                        winDraggedOnto->GetDockWin());
+
+                    foundTarg = true;
+                }
+                else if(tabDropDst.where == DropResult::Where::Right)
+                {
+                    SetDropPreviewWin(
+                        wxPoint(
+                            tabDropDst.topOf->CacheRight() - dragToLayoutProps.dropEdgeWidth,
+                            tabDropDst.topOf->cachePos.y), 
+                        wxSize(
+                            dragToLayoutProps.dropEdgeWidth, 
+                            tabDropDst.topOf->cacheSize.y),
+                        this->winWhereDragged,
+                        winDraggedOnto->GetDockWin());
+
+                    foundTarg = true;
+                }
+                else if(tabDropDst.where == DropResult::Where::Top)
+                {
+                    SetDropPreviewWin(
+                        tabDropDst.topOf->cachePos,
+                        wxSize(
+                            tabDropDst.topOf->cacheSize.x, 
+                            dragToLayoutProps.dropEdgeWidth),
+                        this->winWhereDragged,
+                        winDraggedOnto->GetDockWin());
+
+                    foundTarg = true;
+                }
+                else if(tabDropDst.where == DropResult::Where::Bottom)
+                {
+                    SetDropPreviewWin(
+                        wxPoint(
+                            tabDropDst.topOf->cachePos.x,
+                            tabDropDst.topOf->CacheBot() - dragToLayoutProps.dropEdgeWidth),
+                        wxSize(
+                            tabDropDst.topOf->cacheSize.x,
+                            dragToLayoutProps.dropEdgeWidth),
+                        this->winWhereDragged,
+                        winDraggedOnto->GetDockWin());
+
+
+                    foundTarg = true;
+                }
+                else if(tabDropDst.where == DropResult::Where::Onto)
+                {
+                    SetDropPreviewWin(
+                        tabDropDst.dropRgnPt,
+                        tabDropDst.dropRgnSz,
+                        this->winWhereDragged,
+                        winDraggedOnto->GetDockWin());
+
+                    foundTarg = true;
+                }
+            }
+        }
+    }
+
+    if(foundTarg == false && this->dropPreviewWin != nullptr)
+    {
+        // Hide it, but don't destroy it because we might end up
+        // recreating it soon as the user continues to drag the
+        // mouse.
+        this->dropPreviewWin->Hide();
+    }
 }

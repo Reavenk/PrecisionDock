@@ -140,18 +140,33 @@ VOID WindowSysEventCallback(
     }
     else if (EVENT_SYSTEM_MOVESIZESTART)
     {
+        wxLogDebug("EVENT_SYSTEM_MOVESIZESTART");
         wxPoint mousePt = wxGetMousePosition();
         LRESULT checkClick = SendMessage(hwnd, WM_NCHITTEST, 0, MAKELPARAM(mousePt.x, mousePt.y));
+
+        // Used to handle unexpected behaviour where EVENT_SYSTEM_MOVESIZEEND will not be
+        // sent for a window when dragging stops, but instead another EVENT_SYSTEM_MOVESIZESTART
+        // is sent.
+        HWND capHWND = ::GetCapture();
+        if (DragHelperMgr::IsInstType(DragHelperMgr::DragType::NativeWin))
+        {
+            if (capHWND != DragHelperMgr::GetInst()->nativeDragged)
+            {
+                AppDock::GetApp().OnHook_EndMoveSize(hwnd);
+                return;
+            }
+        }
 
         // We want to track when the titlebar starts to get dragged, but that's
         // mixed in with the size events too. So we only track events that involve
         // the mouse being over the titlebar and assume the MOVESIZESTART was triggered
         // by a titlebar drag.
         if (checkClick == HTCAPTION)
-            AppDock::GetApp().OnHook_MoveSize(hwnd);
+            AppDock::GetApp().OnHook_StartedMoveSize(hwnd);
     }
     else if (EVENT_SYSTEM_MOVESIZEEND)
     {
+        wxLogDebug("EVENT_SYSTEM_MOVESIZEEND");
         AppDock::GetApp().OnHook_EndMoveSize(hwnd);
     }
 
@@ -216,6 +231,10 @@ bool AppDock::OnInit()
     this->maintenenceTimer.Start(2000);
     
     const std::vector<AppRef>& v = AppDock::GetApp().ReferencedApps();
+    // For debugging, spawn some dummy programs right-off-the-bat.
+    // Note that this will crash if there aren't any spawnnable things.
+    // 
+    // NOTE: This is slated to be removed when feature-complete is hit.
     AppDock::GetApp().LaunchAppRef(v[0]);
     AppDock::GetApp().LaunchAppRef(v[0]);
     AppDock::GetApp().LaunchAppRef(v[0]);
@@ -554,32 +573,48 @@ void AppDock::OnHook_WindowCreated(HWND hwnd)
 
 void AppDock::OnHook_StartedMoveSize(HWND hwnd)
 {
+    if (DragHelperMgr::IsInstType(DragHelperMgr::DragType::NativeWin))
+    {
+        // If we've gotten a signal to drag the window we're already
+        // dragging - this can happen spurriously by the system right
+        // before an EndMoveSize happens.
+        if (DragHelperMgr::GetInst()->nativeDragged == hwnd)
+            return;
+    }
 	// Only called if started from a titlebar drag.
-    if (this->draggedFromTitlebarHWND != NULL)
-        this->TitlebarDragCancel();
-
-    assert(this->draggedFromTitlebarHWND == NULL);
-
-    this->draggedFromTitlebarHWND = hwnd;
-	//DragHelperMgr
+    DragHelperMgr::SetInst(new DragHelperMgr(hwnd));
 }
 
 void AppDock::OnHook_EndMoveSize(HWND hwnd)
 {
-	if (this->draggedFromTitlebarHWND == NULL ||
-		this->draggedFromTitlebarHWND != hwnd)
+	if(!DragHelperMgr::IsInstType(DragHelperMgr::DragType::NativeWin))
 		return;
 
-	this->TitlebarDragConfirm();
+    DragHelperMgrPtr dragMgrInst = DragHelperMgr::GetInst();
+    if (dragMgrInst->winDraggedOnto != nullptr)
+    {
+        Node::Dest whereAdd = dragMgrInst->tabDropDst.WhereToNodeDest();
+
+        Node * nodeAdded = 
+            dragMgrInst->winDraggedOnto->GetDockWin()->AddToLayout(
+                dragMgrInst->nativeDragged,
+                dragMgrInst->tabDropDst.topOf,
+                whereAdd);
+
+        if(nodeAdded)
+            dragMgrInst->winDraggedOnto->GetDockWin()->ResizeLayout();
+    }
+		
+    dragMgrInst->dragFlaggedAsFinished = true;
+	DragHelperMgr::ReleaseInst();
 }
 
 void AppDock::OnHook_MoveSize(HWND hwnd)
 {
-    if (this->draggedFromTitlebarHWND == NULL ||
-        this->draggedFromTitlebarHWND != hwnd)
-        return;
-	
-    this->TitlebarDragMove();
+    if(!DragHelperMgr::IsInstType(DragHelperMgr::DragType::NativeWin))
+		return;
+
+    DragHelperMgr::GetInst()->_HandleMouseMoveTopHWND();
 }
 
 std::vector<TopDockWin*> AppDock::_GetWinList()
@@ -604,25 +639,6 @@ bool AppDock::AppOwnsTopLevelWindow(HWND hwnd) const
 {
     std::lock_guard<std::mutex> guard(this->ownedWinMutex);
     return this->ownedWins.find(hwnd) != this->ownedWins.end();
-}
-
-void AppDock::TitlebarDragCancel()
-{
-    this->draggedFromTitlebarHWND = NULL;
-}
-
-void AppDock::TitlebarDragStart(HWND hwnd)
-{
-	this->draggedFromTitlebarHWND = hwnd;
-}
-
-void AppDock::TitlebarDragConfirm()
-{
-    this->draggedFromTitlebarHWND = NULL;
-}
-
-void AppDock::TitlebarDragMove()
-{
 }
 
 bool AppDock::IsStealingNew() const

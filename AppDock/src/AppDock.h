@@ -119,8 +119,6 @@ protected:
 	
     std::mutex captureDlgsMutex;
 
-    HWND draggedFromTitlebarHWND = NULL;
-
 protected:
     void MaintenanceLoop(wxTimerEvent& evt);
 
@@ -259,11 +257,6 @@ public:
     std::set<HWND> _GetToplevelDockHWNDs() const;
 
     bool AppOwnsTopLevelWindow(HWND hwnd) const;
-
-	void TitlebarDragStart(HWND hwnd);
-	void TitlebarDragConfirm();
-    void TitlebarDragMove();
-    void TitlebarDragCancel();
 
     bool IsStealingNew() const;
     void SetStealingNew(bool steal);

@@ -10,7 +10,7 @@ class DockWin;
 /// next to the mouse.
 /// 
 /// </summary>
-class DragPreviewOlyWin : public wxTopLevelWindow
+class DragPreviewOlyWin : public wxFrame
 {
 public:
 

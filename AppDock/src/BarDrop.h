@@ -8,7 +8,7 @@ class DockWin;
 /// Visual representation of where a window would be dropped 
 /// into a layout.
 /// </summary>
-class BarDrop : public wxTopLevelWindow
+class BarDrop : public wxFrame
 {
 public:	DockWin* escapeSink = nullptr;
 
