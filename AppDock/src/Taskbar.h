@@ -36,6 +36,8 @@ public:
 
 		Dlg_Attach,				// TODO: Remove? Used for empty fn OnMenu_DlgAttach()
 
+		ToggleStealNew,
+
 		ForceCloseAll,			// See OnMenu_CloseAllDocked()
 		ReleaseAll,				// See OnMenu_ReleaseAllDocked()
 		DetachAll,				// See OnMenu_DetachAllDocked()
@@ -80,6 +82,7 @@ public:
 	void OnMenu_ReloadLaunches(wxCommandEvent& evt);	// Refresh launch list from JSON
 	void OnMenu_OpenLaunchList(wxCommandEvent& evt);	// Open launch list menu
 	void OnMenu_SpawnEmpty(wxCommandEvent& evt);		// Open empty dock window
+	void OnMenu_ToggleStealNew(wxCommandEvent& evt);
 	
 	void OnMenu_DlgAttach(wxCommandEvent& evt);			// TODO: Remove? Forget what this was for
 

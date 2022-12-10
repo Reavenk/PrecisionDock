@@ -87,6 +87,8 @@ private:
 
     std::vector<HWINEVENTHOOK> winHooks;
 
+    bool stealAllNewOSToplevels = false;
+
 public:
     virtual bool OnInit();
     virtual int OnExit();
@@ -116,6 +118,8 @@ protected:
     std::set<CaptureDlg*> captureDialogs;
 	
     std::mutex captureDlgsMutex;
+
+    HWND draggedFromTitlebarHWND = NULL;
 
 protected:
     void MaintenanceLoop(wxTimerEvent& evt);
@@ -246,11 +250,23 @@ public:
     void OnHook_WindowClosed(HWND hwnd);
     void OnHook_WindowNameChanged(HWND hwnd);
     void OnHook_WindowCreated(HWND hwnd);
+	
+    void OnHook_StartedMoveSize(HWND hwnd);
+	void OnHook_EndMoveSize(HWND hwnd);
+	void OnHook_MoveSize(HWND hwnd);
 
     std::vector<TopDockWin*> _GetWinList();
     std::set<HWND> _GetToplevelDockHWNDs() const;
 
     bool AppOwnsTopLevelWindow(HWND hwnd) const;
+
+	void TitlebarDragStart(HWND hwnd);
+	void TitlebarDragConfirm();
+    void TitlebarDragMove();
+    void TitlebarDragCancel();
+
+    bool IsStealingNew() const;
+    void SetStealingNew(bool steal);
 
 public:
     // Utility functions - may be moved to deciated utility library(s) later.

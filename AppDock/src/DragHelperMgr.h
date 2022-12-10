@@ -8,6 +8,9 @@ class DragPreviewOlyWin;
 class Node;
 class BarDrop;
 
+class DragHelperMgr;
+typedef std::shared_ptr<DragHelperMgr> DragHelperMgrPtr;
+
 /// <summary>
 /// A helper class to manage the drag and drop mechanics,
 /// validity and state-keeping of DockWins.
@@ -21,8 +24,21 @@ public:
 	enum class DragType
 	{
 		Invalid,
+		/// <summary>
+		/// A sash is being dragged. DragHelperMgr will assist in resizing
+		/// the neighbors around the sash.
+		/// </summary>
 		Sash,
-		Tab
+		/// <summary>
+		/// A tab is being dragged. DragHelperMgr will assist in tearing the
+		/// tab out and docking it elsewhere.
+		/// </summary>
+		Tab,
+		/// <summary>
+		/// A native toplevel window is being dragged. DragHelperMgr will assist
+		/// in capturing and docking it into a TopDockWin.
+		/// </summary>
+		NativeWin
 	};
 
 public:
@@ -140,16 +156,27 @@ public:
 	/// </summary>
 	DockWin* winWhereDragged = nullptr;
 
+	HWND nativeDragged = NULL;
+
 	/// <summary>
 	/// If a dragging tab, this is if it was initiated by clicking
 	/// on the close button.
 	/// </summary>
 	bool clickedClose = false;
 
+private:
+	static DragHelperMgrPtr inst;
+	
 public:
 	DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoint& winMousePos);
 	DragHelperMgr(DockWin* winDragged, TabsBar* tbInvoker, bool clickedClose, Node* node, Node* tabOwner);
+	DragHelperMgr(HWND winDragged);
 	~DragHelperMgr();
+
+	static DragHelperMgrPtr GetInst();
+	static void SetInst(DragHelperMgr* _newInst);
+	static bool HasInst();
+	static bool ReleaseInst();
 
 	/// <summary>
 	/// Sets the data of dropPreviewWin to specific values.
@@ -185,6 +212,8 @@ public:
 	/// </param>
 	void _AssertIsDraggingTabCorrectly(bool shouldHaveCapture);
 
+	void _AssertIsDraggingNativeCorrectly();
+
 	/// <summary>
 	/// Run assert checks to see that all expected variables are null or empty. This
 	/// is because our codebase expects these things to be manually emptied to ensure
@@ -204,6 +233,7 @@ public:
 	void HandleMouseMove();
 	void _HandleMouseMoveSash(const wxPoint& delta);
 	void _HandleMouseMoveTab(const wxPoint& delta);
+	void _HandleMouseMoveTopHWND();
 
 	void ResumeCapture(wxWindow* requester);
 
@@ -226,5 +256,3 @@ public:
 
 	void SetDragPreviewOlyWin(const wxPoint& whereAt);
 };
-
-typedef std::shared_ptr<DragHelperMgr> DragHelperMgrPtr;

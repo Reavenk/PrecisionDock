@@ -114,6 +114,9 @@
     <ClInclude Include="src\Utils\MyWxUtils.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\Utils\OSUtils.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppDock.cpp">
@@ -174,6 +177,9 @@
       <Filter>Source Files\Layout</Filter>
     </ClCompile>
     <ClCompile Include="src\Utils\MyWxUtils.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils\OSUtils.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>

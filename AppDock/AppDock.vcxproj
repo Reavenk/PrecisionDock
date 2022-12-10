@@ -139,14 +139,18 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;WIN32;_CRT_SECURE_NO_DEPRECATE=1;_CRT_NON_CONFORMING_SWPRINTFS=1;_SCL_SECURE_NO_WARNINGS=1;__WXMSW__;_UNICODE;NOPCH;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(WX_WIDGETS)\include\msvc;$(WX_WIDGETS)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>wxbase31u.lib;wxmsw31u_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(WX_WIDGETS)\lib\vc_x64_lib;$(WX_WIDGETS)\lib\vc_x64_dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -174,6 +178,7 @@
     <ClInclude Include="src\Utils\AppUtils.h" />
     <ClInclude Include="src\Utils\json.hpp" />
     <ClInclude Include="src\Utils\MyWxUtils.h" />
+    <ClInclude Include="src\Utils\OSUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppDock.cpp" />
@@ -196,6 +201,7 @@
     <ClCompile Include="src\TopDockWin.cpp" />
     <ClCompile Include="src\Utils\AppUtils.cpp" />
     <ClCompile Include="src\Utils\MyWxUtils.cpp" />
+    <ClCompile Include="src\Utils\OSUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AppDock.rc" />

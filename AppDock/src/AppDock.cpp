@@ -1,5 +1,6 @@
 ﻿// AppDock.cpp : Defines the entry point for the application.
 #include "TopDockWin.h"
+#include "Utils/OSUtils.h"
 
 #include <wx/msw/private.h>
 #include <wx/config.h>
@@ -113,12 +114,47 @@ VOID WindowSysEventCallback(
     DWORD         dwmsEventTime)
 {
  
-    if(event == EVENT_OBJECT_DESTROY)
+    if (event == EVENT_OBJECT_DESTROY)
+    {
         AppDock::GetApp().OnHook_WindowClosed(hwnd);
-    else if(event == EVENT_OBJECT_NAMECHANGE)
-        AppDock::GetApp().OnHook_WindowNameChanged(hwnd);
-    else if(event == EVENT_OBJECT_CREATE)
-        AppDock::GetApp().OnHook_WindowCreated(hwnd);
+    }
+    else if (event == EVENT_OBJECT_NAMECHANGE)
+    {
+		// The text of the titlebar changed
+        if (idObject == OBJID_WINDOW)
+            AppDock::GetApp().OnHook_WindowNameChanged(hwnd);
+    }
+    else if (event == EVENT_OBJECT_CREATE)
+    {
+        if (idObject == OBJID_WINDOW)
+            AppDock::GetApp().OnHook_WindowCreated(hwnd);
+    }
+    else if (event == EVENT_OBJECT_LOCATIONCHANGE)
+    {
+        if (idObject == OBJID_WINDOW)
+        {
+			// If a window moved, check if it's the window we're
+			// tracking as the one being dragged by its titlebar.
+			AppDock::GetApp().OnHook_MoveSize(hwnd);
+        }
+    }
+    else if (EVENT_SYSTEM_MOVESIZESTART)
+    {
+        wxPoint mousePt = wxGetMousePosition();
+        LRESULT checkClick = SendMessage(hwnd, WM_NCHITTEST, 0, MAKELPARAM(mousePt.x, mousePt.y));
+
+        // We want to track when the titlebar starts to get dragged, but that's
+        // mixed in with the size events too. So we only track events that involve
+        // the mouse being over the titlebar and assume the MOVESIZESTART was triggered
+        // by a titlebar drag.
+        if (checkClick == HTCAPTION)
+            AppDock::GetApp().OnHook_MoveSize(hwnd);
+    }
+    else if (EVENT_SYSTEM_MOVESIZEEND)
+    {
+        AppDock::GetApp().OnHook_EndMoveSize(hwnd);
+    }
+
 }
 
 wxIMPLEMENT_APP(AppDock);
@@ -185,9 +221,12 @@ bool AppDock::OnInit()
     AppDock::GetApp().LaunchAppRef(v[0]);
 
     // https://learn.microsoft.com/en-us/windows/win32/winauto/event-constants
-    SubscribeWinSysHook(EVENT_OBJECT_DESTROY,       WindowSysEventCallback, &this->winHooks);
-    SubscribeWinSysHook(EVENT_OBJECT_NAMECHANGE,    WindowSysEventCallback, &this->winHooks);
-    SubscribeWinSysHook(EVENT_OBJECT_CREATE,        WindowSysEventCallback, &this->winHooks);
+    SubscribeWinSysHook(EVENT_OBJECT_DESTROY,           WindowSysEventCallback, &this->winHooks);
+    SubscribeWinSysHook(EVENT_OBJECT_NAMECHANGE,        WindowSysEventCallback, &this->winHooks);
+    SubscribeWinSysHook(EVENT_OBJECT_CREATE,            WindowSysEventCallback, &this->winHooks);
+    SubscribeWinSysHook(EVENT_OBJECT_LOCATIONCHANGE,    WindowSysEventCallback, &this->winHooks);
+    SubscribeWinSysHook(EVENT_SYSTEM_MOVESIZESTART,     WindowSysEventCallback, &this->winHooks);
+    SubscribeWinSysHook(EVENT_SYSTEM_MOVESIZEEND,       WindowSysEventCallback, &this->winHooks);
 
     return true;
 }
@@ -491,7 +530,57 @@ void AppDock::OnHook_WindowNameChanged(HWND hwnd)
 }
 
 void AppDock::OnHook_WindowCreated(HWND hwnd)
-{}
+{
+	// Sanity check it's a toplevel window.
+    if (!OSUtils::IsToplevel(hwnd))
+        return;
+
+	// Lots of new windows are constantly being created.
+	// So what we want to do is only handle things toplevels
+	// with titlebars.
+	LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    if ((style & WS_CAPTION) == 0)
+        return;
+	
+    AppDock& adInst = AppDock::GetApp();
+    if (adInst.IsStealingNew())
+    {
+        this->CreateWindowFromHwnd(hwnd, false);
+
+        // TODO: Set window size and position to
+        // match the hwnd before it was captured
+    }
+}
+
+void AppDock::OnHook_StartedMoveSize(HWND hwnd)
+{
+	// Only called if started from a titlebar drag.
+    if (this->draggedFromTitlebarHWND != NULL)
+        this->TitlebarDragCancel();
+
+    assert(this->draggedFromTitlebarHWND == NULL);
+
+    this->draggedFromTitlebarHWND = hwnd;
+	//DragHelperMgr
+}
+
+void AppDock::OnHook_EndMoveSize(HWND hwnd)
+{
+	if (this->draggedFromTitlebarHWND == NULL ||
+		this->draggedFromTitlebarHWND != hwnd)
+		return;
+
+	this->TitlebarDragConfirm();
+}
+
+void AppDock::OnHook_MoveSize(HWND hwnd)
+{
+    if (this->draggedFromTitlebarHWND == NULL ||
+        this->draggedFromTitlebarHWND != hwnd)
+        return;
+	
+    this->TitlebarDragMove();
+}
 
 std::vector<TopDockWin*> AppDock::_GetWinList()
 {
@@ -515,6 +604,35 @@ bool AppDock::AppOwnsTopLevelWindow(HWND hwnd) const
 {
     std::lock_guard<std::mutex> guard(this->ownedWinMutex);
     return this->ownedWins.find(hwnd) != this->ownedWins.end();
+}
+
+void AppDock::TitlebarDragCancel()
+{
+    this->draggedFromTitlebarHWND = NULL;
+}
+
+void AppDock::TitlebarDragStart(HWND hwnd)
+{
+	this->draggedFromTitlebarHWND = hwnd;
+}
+
+void AppDock::TitlebarDragConfirm()
+{
+    this->draggedFromTitlebarHWND = NULL;
+}
+
+void AppDock::TitlebarDragMove()
+{
+}
+
+bool AppDock::IsStealingNew() const
+{
+    return this->stealAllNewOSToplevels;
+}
+
+void AppDock::SetStealingNew(bool steal)
+{
+    this->stealAllNewOSToplevels = steal;
 }
 
 HWND AppDock::CreateSpawnedWindow(const std::wstring & cmd)

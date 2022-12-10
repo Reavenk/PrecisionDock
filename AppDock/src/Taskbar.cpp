@@ -12,6 +12,7 @@ wxBEGIN_EVENT_TABLE(Taskbar, wxTaskBarIcon)
 	EVT_MENU_RANGE(CMDID::Ex_StartRange, CMDID::Ex_EndRange, Taskbar::OnMenu_ExecuteLaunchID)
 	EVT_MENU(CMDID::Ex_Reload,			Taskbar::OnMenu_ReloadLaunches      )
 	EVT_MENU(CMDID::Ex_SpawnEmpty,		Taskbar::OnMenu_SpawnEmpty          )
+	EVT_MENU(CMDID::ToggleStealNew,		Taskbar::OnMenu_ToggleStealNew		)
 	//EVT_MENU(CMDID::Dlg_About,		Taskbar::OnMenu_About)
 	EVT_MENU(CMDID::Dlg_Attach,			Taskbar::OnMenu_DlgAttach           )
 	EVT_MENU(CMDID::ReleaseAll,			Taskbar::OnMenu_ReleaseAllDocked    )
@@ -93,6 +94,11 @@ void Taskbar::OnMenu_OpenLaunchList(wxCommandEvent&)
 void Taskbar::OnMenu_SpawnEmpty(wxCommandEvent&)
 {
 	AppDock::GetApp().SpawnEmpty("");
+}
+
+void Taskbar::OnMenu_ToggleStealNew(wxCommandEvent& evt)
+{
+	AppDock::GetApp().SetStealingNew(!AppDock::GetApp().IsStealingNew());
 }
 
 void Taskbar::OnMenu_DlgAttach(wxCommandEvent&)
@@ -178,6 +184,11 @@ wxMenu *Taskbar::CreatePopupMenu()
 	menu->Append(-1, "Spawn", submSpawn);
 	menu->Append(CMDID::Ex_SpawnEmpty,  "Spawn Empty Window");
 	
+	menu->AppendSeparator();
+
+	wxMenuItem * stealItem = menu->AppendCheckItem(CMDID::ToggleStealNew, "Steal New Widows");
+	stealItem->Check(AppDock::GetApp().IsStealingNew());
+
 	menu->AppendSeparator();
 
 	menu->Append(CMDID::ReleaseAll,			"Release All Docked");

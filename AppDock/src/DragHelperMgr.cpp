@@ -6,6 +6,9 @@
 #include "Layout/TabsBar.h"
 #include "AppDock.h"
 #include "DragPreviewOlyWin.h"
+#include "Utils/OSUtils.h"
+
+DragHelperMgrPtr DragHelperMgr::inst = nullptr;
 
 DragHelperMgr::DragHelperMgr(DockWin* winDragged, Sash* sashDragged, const wxPoint& winMousePos)
 {
@@ -61,6 +64,38 @@ DragHelperMgr::DragHelperMgr(DockWin* winDragged, TabsBar* tbInvoker, bool click
 
 
     this->_AssertIsDraggingTabCorrectly(true);
+}
+
+DragHelperMgr::DragHelperMgr(HWND winDragged)
+{
+    assert(winDragged != NULL);
+    assert(OSUtils::IsToplevel(winDragged));
+
+    this->nativeDragged = winDragged;
+}
+
+DragHelperMgrPtr DragHelperMgr::GetInst()
+{
+    return inst;
+}
+
+void DragHelperMgr::SetInst(DragHelperMgr* _newInst)
+{
+    inst = DragHelperMgrPtr(_newInst);
+}
+
+bool DragHelperMgr::HasInst()
+{
+	return inst != nullptr;
+}
+
+bool DragHelperMgr::ReleaseInst()
+{
+    if (inst == nullptr)
+        return false;
+	
+	inst.reset();
+	return true;
 }
 
 bool DragHelperMgr::RemoveDropPreviewWin()
@@ -377,6 +412,23 @@ void DragHelperMgr::_AssertIsDraggingTabCorrectly(bool shouldHaveCapture)
     //assert(this->toUpdateAfterDrag != nullptr);
 }
 
+void DragHelperMgr::_AssertIsDraggingNativeCorrectly()
+{
+    assert(this->dragType == DragType::NativeWin);
+    assert(this->winWithMouseCapture == nullptr);
+    assert(this->draggingCursorGraphic == nullptr);
+    assert(this->dropPreviewWin == nullptr);
+    assert(this->dragUndo.empty());
+    assert(this->nodeDragged == nullptr);
+    assert(this->dragNodesInvolved.empty());
+    assert(this->sashDraggedParent == nullptr);
+    assert(this->preDragSashProps.empty());
+    assert(this->tabsBarDrag == nullptr);
+    assert(this->tabDragOwner == nullptr);
+    assert(this->toUpdateAfterDrag == nullptr);
+    assert(draggingSash == nullptr);
+}
+
 void DragHelperMgr::_AssertIsNeutralized()
 {
     // When we're at the point that this function is called,
@@ -650,7 +702,7 @@ void DragHelperMgr::_HandleMouseMoveTab(const wxPoint& delta)
                         s->pos,
                         s->size);
 
-                SetDropPreviewWin(
+                this->SetDropPreviewWin(
                     s->pos,
                     s->size,
                     this->winWhereDragged, 
@@ -773,6 +825,15 @@ void DragHelperMgr::_HandleMouseMoveTab(const wxPoint& delta)
             this->dropPreviewWin->Hide();
         }
     }
+}
+
+void DragHelperMgr::_HandleMouseMoveTopHWND()
+{
+    wxPoint globMousePt = wxGetMousePosition();
+
+	// Find the window that the mouse is over
+	// Make sure it's a TopDockWin
+	// Set the top target
 }
 
 void DragHelperMgr::SetDropPreviewWin(

@@ -80,7 +80,7 @@ public:
 		DragWin
 	};
 
-	static DragHelperMgrPtr dragggingMgr;
+	
 
 protected:
 	

@@ -550,7 +550,7 @@ void TabsBar::OnDraw(wxPaintEvent& evt)
 			true, 
 			isHovering, 
 			this->hoveringOverClose, 
-			DockWin::dragggingMgr != nullptr);
+			DragHelperMgr::HasInst());
 	}
 	else if(this->node->type == Node::Type::Tabs)
 	{
@@ -566,7 +566,7 @@ void TabsBar::OnDraw(wxPaintEvent& evt)
 				isSelected, 
 				isHovering, 
 				this->hoveringOverClose,
-				DockWin::dragggingMgr != nullptr);
+				DragHelperMgr::HasInst());
 		}
 	}
 	else
@@ -610,7 +610,7 @@ void TabsBar::OnMouseLUp(wxMouseEvent& evt)
 {
 	if(this->HasCapture() == true)
 	{
-		assert(DockWin::dragggingMgr != nullptr);
+		assert(DragHelperMgr::HasInst());
 		
 		// TabClickEnd() may destroy/replace us in certain conditions,
 		// so DragHelperMgr will need to be responsible to refreshing
@@ -631,8 +631,8 @@ void TabsBar::OnMouseRDown(wxMouseEvent& evt)
 {
 	if(this->HasCapture() == true)
 	{
-		assert(DockWin::dragggingMgr != nullptr);
-		assert(DockWin::dragggingMgr->tabsBarDrag == this);
+		assert(DragHelperMgr::HasInst());
+		assert(DragHelperMgr::GetInst()->tabsBarDrag == this);
 		this->owner->TabClickCancel();
 		return;
 	}
@@ -721,11 +721,11 @@ void TabsBar::OnMouseCaptureLost(wxMouseCaptureLostEvent& evt)
 void TabsBar::OnMouseChanged(wxMouseCaptureChangedEvent& evt)
 {	
 	// This can be nullptr if we right click the tab and bring up the system menu.
-	if(this->owner->dragggingMgr != nullptr)
+	if(DragHelperMgr::HasInst())
 	{ 
-		if(!this->owner->dragggingMgr->dragFlaggedAsFinished)
+		if(!DragHelperMgr::GetInst()->dragFlaggedAsFinished)
 		{ 
-			this->owner->dragggingMgr->CancelTabDragging(true);
+			DragHelperMgr::GetInst()->CancelTabDragging(true);
 			this->owner->DelegateFinishMouseDrag();
 		}
 	}
