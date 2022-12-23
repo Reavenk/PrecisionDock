@@ -14,8 +14,7 @@
 
 #include "Layout/Node.h"
 #include "CaptureDlg/CaptureDlg.h"
-#include "Dlgs/DlgIntro.h"
-#include "Dlgs/DlgAbout.h"
+#include "Dlgs/DlgInfo.h"
 #include "Utils/mywxUtils.h"
 
 //HHOOK hookListener = NULL;
@@ -188,10 +187,9 @@ bool AppDock::OnInit()
 
     if (AppDock::IsNoticeConfirmed() == false)
     {
-        if(ShowNotificationDlgModal() == true)
-            AppDock::ConfirmNotice();
-        else
-            return false;
+        // Note that if the user doesn't agree to the dialog's terms, the app
+        // will be forced closed.
+        ShowNotificationDlgModal();
     }
 
     this->SpawnEmpty(true);
@@ -766,12 +764,23 @@ bool AppDock::IsToplevelOwned(HWND hwnd)
     return this->ownedWins.find(hwnd) != this->ownedWins.end();
 }
 
-bool AppDock::ShowNotificationDlgModal()
+void AppDock::ShowNotificationDlgModal()
 {
-    DlgIntro dlgIntro;
-    int ret = dlgIntro.ShowModal();
 
-    return (ret == wxID_OK);
+    if (!AppDock::IsNoticeConfirmed())
+    {
+        DlgInfo dlgInfo(
+            DlgInfo::CreateFlag::HasCancelConfirm |
+            DlgInfo::CreateFlag::HasGotchaConfirm |
+            DlgInfo::CreateFlag::HasIntro);
+
+        dlgInfo.ShowModal();
+    }
+    else
+    {
+        DlgInfo dlgInfo(DlgInfo::CreateFlag::Default, 1);
+        dlgInfo.ShowModal();
+    }
 }
 
 void AppDock::ShowAboutDlgModal()
@@ -779,8 +788,9 @@ void AppDock::ShowAboutDlgModal()
     // > ☐ ABOUT_MAIN_54ef27967daf: Application has an About dialog
     // > ☐ ABOUT_MAIN_e45b1a70f019: About dialog is modal.
 
-    DlgAbout dlgAbout;
-    dlgAbout.ShowModal();
+	// !TODO:
+    DlgInfo dlgInfo;
+    dlgInfo.ShowModal();
 }
 
 const char* CONFIGNAME = "PrecisionDock";

@@ -132,6 +132,9 @@
       <AdditionalLibraryDirectories>$(WX_WIDGETS)\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>wxbase31ud.lib;wxmsw31ud_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>bash GenVersionInfo.sh</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -152,6 +155,9 @@
       <AdditionalDependencies>wxbase31u.lib;wxmsw31u_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(WX_WIDGETS)\lib\vc_x64_lib;$(WX_WIDGETS)\lib\vc_x64_dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PreBuildEvent>
+      <Command>bash GenVersionInfo.sh</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\AppDock.h" />
@@ -161,9 +167,9 @@
     <ClInclude Include="src\CaptureDlg\CapDragSelWin.h" />
     <ClInclude Include="src\CaptureDlg\CaptureListItem.h" />
     <ClInclude Include="src\CaptureDlg\CaptureDlg.h" />
-    <ClInclude Include="src\Dlgs\DlgAbout.h" />
-    <ClInclude Include="src\Dlgs\DlgIntro.h" />
+    <ClInclude Include="src\Dlgs\DlgInfo.h" />
     <ClInclude Include="src\DockWin.h" />
+    <ClInclude Include="src\DrawUtils.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\AppRef.h" />
     <ClInclude Include="src\Layout\Layout.h" />
@@ -189,9 +195,9 @@
     <ClCompile Include="src\CaptureDlg\CapDragSelWin.cpp" />
     <ClCompile Include="src\CaptureDlg\CaptureListItem.cpp" />
     <ClCompile Include="src\CaptureDlg\CaptureDlg.cpp" />
-    <ClCompile Include="src\Dlgs\DlgAbout.cpp" />
-    <ClCompile Include="src\Dlgs\DlgIntro.cpp" />
+    <ClCompile Include="src\Dlgs\DlgInfo.cpp" />
     <ClCompile Include="src\DockWin.cpp" />
+    <ClCompile Include="src\DrawUtils.cpp" />
     <ClCompile Include="src\Layout\Layout.cpp" />
     <ClCompile Include="src\Layout\LProps.cpp" />
     <ClCompile Include="src\Layout\Node.cpp" />

@@ -280,7 +280,7 @@ public:
         bool startShown,
         bool reportOnFail = true);
 
-    static bool ShowNotificationDlgModal();
+    static void ShowNotificationDlgModal();
     static void ShowAboutDlgModal();
 
     static bool IsNoticeConfirmed();

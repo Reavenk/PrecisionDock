@@ -51,10 +51,7 @@
     <ClInclude Include="src\CaptureDlg\CaptureListItem.h">
       <Filter>Header Files\CaptureDlg</Filter>
     </ClInclude>
-    <ClInclude Include="src\Dlgs\DlgAbout.h">
-      <Filter>Header Files\Dlgs</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Dlgs\DlgIntro.h">
+    <ClInclude Include="src\Dlgs\DlgInfo.h">
       <Filter>Header Files\Dlgs</Filter>
     </ClInclude>
     <ClInclude Include="src\Layout\Layout.h">
@@ -117,6 +114,9 @@
     <ClInclude Include="src\Utils\OSUtils.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\DrawUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AppDock.cpp">
@@ -140,10 +140,7 @@
     <ClCompile Include="src\Utils\AppUtils.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="src\Dlgs\DlgAbout.cpp">
-      <Filter>Source Files\Dlgs</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Dlgs\DlgIntro.cpp">
+    <ClCompile Include="src\Dlgs\DlgInfo.cpp">
       <Filter>Source Files\Dlgs</Filter>
     </ClCompile>
     <ClCompile Include="src\CaptureDlg\CapDragSelWin.cpp">
@@ -181,6 +178,9 @@
     </ClCompile>
     <ClCompile Include="src\Utils\OSUtils.cpp">
       <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DrawUtils.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

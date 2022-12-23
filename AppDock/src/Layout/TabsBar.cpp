@@ -3,6 +3,7 @@
 #include "../AppDock.h"
 #include <wx/dcbuffer.h>
 #include "Node.h"
+#include "../DrawUtils.h"
 
 #include "TabCloseBtn.xpm"
 
@@ -232,40 +233,7 @@ std::vector<wxPoint> GenerateTabPoints(
 	int barRgnWidth, 
 	const LProps& lp)
 {
-	const float myPI = 3.14159f;
-
-	int tabWidth = tabSz.x;
-	int tabHeight = tabSz.y;
-
-	const int tabBaseline = tabHeight;
-	const int tabPadShank = tabHeight - lp.bevelRad;
-
-	std::vector<wxPoint> tabPts = 
-	{
-		wxPoint(tabX, tabBaseline - 0),
-		wxPoint(tabX, tabBaseline - tabPadShank),
-		wxPoint(tabX + lp.bevelRad + (int)(cos(myPI * 7.0f / 8.0f) * lp.bevelRad),   tabBaseline - (tabPadShank + (int)(sin(myPI * 7.0f / 8.0f) * lp.bevelRad))),
-		wxPoint(tabX + lp.bevelRad + (int)(cos(myPI * 6.0f / 8.0f) * lp.bevelRad),   tabBaseline - (tabPadShank + (int)(sin(myPI * 6.0f / 8.0f) * lp.bevelRad))),
-		wxPoint(tabX + lp.bevelRad + (int)(cos(myPI * 5.0f / 8.0f) * lp.bevelRad),   tabBaseline - (tabPadShank + (int)(sin(myPI * 5.0f / 8.0f) * lp.bevelRad))),
-		wxPoint(tabX + lp.bevelRad + (int)(cos(myPI * 4.0f / 8.0f) * lp.bevelRad),   tabBaseline - (tabPadShank + (int)(sin(myPI * 4.0f / 8.0f) * lp.bevelRad))),
-		//
-		wxPoint(tabX + tabWidth - lp.bevelRad + (int)(cos(myPI * 4.0f / 8.0f) * lp.bevelRad),  tabBaseline - (tabPadShank + (int)(sin(myPI * 4.0f / 8.0f) * lp.bevelRad))),
-		wxPoint(tabX + tabWidth - lp.bevelRad + (int)(cos(myPI * 3.0f / 8.0f) * lp.bevelRad),  tabBaseline - (tabPadShank + (int)(sin(myPI * 3.0f / 8.0f) * lp.bevelRad))),
-		wxPoint(tabX + tabWidth - lp.bevelRad + (int)(cos(myPI * 2.0f / 8.0f) * lp.bevelRad),  tabBaseline - (tabPadShank + (int)(sin(myPI * 2.0f / 8.0f) * lp.bevelRad))),
-		wxPoint(tabX + tabWidth - lp.bevelRad + (int)(cos(myPI * 1.0f / 8.0f) * lp.bevelRad),  tabBaseline - (tabPadShank + (int)(sin(myPI * 1.0f / 8.0f) * lp.bevelRad))),
-		wxPoint(tabX + tabWidth, tabBaseline - tabPadShank),
-		wxPoint(tabX + tabWidth, tabBaseline - 0),
-	};
-
-	if(drawBot)
-	{
-		tabPts.push_back(wxPoint(barRgnWidth,  tabBaseline));
-		tabPts.push_back(wxPoint(barRgnWidth,  tabBaseline + lp.tabPadBot));
-		tabPts.push_back(wxPoint(0,            tabBaseline + lp.tabPadBot));
-		tabPts.push_back(wxPoint(0,            tabBaseline));
-	}
-
-	return tabPts;
+	return GenerateTabPoints(drawBot, lp.tabPadBot, tabSz, tabX, barRgnWidth, lp.bevelRad);
 }
 
 /// <summary>
