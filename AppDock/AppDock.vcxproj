@@ -133,7 +133,7 @@
       <AdditionalDependencies>wxbase31ud.lib;wxmsw31ud_core.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>bash GenVersionInfo.sh</Command>
+      <Command>"C:\Program Files\Git\bin\sh.exe" ./GenVersionInfo.sh</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -156,7 +156,7 @@
       <AdditionalLibraryDirectories>$(WX_WIDGETS)\lib\vc_x64_lib;$(WX_WIDGETS)\lib\vc_x64_dll;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
-      <Command>bash GenVersionInfo.sh</Command>
+      <Command>"C:\Program Files\Git\bin\sh.exe" ./GenVersionInfo.sh</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

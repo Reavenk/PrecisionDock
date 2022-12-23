@@ -3,6 +3,7 @@
 #include "../AppDock.h"
 #include "../DrawUtils.h"
 #include <wx/statline.h>
+#include "../VersionInfo.h"
 
 wxDEFINE_EVENT(TAB_CLICK_EVENT, wxCommandEvent);
 
@@ -356,9 +357,9 @@ void DlgInfo::_AddContentsForAbout()
 	dataGridSizer->AddGrowableCol(2);
 	regionMainSizer->Add(dataGridSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
 	//
-	InsertInfoToGrid(this->contentRegion, dataGridSizer, "Version",			"--");
-	InsertInfoToGrid(this->contentRegion, dataGridSizer, "Build Commit",	"--");
-	InsertInfoToGrid(this->contentRegion, dataGridSizer, "Build Date",		"--");
+	InsertInfoToGrid(this->contentRegion, dataGridSizer, "Version",			GV_VERSION);
+	InsertInfoToGrid(this->contentRegion, dataGridSizer, "Build Commit",	GV_COMMIT);
+	InsertInfoToGrid(this->contentRegion, dataGridSizer, "Build Date",		GV_COMMITTIME);
 
 	InsertHorizontalSplit(this->contentRegion, regionMainSizer);
 
