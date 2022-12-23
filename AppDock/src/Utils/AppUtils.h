@@ -23,4 +23,8 @@ namespace AppUtils
 	/// </summary>
 	/// <param name="win">The window to apply the icon set for.</param>
 	void SetDefaultIcons(wxWindow* win);
+
+	void SetWindowTransparency(wxWindow* win, int alpha);
+
+	void SetWindowTransparency(HWND hwnd, int alpha);
 }

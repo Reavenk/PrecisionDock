@@ -1,5 +1,6 @@
 #include "BarDrop.h"
 #include "DockWin.h"
+#include "Utils/AppUtils.h"
 
 wxBEGIN_EVENT_TABLE(BarDrop, wxFrame)
 	EVT_KEY_DOWN(BarDrop::OnKeyDown)
@@ -16,6 +17,7 @@ BarDrop::BarDrop(wxWindow* parent, DockWin* escapeSink)
 {
 	this->escapeSink = escapeSink;
 	this->SetBackgroundColour(wxColor(0, 255, 0));
+	AppUtils::SetWindowTransparency(this, 100);
 }
 
 void BarDrop::OnKeyDown(wxKeyEvent& evt)

@@ -1,7 +1,7 @@
 ﻿
 #include "DragPreviewOlyWin.h"
 #include "DockWin.h"
-
+#include "Utils/AppUtils.h"
 // > ☐ DRAGOLY_MAIN_735bd5a48d12: Dragging a window in the layout shows a representation of the drag near the cursor.
 // > ☐ DRAGOLY_MAIN_6893e998f2be: Drag overlay to shop showing when the drag operation is complete.
 // > ☐ DRAGOLY_MAIN_6397bbd27efe: Drag overlay to shop showing when the drag operation is cancelled.
@@ -25,6 +25,8 @@ DragPreviewOlyWin::DragPreviewOlyWin(wxWindow * parent, DockWin* escapeSink)
 	// > ☐ DRAGOLY_DISP_8610471ec7fe: Drag overlay to show the icon of the window being dragged.
 
 	this->SetCursor(*wxCROSS_CURSOR);
+
+	AppUtils::SetWindowTransparency(this, 100);
 }
 
 void DragPreviewOlyWin::OnKeyDown(wxKeyEvent& evt)

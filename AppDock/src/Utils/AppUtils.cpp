@@ -31,4 +31,22 @@ namespace AppUtils
         SetIcon(win, IDI_ICON1, false);
         SetIcon(win, IDI_ICON4, true);
     }
+
+    void SetWindowTransparency(wxWindow* win, int alpha)
+    {
+        HWND hwnd = win->GetHWND();
+        SetWindowTransparency(hwnd, alpha);
+    }
+
+    void SetWindowTransparency(HWND hwnd, int alpha)
+    {
+        LONG style = GetWindowLong(hwnd,GWL_EXSTYLE);
+        SetWindowLong(hwnd,GWL_EXSTYLE,style|WS_EX_LAYERED);
+
+        if (! SetLayeredWindowAttributes(hwnd,0, alpha, LWA_ALPHA) )
+        {
+            //DWORD error = GetLastError();
+            wxLogDebug("Could not set window transparency for DragPreviewOlyWin");
+        }
+    }
 }
