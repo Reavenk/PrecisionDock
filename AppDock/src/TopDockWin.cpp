@@ -21,28 +21,52 @@ TopDockWin::TopDockWin(const wxPoint& pos, const wxSize& size)
 
     ++_InstCtr;
 
-    wxMenu* menuFile = new wxMenu;
-    {
-        menuFile->Append((int)CMDID::ReleaseAll,    "Release All",          "Release all windows in this collection");
-        menuFile->Append((int)CMDID::DetachAll,     "Detach All",           "Detach all windows in this collection into their own collections.");
-        menuFile->Append((int)CMDID::CloseAll,      "Close All",            "Close all windows in this collection.");
-        menuFile->Append(wxID_EXIT,                 "Force Close All",      "Force close all windows in this collection.");
-    }
-    wxMenu* menuView = new wxMenu;
-    {
-        menuView->Append((int)CMDID::ToggleStatusbar, "Toggle Statusbar", "Show and hide the status bar (this bar down below)");
-    }
-    wxMenu* menuHelp = new wxMenu;
-    {
-        menuHelp->Append(wxID_ANY, "Homepage"); // Homepage
-        menuHelp->Append(wxID_ANY, "About"); // About
-    }
+    //this->Connect((int)CMDID::ReleaseAll, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(TopDockWin::OnMenu_ReleaseAll), nullptr, this);
 
-    wxMenuBar *menuBar = new wxMenuBar;
-    menuBar->Append( menuFile,  "&File"  );
-    menuBar->Append( menuView,  "&View"  );
-    menuBar->Append( menuHelp,  "&Help"  );
-    SetMenuBar( menuBar );
+    HMENU sysMenu = (HMENU )GetSystemMenu((HWND)this->m_hWnd,  FALSE);
+    int menuPosIns = 0;
+    if (sysMenu != NULL)
+    {
+        // System Menu: MANAGE ALL
+        //////////////////////////////////////////////////
+        HMENU subMenuManip = CreatePopupMenu();
+        if (subMenuManip != NULL)
+        {
+            InsertMenu(sysMenu, menuPosIns, MF_BYPOSITION | MF_POPUP, (UINT_PTR)subMenuManip, TEXT("Manage All"));
+            ++menuPosIns;
+            //
+            InsertMenu(subMenuManip, -1, MF_BYPOSITION | MF_POPUP, (int)CMDID::ReleaseAll,  TEXT("Release All"));
+            InsertMenu(subMenuManip, -1, MF_BYPOSITION | MF_POPUP, (int)CMDID::DetachAll,   TEXT("Detach All All"));
+            InsertMenu(subMenuManip, -1, MF_BYPOSITION | MF_POPUP, (int)CMDID::CloseAll,    TEXT("Close All"));
+            InsertMenu(subMenuManip, -1, MF_BYPOSITION | MF_POPUP, wxID_EXIT,               TEXT("Force Close All"));
+        }
+
+        // System Menu: VIEW
+        //////////////////////////////////////////////////
+        HMENU subMenuView = CreatePopupMenu();
+        if (subMenuView != NULL)
+        {
+            InsertMenu(sysMenu, menuPosIns, MF_BYPOSITION | MF_POPUP, (UINT_PTR)subMenuView, TEXT("View"));
+            ++menuPosIns;
+            //
+            InsertMenu(subMenuView, -1, MF_BYPOSITION | MF_POPUP, (int)CMDID::ToggleStatusbar,  TEXT("Toggle Statusbar"));
+        }
+
+        // System Menu: HELP
+        //////////////////////////////////////////////////
+        HMENU subMenuHelp = CreatePopupMenu();
+        if (subMenuHelp != NULL)
+        {
+            InsertMenu(sysMenu, menuPosIns, MF_BYPOSITION | MF_POPUP, (UINT_PTR)subMenuHelp, TEXT("Help"));
+            ++menuPosIns;
+            //
+            InsertMenu(subMenuHelp, -1, MF_BYPOSITION | MF_POPUP, wxID_ANY,  TEXT("Homepage")); // TODO:
+            InsertMenu(subMenuHelp, -1, MF_BYPOSITION | MF_POPUP, wxID_ANY,  TEXT("About")); // TODO:
+        }
+
+        // Menu horizontal separator before the "Close" at the bottom of the system menu.
+        InsertMenu(sysMenu, 3, MF_BYPOSITION | MF_SEPARATOR, (UINT_PTR)subMenuHelp, TEXT(""));
+    }
 
     this->dockWin = 
         new DockWin(
@@ -59,7 +83,7 @@ TopDockWin::TopDockWin(const wxPoint& pos, const wxSize& size)
     AppDock::GetApp().RegisterTopWin(this, this->GetHWND());
 
     AppUtils::SetDefaultIcons(this);
-    this->UpdateTitlebar();
+    this->UpdateTitlebar(false);
 }
 
 TopDockWin::~TopDockWin()
@@ -123,13 +147,18 @@ void TopDockWin::CloseAllHWNDs()
         SendMessage(hwnd, WM_CLOSE, 0, 0);
 }
 
-void TopDockWin::UpdateTitlebar()
+void TopDockWin::UpdateTitlebar(bool maybeDeleted)
 {
     std::string titlebarStr = "PrecisionDock";
 
     const Node* rootNode = this->dockWin->GetRoot();
     if (rootNode != nullptr && rootNode->type == Node::Type::Window)
+    {
+        if (maybeDeleted && rootNode->Hwnd() == NULL)
+            return;
+
         titlebarStr = std::string("PrDok | ") + rootNode->GetPreferredTabTitlebar();
+    }
 
     this->SetTitle(titlebarStr.c_str());
 }
@@ -171,7 +200,51 @@ TopDockWin * TopDockWin::GetWinAt(const wxPoint& screenMouse, const std::set<Top
 void TopDockWin::OnDockWin_TitleModified(Node* n)
 {
     ASSERT_ISNODEWIN(n);
-    this->UpdateTitlebar();
+    this->UpdateTitlebar(false);
+}
+
+bool TopDockWin::MSWTranslateMessage(WXMSG* msg)
+{
+    if (msg->message == WM_SYSCOMMAND)
+    {
+        switch(msg->wParam)
+        {
+            // For every wparam documented for WM_SYSCOMMAND, we leave alone and 
+            // let the default implementation do whatever with it.
+            // https://learn.microsoft.com/en-us/windows/win32/menurc/wm-syscommand
+        case SC_CLOSE:
+        case SC_CONTEXTHELP:
+        case SC_DEFAULT:
+        case SC_HOTKEY:
+        case SC_HSCROLL:
+        // case SCF_ISSECURE: 
+        //  Except this, t'is a troublemaker!
+        case SC_KEYMENU:
+        case SC_MAXIMIZE:
+        case SC_MINIMIZE:
+        case SC_MONITORPOWER:
+        case SC_MOUSEMENU:
+        case SC_MOVE:
+        case SC_NEXTWINDOW:
+        case SC_PREVWINDOW:
+        case SC_RESTORE:
+        case SC_SCREENSAVE:
+        case SC_SIZE:
+        case SC_TASKLIST:
+        case SC_VSCROLL:
+            break;
+
+        default:
+            // Everything else, we're claiming as ID space we're processing ourselves.
+            // We convert to a menu command
+            wxCommandEvent evt(wxEVT_MENU, msg->wParam);
+            this->ProcessEvent(evt);
+            return true;
+        }
+        
+    }
+    
+    return wxFrame::MSWTranslateMessage(msg);
 }
 
 TopDockWin * TopDockWin::GetWinAt(const wxPoint& screenMouse, TopDockWin* ignore)
@@ -198,19 +271,19 @@ void TopDockWin::OnWindowTitlebarModified(HWND win)
 {
     // See comments at titlebarsToUpdate for more information.
     if(this->dockWin->RefreshWindowTitlebar(win))
-        this->UpdateTitlebar();
+        this->UpdateTitlebar(false);
 }
 
 void TopDockWin::OnDockWin_Added(HWND hwnd, Node* n)
 {
 	AppDock::GetApp()._RegisterCapturedHWND(this, hwnd);
-    this->UpdateTitlebar();
+    this->UpdateTitlebar(false);
 }
 
 void TopDockWin::OnDockWin_Removed(HWND hwnd, LostReason lr)
 {
 	AppDock::GetApp()._UnregisterCapturedHWND(hwnd);
-    this->UpdateTitlebar();
+    this->UpdateTitlebar(true);
 }
 
 void TopDockWin::OnExit(wxCommandEvent& event)

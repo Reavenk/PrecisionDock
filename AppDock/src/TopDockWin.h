@@ -121,7 +121,7 @@ public:
 
     void CloseAllHWNDs();
 
-    void UpdateTitlebar();
+    void UpdateTitlebar(bool maybeDeleted);
 
 public:
     static inline int ClassInstCtr()
@@ -144,6 +144,7 @@ public:
     void OnDockWin_TitleModified(Node* n);
 private:
 
+    bool MSWTranslateMessage(WXMSG* msg) override;
 
     //////////////////////////////////////////////////
     //
