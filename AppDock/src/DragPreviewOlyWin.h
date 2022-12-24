@@ -19,6 +19,8 @@ public:
 	/// </summary>
 	DockWin* escapeSink;
 
+	HWND appBeingDragged;
+
 public:
 	/// <summary>
 	/// Constructor.
@@ -29,7 +31,7 @@ public:
 	/// <param name="escapeSink">
 	/// The DockWin to notify if the Escape key was pressed during the operation.
 	/// </param>
-	DragPreviewOlyWin(wxWindow * parent, DockWin* escapeSink);
+	DragPreviewOlyWin(wxWindow * parent, HWND appBeingDragged, DockWin* escapeSink);
 
 	/// <summary>
 	/// Keyboard presses to handle if the user presses Escape
@@ -42,6 +44,8 @@ public:
 	/// manager.
 	/// </summary>
 	void OnKeyDown(wxKeyEvent& evt);
+
+	void OnPaint(wxPaintEvent& evt);
 
 	DECLARE_EVENT_TABLE();
 };

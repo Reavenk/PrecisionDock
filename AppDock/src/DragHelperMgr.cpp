@@ -761,10 +761,16 @@ void DragHelperMgr::StopCapture(wxWindow* requester, bool fromCaptureLoss)
 void DragHelperMgr::SetDragPreviewOlyWin(const wxPoint& whereAt)
 {
     assert(this->dragType == DragType::Tab);
+    ASSERT_ISNODEWIN(this->nodeDragged);
 
     if(this->draggingCursorGraphic == nullptr)
     {
-        this->draggingCursorGraphic = new DragPreviewOlyWin(this->winWhereDragged, this->winWhereDragged);
+        this->draggingCursorGraphic = 
+            new DragPreviewOlyWin(
+                this->winWhereDragged, 
+                this->nodeDragged->Hwnd(),
+                this->winWhereDragged);
+		
         this->draggingCursorGraphic->SetCursor(*wxCROSS_CURSOR);
         this->draggingCursorGraphic->ShowWithoutActivating();
     }
