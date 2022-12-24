@@ -21,12 +21,11 @@ TopDockWin::TopDockWin(const wxPoint& pos, const wxSize& size)
 
     ++_InstCtr;
 
-    //this->Connect((int)CMDID::ReleaseAll, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(TopDockWin::OnMenu_ReleaseAll), nullptr, this);
-
-    HMENU sysMenu = (HMENU )GetSystemMenu((HWND)this->m_hWnd,  FALSE);
-    int menuPosIns = 0;
+    HMENU sysMenu = (HMENU)GetSystemMenu(this->GetHWND(), FALSE);
     if (sysMenu != NULL)
     {
+        int menuPosIns = 0;
+
         // System Menu: MANAGE ALL
         //////////////////////////////////////////////////
         HMENU subMenuManip = CreatePopupMenu();
@@ -35,10 +34,10 @@ TopDockWin::TopDockWin(const wxPoint& pos, const wxSize& size)
             InsertMenu(sysMenu, menuPosIns, MF_BYPOSITION | MF_POPUP, (UINT_PTR)subMenuManip, TEXT("Manage All"));
             ++menuPosIns;
             //
-            InsertMenu(subMenuManip, -1, MF_BYPOSITION | MF_POPUP, (int)CMDID::ReleaseAll,  TEXT("Release All"));
-            InsertMenu(subMenuManip, -1, MF_BYPOSITION | MF_POPUP, (int)CMDID::DetachAll,   TEXT("Detach All All"));
-            InsertMenu(subMenuManip, -1, MF_BYPOSITION | MF_POPUP, (int)CMDID::CloseAll,    TEXT("Close All"));
-            InsertMenu(subMenuManip, -1, MF_BYPOSITION | MF_POPUP, wxID_EXIT,               TEXT("Force Close All"));
+            InsertMenu(subMenuManip, -1, MF_BYPOSITION, (int)CMDID::ReleaseAll,  TEXT("Release All"));
+            InsertMenu(subMenuManip, -1, MF_BYPOSITION, (int)CMDID::DetachAll,   TEXT("Detach All All"));
+            InsertMenu(subMenuManip, -1, MF_BYPOSITION, (int)CMDID::CloseAll,    TEXT("Close All"));
+            InsertMenu(subMenuManip, -1, MF_BYPOSITION, wxID_EXIT,               TEXT("Force Close All"));
         }
 
         // System Menu: VIEW
@@ -49,7 +48,7 @@ TopDockWin::TopDockWin(const wxPoint& pos, const wxSize& size)
             InsertMenu(sysMenu, menuPosIns, MF_BYPOSITION | MF_POPUP, (UINT_PTR)subMenuView, TEXT("View"));
             ++menuPosIns;
             //
-            InsertMenu(subMenuView, -1, MF_BYPOSITION | MF_POPUP, (int)CMDID::ToggleStatusbar,  TEXT("Toggle Statusbar"));
+            InsertMenu(subMenuView, -1, MF_BYPOSITION, (int)CMDID::ToggleStatusbar,  TEXT("Toggle Statusbar"));
         }
 
         // System Menu: HELP
@@ -60,8 +59,8 @@ TopDockWin::TopDockWin(const wxPoint& pos, const wxSize& size)
             InsertMenu(sysMenu, menuPosIns, MF_BYPOSITION | MF_POPUP, (UINT_PTR)subMenuHelp, TEXT("Help"));
             ++menuPosIns;
             //
-            InsertMenu(subMenuHelp, -1, MF_BYPOSITION | MF_POPUP, wxID_ANY,  TEXT("Homepage")); // TODO:
-            InsertMenu(subMenuHelp, -1, MF_BYPOSITION | MF_POPUP, wxID_ANY,  TEXT("About")); // TODO:
+            InsertMenu(subMenuHelp, -1, MF_BYPOSITION, wxID_ANY,  TEXT("Homepage")); // TODO:
+            InsertMenu(subMenuHelp, -1, MF_BYPOSITION, wxID_ANY,  TEXT("About")); // TODO:
         }
 
         // Menu horizontal separator before the "Close" at the bottom of the system menu.
