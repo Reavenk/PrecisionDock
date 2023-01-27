@@ -8,7 +8,7 @@ This application is not in a usable state. Play with it at your own risk.
 
 The code is designed for Windows, compiled with Visual Studio. Visual Studio 2019 is current target compiler.
 
-The repo requires wxWidgets 3.1.3 to be installed. To specify the location of it to the Visual Studio project, copy the file `AppDock/PerDeveloper._props` and rename it to `PreDeveloper.props`. Open the copied file in a text editor and change the value for the macro `WX_WIDGETS`.
+The repo requires wxWidgets 3.1.3 to be installed. To specify the location of it to the Visual Studio project, copy the file `AppDock/PerDeveloper._props` and rename it to `PerDeveloper.props`. Open the copied file in a text editor and change the value for the macro `WX_WIDGETS`.
 
 # License
 
